@@ -1,5 +1,8 @@
 // token.hpp
 
+#ifndef TOKEN
+#define TOKEN
+
 #include <string>
 #include <vector>
 
@@ -29,3 +32,5 @@ void print_token_stream(std::vector<token> token_stream) {
         std::cout << x.type << ' ';
     std::cout << '\n';
 }
+
+#endif
