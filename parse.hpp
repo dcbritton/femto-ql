@@ -5,45 +5,7 @@
 
 #include <vector>
 #include "token.hpp"
-
-enum node_type {
-    statement,
-    select_clause,
-    from_clause,
-    where_clause,
-    bool_expr,           
-    node_identifier, // column name, table name, alias       
-    node_op_equals,
-    node_int_literal
-};
-
-// this feels like a use for polymorphism -_-
-struct node {
-    node_type type;
-    std::string value; // empty on non-terminal symbols
-    std::vector<node*> components; // empty on terminal symbols
-    node(node_type type) : type(type) {};
-};
-
-void post_order_traversal(node* root) {
-    if (root == nullptr) return;
-
-    for (node* child : root->components) {
-       post_order_traversal(child); 
-    }
-
-    std::cout << root->type << " "; 
-}
-
-void pre_order_traversal(node* root) {
-    if (root == nullptr) return;
-
-    std::cout << root->type << " "; 
-
-    for (node* child : root->components) {
-        pre_order_traversal(child); 
-    }
-}
+#include "node.hpp"
 
 // bool_expr -> ( bool_expr ) | identifier operator_equals int_literal
 node* parse_bool_expr(std::vector<token>::const_iterator& it) {
