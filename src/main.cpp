@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include "token.hpp"
 #include "tokenize.hpp"
 #include "parse.hpp"
@@ -11,7 +12,7 @@ int main() {
     std::vector<token> token_stream = tokenize(statement);
     print_token_stream(token_stream);
 
-    node* ast = parse(token_stream);
+    std::shared_ptr<node> ast = parse(token_stream);
 
     pre_order_traversal(ast);
     std::cout << '\n';

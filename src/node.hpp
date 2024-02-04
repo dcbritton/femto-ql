@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
 
 enum node_type {
     statement,
@@ -22,26 +23,26 @@ enum node_type {
 struct node {
     node_type type;
     std::string value; // empty on non-terminal symbols
-    std::vector<node*> components; // empty on terminal symbols
+    std::vector<std::shared_ptr<node>> components; // empty on terminal symbols
     node(node_type type) : type(type) {};
 };
 
-void post_order_traversal(node* root) {
+void post_order_traversal(std::shared_ptr<node> root) {
     if (root == nullptr) return;
 
-    for (node* child : root->components) {
+    for (std::shared_ptr<node> child : root->components) {
        post_order_traversal(child); 
     }
 
     std::cout << root->type << " "; 
 }
 
-void pre_order_traversal(node* root) {
+void pre_order_traversal(std::shared_ptr<node> root) {
     if (root == nullptr) return;
 
     std::cout << root->type << " "; 
 
-    for (node* child : root->components) {
+    for (std::shared_ptr<node> child : root->components) {
         pre_order_traversal(child); 
     }
 }
