@@ -25,6 +25,7 @@ struct node {
     std::string value; // empty on non-terminal symbols
     std::vector<std::shared_ptr<node>> components; // empty on terminal symbols
     node(node_type type) : type(type) {};
+    node(node_type type, std::vector<std::shared_ptr<node>> vec) : type(type), components(vec) {};
 };
 
 void post_order_traversal(std::shared_ptr<node> root) {
