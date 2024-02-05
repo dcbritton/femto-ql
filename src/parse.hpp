@@ -10,6 +10,8 @@
 
 // bool_expr -> ( bool_expr ) | identifier operator_equals int_literal
 std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
+
+    // (bool_expr)
     if (it->type == open_parenthesis) {
         it++; // consume (
         std::shared_ptr<node> sub_be = parse_bool_expr(it);
@@ -23,37 +25,29 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         return std::make_shared<node>(bool_expr, std::vector<std::shared_ptr<node>>{sub_be});
     }
 
-    // TO DO: flatten
-    if (it->type == identifier) {
-        it++;
-
-        if (it->type == operator_equals) {
-            it++;
-
-            if (it->type == int_literal) {
-                it++;
-                std::vector<std::shared_ptr<node>> temp = { std::make_shared<node>(node_identifier), 
-                                                            std::make_shared<node>(node_op_equals),
-                                                            std::make_shared<node>(node_int_literal)};
-                return std::make_shared<node>(bool_expr, temp);
-            }
-
-            else {
-                std::cout << "Error while parsing boolean expression.\nExpected an int literal after '='.\n";
-                exit(1);
-            }
-        }
-
-        else {
-            std::cout << "Error while parsing boolean expression.\nExpected an '=' after identifier.\n";
-            exit(1);
-        }
-    }
-
+    // identifier operator_equals int_literal
+    if (it->type == identifier) it++;
     else {
         std::cout << "Error while parsing boolean expression.\nExpected an ( or identifier.\n";
         exit(1);
     }
+
+    if (it->type == operator_equals) it++;
+    else {
+        std::cout << "Error while parsing boolean expression.\nExpected an '=' after identifier.\n";
+        exit(1);
+    }
+
+    if (it->type == int_literal) it++;
+    else {
+        std::cout << "Error while parsing boolean expression.\nExpected an int literal after '='.\n";
+        exit(1);
+    }
+
+    std::vector<std::shared_ptr<node>> temp = { std::make_shared<node>(node_identifier), 
+                                                std::make_shared<node>(node_op_equals),
+                                                std::make_shared<node>(node_int_literal) };
+    return std::make_shared<node>(bool_expr, temp);
 }
 
 // where_clause -> kw_where bool_expr
