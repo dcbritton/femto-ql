@@ -78,6 +78,11 @@ std::vector<token> tokenize(const std::string& statement) {
             it++;
         }
 
+        else if (*it == '&') {
+            tokens.push_back(token(operator_and, "&"));
+            it++;
+        }
+
         else {
             std::cout << "Unrecognized token";
             exit(1);
