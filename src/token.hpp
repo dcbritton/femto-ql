@@ -11,11 +11,16 @@ enum token_type {
     kw_from,             
     kw_where,           
     identifier,         // column name, table name, alias       
-    operator_equals,
     int_literal,        
     semicolon,          
     open_parenthesis,
     close_parenthesis,
+    operator_equals,    // do not change order of enums between equals and greater than equals. parse_bool_expr() depends on it
+    operator_not_equals,
+    operator_less_than,
+    operator_less_than_equals,
+    operator_greater_than,
+    operator_greater_than_equals,
     operator_and,
     operator_or
 };

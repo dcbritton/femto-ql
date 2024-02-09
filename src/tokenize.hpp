@@ -82,6 +82,36 @@ std::vector<token> tokenize(const std::string& statement) {
             it++;
             tokens.push_back(token(operator_equals, "=="));
         }
+
+        else if (*it == '!') {
+            it++;
+            if (*it != '=') {
+                std::cout << "Error while tokenizing. Expecting '=' after '!'\n";
+                exit(1);
+            }
+            it++;
+            tokens.push_back(token(operator_not_equals, "!="));
+        }
+
+        else if (*it == '<') {
+            it++;
+            if (*it == '=') {
+                it++;
+                tokens.push_back(token(operator_less_than_equals, "<="));
+            }
+            else
+                tokens.push_back(token(operator_less_than, "<"));
+        }
+
+        else if (*it == '>') {
+            it++;
+            if (*it == '=') {
+                it++;
+                tokens.push_back(token(operator_greater_than_equals, ">="));
+            }
+            else 
+                tokens.push_back(token(operator_greater_than, ">"));
+        }
  
         else if (*it == '&') {
             it++;

@@ -10,6 +10,12 @@ select_clause   ->      kw_select identifier
 from_clause     ->      kw_from identifier
 where_clause    ->      kw_where bool_expr
 bool_expr       ->      open_parenthesis bool_expr close_parenthesis
-                |       identifier operator_equals int_literal
+                |       identifier comparison int_literal
                 |       bool_expr operator_and bool_expr
                 |       bool_expr operator_or bool_expr
+comparison      ->  ==
+                |   !=
+                |   <
+                |   <=
+                |   >
+                |   >=

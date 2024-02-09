@@ -35,9 +35,24 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
             exit(1);
         }
 
-        if (it->type == operator_equals) it++;
+        std::shared_ptr<node> op_comparison;
+        if (it->type >= operator_equals && it->type <= operator_greater_than_equals) {
+            if (it->type == operator_equals)
+                op_comparison = std::make_shared<node>(node_op_equals);
+            if (it->type == operator_not_equals)
+                op_comparison = std::make_shared<node>(node_op_not_equals);
+            if (it->type == operator_less_than)
+                op_comparison = std::make_shared<node>(node_op_less_than);
+            if (it->type == operator_less_than_equals)
+                op_comparison = std::make_shared<node>(node_op_less_than_equals);
+            if (it->type == operator_greater_than)
+                op_comparison = std::make_shared<node>(node_op_greater_than);
+            if (it->type == operator_greater_than_equals)
+                op_comparison = std::make_shared<node>(node_op_greater_than_equals);
+            it++;
+        }
         else {
-            std::cout << "Error while parsing boolean expression.\nExpected an '=' after identifier.\n";
+            std::cout << "Error while parsing boolean expression.\nExpected a comparison after identifier.\n";
             exit(1);
         }
 
@@ -48,7 +63,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         }
     
         std::vector<std::shared_ptr<node>> temp = { std::make_shared<node>(node_identifier), 
-                                                   std::make_shared<node>(node_op_equals),
+                                                   op_comparison,
                                                    std::make_shared<node>(node_int_literal) };
         potential_lhs = std::make_shared<node>(bool_expr, temp);
     }

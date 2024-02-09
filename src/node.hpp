@@ -16,9 +16,14 @@ enum node_type {
     bool_expr,           
     node_identifier, // column name, table name, alias       
     node_op_equals,
-    node_int_literal,
+    node_op_not_equals,
+    node_op_less_than,
+    node_op_less_than_equals,
+    node_op_greater_than,
+    node_op_greater_than_equals,
     node_op_and,
-    node_op_or
+    node_op_or,
+    node_int_literal
 };
 
 // this feels like a use for polymorphism -_-
