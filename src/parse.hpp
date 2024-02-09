@@ -53,10 +53,17 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         potential_lhs = std::make_shared<node>(bool_expr, temp);
     }
 
-    if(it->type == operator_and) {
+    if (it->type == operator_and) {
         it++; // consume operator_and
         std::shared_ptr<node> rhs = parse_bool_expr(it);
         std::vector<std::shared_ptr<node>> t = {potential_lhs, std::make_shared<node>(node_op_and), rhs};
+        return std::make_shared<node>(bool_expr, t);
+    }
+
+    if (it->type == operator_or) {
+        it++; // consume operator_or
+        std::shared_ptr<node> rhs = parse_bool_expr(it);
+        std::vector<std::shared_ptr<node>> t = {potential_lhs, std::make_shared<node>(node_op_or), rhs};
         return std::make_shared<node>(bool_expr, t);
     }
 

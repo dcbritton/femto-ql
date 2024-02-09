@@ -82,7 +82,7 @@ std::vector<token> tokenize(const std::string& statement) {
             it++;
             tokens.push_back(token(operator_equals, "=="));
         }
-
+ 
         else if (*it == '&') {
             it++;
             if (*it != '&') {
@@ -91,6 +91,16 @@ std::vector<token> tokenize(const std::string& statement) {
             }
             it++;
             tokens.push_back(token(operator_and, "&&"));
+        }
+
+        else if (*it == '|') {
+            it++;
+            if (*it != '|') {
+                std::cout << "Error while tokenizing. Expected ||\n";
+                exit(1);
+            }
+            it++;
+            tokens.push_back(token(operator_or, "||"));
         }
 
         else {

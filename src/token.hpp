@@ -16,7 +16,8 @@ enum token_type {
     semicolon,          
     open_parenthesis,
     close_parenthesis,
-    operator_and
+    operator_and,
+    operator_or
 };
 
 struct token {
