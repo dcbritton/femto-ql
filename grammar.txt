@@ -13,9 +13,9 @@ bool_expr       ->      open_parenthesis bool_expr close_parenthesis
                 |       identifier comparison int_literal
                 |       bool_expr operator_and bool_expr
                 |       bool_expr operator_or bool_expr
-comparison      ->  ==
-                |   !=
-                |   <
-                |   <=
-                |   >
-                |   >=
+comparison      ->      ==
+                |       !=
+                |       <
+                |       <=
+                |       >
+                |       >=
