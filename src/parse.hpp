@@ -27,28 +27,13 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         potential_lhs = std::make_shared<node>(bool_expr, std::vector<std::shared_ptr<node>>{sub_be});
     }
 
-    // identifier op_equals int_literal
+    // identifier comparison int_literal
     else if (it->type == identifier) {
-        if (it->type == identifier) it++;
-        else {
-            std::cout << "Error while parsing boolean expression.\nExpected an ( or identifier.\n";
-            exit(1);
-        }
+        it++;
 
         std::shared_ptr<node> op_comparison;
         if (it->type >= op_equals && it->type <= op_greater_than_equals) {
-            if (it->type == op_equals)
-                op_comparison = std::make_shared<node>(op_equals);
-            if (it->type == op_not_equals)
-                op_comparison = std::make_shared<node>(op_not_equals);
-            if (it->type == op_less_than)
-                op_comparison = std::make_shared<node>(op_less_than);
-            if (it->type == op_less_than_equals)
-                op_comparison = std::make_shared<node>(op_less_than_equals);
-            if (it->type == op_greater_than)
-                op_comparison = std::make_shared<node>(op_greater_than);
-            if (it->type == op_greater_than_equals)
-                op_comparison = std::make_shared<node>(op_greater_than_equals);
+            op_comparison = std::make_shared<node>(it->type);
             it++;
         }
         else {
@@ -58,7 +43,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 
         if (it->type == int_literal) it++;
         else {
-            std::cout << "Error while parsing boolean expression.\nExpected an int literal after '='.\n";
+            std::cout << "Error while parsing boolean expression.\nExpected an int literal after '=='.\n";
             exit(1);
         }
     
@@ -66,6 +51,10 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
                                                    op_comparison,
                                                    std::make_shared<node>(int_literal) };
         potential_lhs = std::make_shared<node>(bool_expr, temp);
+    }
+    else {
+        std::cout << "Error while parsing boolean expression.\nExpected an ( or identifier.\n";
+        exit(1);
     }
 
     if (it->type == op_and) {
