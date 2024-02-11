@@ -8,7 +8,7 @@
 #include "token.hpp"
 #include "node.hpp"
 
-// bool_expr -> ( bool_expr ) | identifier operator_equals int_literal
+// bool_expr -> ( bool_expr ) | identifier op_equals int_literal
 std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 
     std::shared_ptr<node> potential_lhs;
@@ -27,7 +27,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         potential_lhs = std::make_shared<node>(bool_expr, std::vector<std::shared_ptr<node>>{sub_be});
     }
 
-    // identifier operator_equals int_literal
+    // identifier op_equals int_literal
     else if (it->type == identifier) {
         if (it->type == identifier) it++;
         else {
@@ -36,19 +36,19 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         }
 
         std::shared_ptr<node> op_comparison;
-        if (it->type >= operator_equals && it->type <= operator_greater_than_equals) {
-            if (it->type == operator_equals)
-                op_comparison = std::make_shared<node>(node_op_equals);
-            if (it->type == operator_not_equals)
-                op_comparison = std::make_shared<node>(node_op_not_equals);
-            if (it->type == operator_less_than)
-                op_comparison = std::make_shared<node>(node_op_less_than);
-            if (it->type == operator_less_than_equals)
-                op_comparison = std::make_shared<node>(node_op_less_than_equals);
-            if (it->type == operator_greater_than)
-                op_comparison = std::make_shared<node>(node_op_greater_than);
-            if (it->type == operator_greater_than_equals)
-                op_comparison = std::make_shared<node>(node_op_greater_than_equals);
+        if (it->type >= op_equals && it->type <= op_greater_than_equals) {
+            if (it->type == op_equals)
+                op_comparison = std::make_shared<node>(op_equals);
+            if (it->type == op_not_equals)
+                op_comparison = std::make_shared<node>(op_not_equals);
+            if (it->type == op_less_than)
+                op_comparison = std::make_shared<node>(op_less_than);
+            if (it->type == op_less_than_equals)
+                op_comparison = std::make_shared<node>(op_less_than_equals);
+            if (it->type == op_greater_than)
+                op_comparison = std::make_shared<node>(op_greater_than);
+            if (it->type == op_greater_than_equals)
+                op_comparison = std::make_shared<node>(op_greater_than_equals);
             it++;
         }
         else {
@@ -62,23 +62,23 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
             exit(1);
         }
     
-        std::vector<std::shared_ptr<node>> temp = { std::make_shared<node>(node_identifier), 
+        std::vector<std::shared_ptr<node>> temp = { std::make_shared<node>(identifier), 
                                                    op_comparison,
-                                                   std::make_shared<node>(node_int_literal) };
+                                                   std::make_shared<node>(int_literal) };
         potential_lhs = std::make_shared<node>(bool_expr, temp);
     }
 
-    if (it->type == operator_and) {
-        it++; // consume operator_and
+    if (it->type == op_and) {
+        it++; // consume op_and
         std::shared_ptr<node> rhs = parse_bool_expr(it);
-        std::vector<std::shared_ptr<node>> t = {potential_lhs, std::make_shared<node>(node_op_and), rhs};
+        std::vector<std::shared_ptr<node>> t = {potential_lhs, std::make_shared<node>(op_and), rhs};
         return std::make_shared<node>(bool_expr, t);
     }
 
-    if (it->type == operator_or) {
-        it++; // consume operator_or
+    if (it->type == op_or) {
+        it++; // consume op_or
         std::shared_ptr<node> rhs = parse_bool_expr(it);
-        std::vector<std::shared_ptr<node>> t = {potential_lhs, std::make_shared<node>(node_op_or), rhs};
+        std::vector<std::shared_ptr<node>> t = {potential_lhs, std::make_shared<node>(op_or), rhs};
         return std::make_shared<node>(bool_expr, t);
     }
 
@@ -102,7 +102,7 @@ std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it
     it++; // consume kw_select
     if (it->type == identifier) {
         it++; // consume identifier
-        std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(node_identifier)};
+        std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(identifier)};
         return std::make_shared<node>(select_clause, temp);
     }
     std::cout << "Expected identifier after \"select\".\n";
@@ -114,7 +114,7 @@ std::shared_ptr<node> parse_from_clause(std::vector<token>::const_iterator& it) 
     it++; // consume kw_from
     if (it->type == identifier) {
         it++; // consume identifier
-        std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(node_identifier)};
+        std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(identifier)};
         return std::make_shared<node>(from_clause, temp);
     }
     std::cout << "Expected identifier after \"from\".\n";

@@ -7,32 +7,15 @@
 #include <string>
 #include <vector>
 #include <memory>
-
-enum node_type {
-    statement,
-    select_clause,
-    from_clause,
-    where_clause,
-    bool_expr,           
-    node_identifier, // column name, table name, alias       
-    node_op_equals,
-    node_op_not_equals,
-    node_op_less_than,
-    node_op_less_than_equals,
-    node_op_greater_than,
-    node_op_greater_than_equals,
-    node_op_and,
-    node_op_or,
-    node_int_literal
-};
+#include "element_type.hpp"
 
 // this feels like a use for polymorphism -_-
 struct node {
-    node_type type;
+    element_type type;
     std::string value; // empty on non-terminal symbols
     std::vector<std::shared_ptr<node>> components; // empty on terminal symbols
-    node(node_type type) : type(type) {};
-    node(node_type type, std::vector<std::shared_ptr<node>> vec) : type(type), components(vec) {};
+    node(element_type type) : type(type) {};
+    node(element_type type, std::vector<std::shared_ptr<node>> vec) : type(type), components(vec) {};
 };
 
 void post_order_traversal(std::shared_ptr<node> root) {

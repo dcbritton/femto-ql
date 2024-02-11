@@ -5,30 +5,12 @@
 
 #include <string>
 #include <vector>
-
-enum token_type {          
-    kw_select,           
-    kw_from,             
-    kw_where,           
-    identifier,         // column name, table name, alias       
-    int_literal,        
-    semicolon,          
-    open_parenthesis,
-    close_parenthesis,
-    operator_equals,    // do not change order of enums between equals and greater than equals. parse_bool_expr() depends on it
-    operator_not_equals,
-    operator_less_than,
-    operator_less_than_equals,
-    operator_greater_than,
-    operator_greater_than_equals,
-    operator_and,
-    operator_or
-};
+#include "element_type.hpp"
 
 struct token {
-    token_type type;
+    element_type type;
     std::string value = "";
-    token(token_type type, std::string value) : type(type), value(value) {}; // member initialization list :)
+    token(element_type type, std::string value) : type(type), value(value) {}; // member initialization list :)
 };
 
 void print_token_stream(std::vector<token> token_stream) {

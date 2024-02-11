@@ -11,7 +11,7 @@
 // tokenizer design based based on DFAs in chapter 2, from Engineering a Compiler 2nd Edition by Cooper & Torczon,
 std::vector<token> tokenize(const std::string& statement) {
 
-    std::unordered_map<std::string, token_type> keyword_map;
+    std::unordered_map<std::string, element_type> keyword_map;
     keyword_map["select"] = kw_select;
     keyword_map["from"] = kw_from;
     keyword_map["where"] = kw_where;
@@ -36,7 +36,7 @@ std::vector<token> tokenize(const std::string& statement) {
             std::string word(it, word_end);
 
             // identifier found
-            std::unordered_map<std::string, token_type>::const_iterator found_keyword = keyword_map.find(word);
+            std::unordered_map<std::string, element_type>::const_iterator found_keyword = keyword_map.find(word);
             if (found_keyword == keyword_map.end()) {
                 tokens.push_back(token(identifier, word));
             }
@@ -80,7 +80,7 @@ std::vector<token> tokenize(const std::string& statement) {
                 exit(1);
             }
             it++;
-            tokens.push_back(token(operator_equals, "=="));
+            tokens.push_back(token(op_equals, "=="));
         }
 
         else if (*it == '!') {
@@ -90,27 +90,27 @@ std::vector<token> tokenize(const std::string& statement) {
                 exit(1);
             }
             it++;
-            tokens.push_back(token(operator_not_equals, "!="));
+            tokens.push_back(token(op_not_equals, "!="));
         }
 
         else if (*it == '<') {
             it++;
             if (*it == '=') {
                 it++;
-                tokens.push_back(token(operator_less_than_equals, "<="));
+                tokens.push_back(token(op_less_than_equals, "<="));
             }
             else
-                tokens.push_back(token(operator_less_than, "<"));
+                tokens.push_back(token(op_less_than, "<"));
         }
 
         else if (*it == '>') {
             it++;
             if (*it == '=') {
                 it++;
-                tokens.push_back(token(operator_greater_than_equals, ">="));
+                tokens.push_back(token(op_greater_than_equals, ">="));
             }
             else 
-                tokens.push_back(token(operator_greater_than, ">"));
+                tokens.push_back(token(op_greater_than, ">"));
         }
  
         else if (*it == '&') {
@@ -120,7 +120,7 @@ std::vector<token> tokenize(const std::string& statement) {
                 exit(1);
             }
             it++;
-            tokens.push_back(token(operator_and, "&&"));
+            tokens.push_back(token(op_and, "&&"));
         }
 
         else if (*it == '|') {
@@ -130,7 +130,7 @@ std::vector<token> tokenize(const std::string& statement) {
                 exit(1);
             }
             it++;
-            tokens.push_back(token(operator_or, "||"));
+            tokens.push_back(token(op_or, "||"));
         }
 
         else {
