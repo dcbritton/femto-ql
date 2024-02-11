@@ -15,6 +15,7 @@ std::vector<token> tokenize(const std::string& statement) {
     keyword_map["select"] = kw_select;
     keyword_map["from"] = kw_from;
     keyword_map["where"] = kw_where;
+    keyword_map["distinct"] = kw_distinct;
 
     // begin traversing input string
     std::vector<token> tokens = {};
@@ -65,6 +66,16 @@ std::vector<token> tokenize(const std::string& statement) {
 
         else if (*it == ')') {
             tokens.push_back(token(close_parenthesis, ")"));
+            it++;
+        }
+
+        else if (*it == '*') {
+            tokens.push_back(token(asterisk, "*"));
+            it++;
+        }
+
+        else if (*it == ',') {
+            tokens.push_back(token(comma, ","));
             it++;
         }
 

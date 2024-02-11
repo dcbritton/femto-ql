@@ -1,1 +1,1 @@
-select col from table where (col == 0) || (col == 2);
+select distinct * from table where (col == 0) || (col == 2);
