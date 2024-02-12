@@ -83,11 +83,8 @@ std::shared_ptr<node> parse_where_clause(std::vector<token>::const_iterator& it)
     }
     it++; // consume kw_where
 
-    if (it->type == identifier || it->type == open_parenthesis) {
-        return std::make_shared<node>(where_clause, std::vector<std::shared_ptr<node>>{parse_bool_expr(it)});
-    }
-    std::cout << "Error while parsing where clause.\nExpected identifier or ( after \"where\".\n";
-    exit(1);
+    std::vector<std::shared_ptr<node>> be = {parse_bool_expr(it)};
+    return std::make_shared<node>(where_clause, be);
 }
 
 // column_list defined by either the pattern identifier, ... identifier or single *
@@ -155,7 +152,7 @@ std::shared_ptr<node> parse_from_clause(std::vector<token>::const_iterator& it) 
         exit(1);
     }
     it++; // consume identifier
-    
+
     std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(identifier)};
     return std::make_shared<node>(from_clause, temp);
 }
