@@ -108,16 +108,26 @@ std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) 
 // select_clause -> kw_select column_list
 std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it) {
     it++; // consume kw_select
+
+    std::vector<std::shared_ptr<node>> sc_components;
+    if (it->type == kw_distinct) {
+        it++;
+        sc_components.push_back(std::make_shared<node>(kw_distinct));
+    }
+
     if (it->type == identifier) {
-        return std::make_shared<node>(select_clause, std::vector<std::shared_ptr<node>>{parse_column_list(it)});
+        sc_components.push_back(parse_column_list(it));
     }
     else if (it->type == asterisk) {
         it++;
-        std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(asterisk)};
-        return std::make_shared<node>(select_clause, temp);
+        sc_components.push_back(std::make_shared<node>(asterisk));
     }
-    std::cout << "Expected identifier after \"select\".\n";
-    exit(1);
+    else {
+        std::cout << "Expected identifier after \"select\".\n";
+        exit(1);
+    }
+
+    return std::make_shared<node>(select_clause, sc_components);
 }
 
 // from_clause -> kw_from identifier

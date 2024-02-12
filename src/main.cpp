@@ -11,7 +11,7 @@ int main() {
     std::string statement;
     input.open("../input.fql");
     getline(input, statement, ';');
-    std::cout << "Query text: " << statement << '\n';
+    std::cout << "Query text:\n" << statement << "\n\n";
 
     std::vector<token> token_stream = tokenize(statement);
     print_token_stream(token_stream);

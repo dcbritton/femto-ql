@@ -8,6 +8,7 @@ The | symbol indicates that a non-terminal may be composed of either one sequenc
 statement       ->      select_clause from_clause where_clause
 
 select_clause   ->      kw_select column_list
+                |       kw_select kw_distinct column_list
 
 column_list     ->      identifier, identifier, ... identifier
                 |       *
