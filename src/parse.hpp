@@ -150,13 +150,14 @@ std::shared_ptr<node> parse_from_clause(std::vector<token>::const_iterator& it) 
     }
     it++; // consume kw_from
 
-    if (it->type == identifier) {
-        it++; // consume identifier
-        std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(identifier)};
-        return std::make_shared<node>(from_clause, temp);
+    if (it->type != identifier) {
+        std::cout << "Expected identifier after \"from\".\n";
+        exit(1);
     }
-    std::cout << "Expected identifier after \"from\".\n";
-    exit(1);
+    it++; // consume identifier
+    
+    std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(identifier)};
+    return std::make_shared<node>(from_clause, temp);
 }
 
 // statement -> select_clause from_clause where_clause
