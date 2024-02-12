@@ -8,6 +8,33 @@
 #include "token.hpp"
 #include "node.hpp"
 
+// order_clause -> kw_order identifier asc/desc | E
+std::shared_ptr<node> parse_order_clause(std::vector<token>::const_iterator& it) {
+    std::vector<std::shared_ptr<node>> oc_components;
+
+    if (it->type != kw_order) {
+        std::cout << "Expecting keyword \"order\"\n";
+        exit(1);
+    }
+    it++; // consume kw_order
+
+    if (it->type != identifier) {
+        std::cout << "Expected identifier after \"order\".\n";
+        exit(1);
+    }
+    it++; // consume identifier
+    oc_components.push_back(std::make_shared<node>(identifier));
+
+    if ( !(it->type == kw_asc || it->type == kw_desc) ) {
+        std::cout << "Expected asc or desc after identifier.\n";
+        exit(1);
+    }
+    oc_components.push_back(std::make_shared<node>(it->type));
+    it++; // consume kw_asc/desc
+        
+    return std::make_shared<node>(order_clause, oc_components);
+}
+
 // bool_expr -> ( bool_expr ) | identifier op_equals int_literal
 std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 
@@ -163,7 +190,8 @@ std::shared_ptr<node> parse(std::vector<token> tokens) {
     std::shared_ptr<node> sc = parse_select_clause(it);
     std::shared_ptr<node> fc = parse_from_clause(it);
     std::shared_ptr<node> wc = parse_where_clause(it);
-    return std::make_shared<node>(statement, std::vector<std::shared_ptr<node>>{sc, fc, wc});
+    std::shared_ptr<node> oc = parse_order_clause(it);
+    return std::make_shared<node>(statement, std::vector<std::shared_ptr<node>>{sc, fc, wc, oc});
 }
 
 #endif

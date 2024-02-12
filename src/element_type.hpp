@@ -12,12 +12,16 @@ enum element_type {
     where_clause = 3,
     bool_expr = 4,
     column_list = 5,
+    order_clause = 6,
 
     // terminals - tokens and leaf nodes
     kw_select = 10,           
     kw_from = 11,             
     kw_where = 12,
     kw_distinct = 13,
+    kw_order = 14,
+    kw_asc = 15,
+    kw_desc = 16,
 
     identifier = 20,         // column name, table name, alias       
     int_literal = 21,        

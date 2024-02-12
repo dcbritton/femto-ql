@@ -1,3 +1,4 @@
 select distinct col, col1
 from table
-where col == 0 || col == 1;
+where col == 0 || col == 1
+order col asc;
