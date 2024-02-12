@@ -1,3 +1,3 @@
-select *
+select distinct col, col1
 from table
 where col == 0 || col == 1;

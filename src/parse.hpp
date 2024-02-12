@@ -76,8 +76,12 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 
 // where_clause -> kw_where bool_expr
 std::shared_ptr<node> parse_where_clause(std::vector<token>::const_iterator& it) {
-    // pass kw_where
-    it++;
+    
+    if (it->type != kw_where) {
+        std::cout << "Expecting keyword \"where\"\n";
+        exit(1);
+    }
+    it++; // consume kw_where
 
     if (it->type == identifier || it->type == open_parenthesis) {
         return std::make_shared<node>(where_clause, std::vector<std::shared_ptr<node>>{parse_bool_expr(it)});
@@ -119,6 +123,11 @@ std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) 
 
 // select_clause -> kw_select column_list
 std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it) {
+
+    if (it->type != kw_select) {
+        std::cout << "Expecting keyword \"select\" in select clause\n";
+        exit(1);
+    }
     it++; // consume kw_select
 
     std::vector<std::shared_ptr<node>> sc_components;
@@ -134,7 +143,13 @@ std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it
 
 // from_clause -> kw_from identifier
 std::shared_ptr<node> parse_from_clause(std::vector<token>::const_iterator& it) {
+    
+    if (it->type != kw_from) {
+        std::cout << "Expecting keyword \"from\"\n";
+        exit(1);
+    }
     it++; // consume kw_from
+
     if (it->type == identifier) {
         it++; // consume identifier
         std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(identifier)};
