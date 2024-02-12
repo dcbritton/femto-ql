@@ -86,23 +86,35 @@ std::shared_ptr<node> parse_where_clause(std::vector<token>::const_iterator& it)
     exit(1);
 }
 
-// column_list -> identifier, identifier, ... identifier
-// definable by the pattern [identifier,]*identifier
+// column_list defined by either the pattern identifier, ... identifier or single *
 std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) {
-    std::vector<std::shared_ptr<node>> identifier_list;
-    while (it->type == identifier && (it + 1)->type == comma) {
-        identifier_list.push_back(std::make_shared<node>(identifier));
-        it += 2;
+
+    std::vector<std::shared_ptr<node>> cl_components;
+    // identifier list path
+    if (it->type == identifier) {
+        while (it->type == identifier && (it + 1)->type == comma) {
+            cl_components.push_back(std::make_shared<node>(identifier));
+            it += 2;
+        }
+        if (it->type == identifier)  {
+            it++;
+            cl_components.push_back(std::make_shared<node>(identifier));
+        }
+        else {
+            std::cout << "Expected the pattern identifier, identifier... identifier in column list\n";
+            exit(1);
+        }
     }
-    if (it->type == identifier)  {
+    else if (it->type == asterisk) {
         it++;
-        identifier_list.push_back(std::make_shared<node>(identifier));
-        return std::make_shared<node>(column_list, identifier_list);
+        cl_components.push_back(std::make_shared<node>(asterisk));
     }
     else {
-        std::cout << "Expected identifier in column list\n";
+        std::cout << "Expected column list to consist of identifiers or a *\n";
         exit(1);
     }
+
+    return std::make_shared<node>(column_list, cl_components);
 }
 
 // select_clause -> kw_select column_list
@@ -114,18 +126,8 @@ std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it
         it++;
         sc_components.push_back(std::make_shared<node>(kw_distinct));
     }
-
-    if (it->type == identifier) {
-        sc_components.push_back(parse_column_list(it));
-    }
-    else if (it->type == asterisk) {
-        it++;
-        sc_components.push_back(std::make_shared<node>(asterisk));
-    }
-    else {
-        std::cout << "Expected identifier after \"select\".\n";
-        exit(1);
-    }
+    
+    sc_components.push_back(parse_column_list(it));
 
     return std::make_shared<node>(select_clause, sc_components);
 }
