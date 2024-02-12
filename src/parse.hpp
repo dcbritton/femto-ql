@@ -86,12 +86,34 @@ std::shared_ptr<node> parse_where_clause(std::vector<token>::const_iterator& it)
     exit(1);
 }
 
-// select_clause -> kw_select identifier
+// column_list -> identifier, identifier, ... identifier
+// definable by the pattern [identifier,]*identifier
+std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) {
+    std::vector<std::shared_ptr<node>> identifier_list;
+    while (it->type == identifier && (it + 1)->type == comma) {
+        identifier_list.push_back(std::make_shared<node>(identifier));
+        it += 2;
+    }
+    if (it->type == identifier)  {
+        it++;
+        identifier_list.push_back(std::make_shared<node>(identifier));
+        return std::make_shared<node>(column_list, identifier_list);
+    }
+    else {
+        std::cout << "Expected identifier in column list\n";
+        exit(1);
+    }
+}
+
+// select_clause -> kw_select column_list
 std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it) {
     it++; // consume kw_select
     if (it->type == identifier) {
-        it++; // consume identifier
-        std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(identifier)};
+        return std::make_shared<node>(select_clause, std::vector<std::shared_ptr<node>>{parse_column_list(it)});
+    }
+    else if (it->type == asterisk) {
+        it++;
+        std::vector<std::shared_ptr<node>> temp = {std::make_shared<node>(asterisk)};
         return std::make_shared<node>(select_clause, temp);
     }
     std::cout << "Expected identifier after \"select\".\n";

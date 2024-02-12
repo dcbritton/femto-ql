@@ -6,16 +6,26 @@ RHS contains the sequence of terminal (tokens) and/or non-terminal symbols that 
 The | symbol indicates that a non-terminal may be composed of either one sequence or the other.
 
 statement       ->      select_clause from_clause where_clause
-select_clause   ->      kw_select identifier
+
+select_clause   ->      kw_select column_list
+
+column_list     ->      identifier, identifier, ... identifier
+                |       *
+
 from_clause     ->      kw_from identifier
+
 where_clause    ->      kw_where bool_expr
-bool_expr       ->      open_parenthesis bool_expr close_parenthesis
+
+bool_expr       ->      ( bool_expr )
                 |       identifier comparison int_literal
-                |       bool_expr operator_and bool_expr
-                |       bool_expr operator_or bool_expr
+                |       bool_expr bool_op bool_expr
+
 comparison      ->      ==
                 |       !=
                 |       <
                 |       <=
                 |       >
                 |       >=
+
+bool_op         ->      &&
+                |       ||

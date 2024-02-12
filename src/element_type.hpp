@@ -11,6 +11,7 @@ enum element_type {
     from_clause = 2,
     where_clause = 3,
     bool_expr = 4,
+    column_list = 5,
 
     // terminals - tokens and leaf nodes
     kw_select = 10,           
