@@ -7,7 +7,7 @@ The | symbol indicates that a non-terminal may be composed of either one sequenc
 
 statement       ->      select_clause from_clause where_clause|ε  order_clause|ε
 
-order_clause    ->      order identifier asc|desc
+order_clause    ->      kw_order identifier asc|desc
 
 select_clause   ->      kw_select kw_distinct|ε column_list
 
