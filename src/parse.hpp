@@ -13,7 +13,7 @@ std::shared_ptr<node> parse_order_clause(std::vector<token>::const_iterator& it)
     std::vector<std::shared_ptr<node>> oc_components;
 
     if (it->type != kw_order) {
-        std::cout << "Expecting keyword \"order\"\n";
+        std::cout << "Expecting keyword \"order\".\n";
         exit(1);
     }
     it++; // consume kw_order
@@ -105,7 +105,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 std::shared_ptr<node> parse_where_clause(std::vector<token>::const_iterator& it) {
     
     if (it->type != kw_where) {
-        std::cout << "Expecting keyword \"where\"\n";
+        std::cout << "Expecting keyword \"where\".\n";
         exit(1);
     }
     it++; // consume kw_where
@@ -129,7 +129,7 @@ std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) 
             cl_components.push_back(std::make_shared<node>(identifier));
         }
         else {
-            std::cout << "Expected the pattern identifier, identifier... identifier in column list\n";
+            std::cout << "Expected the pattern identifier, identifier... identifier in column list.\n";
             exit(1);
         }
     }
@@ -138,7 +138,7 @@ std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) 
         cl_components.push_back(std::make_shared<node>(asterisk));
     }
     else {
-        std::cout << "Expected column list to consist of identifiers or a *\n";
+        std::cout << "Expected column list to consist of identifiers or a *.\n";
         exit(1);
     }
 
@@ -149,7 +149,7 @@ std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) 
 std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it) {
 
     if (it->type != kw_select) {
-        std::cout << "Expecting keyword \"select\" in select clause\n";
+        std::cout << "Expecting keyword \"select\" in select clause.\n";
         exit(1);
     }
     it++; // consume kw_select
@@ -169,7 +169,7 @@ std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it
 std::shared_ptr<node> parse_from_clause(std::vector<token>::const_iterator& it) {
     
     if (it->type != kw_from) {
-        std::cout << "Expecting keyword \"from\"\n";
+        std::cout << "Expecting keyword \"from\".\n";
         exit(1);
     }
     it++; // consume kw_from
