@@ -186,12 +186,28 @@ std::shared_ptr<node> parse_from_clause(std::vector<token>::const_iterator& it) 
 
 // statement -> select_clause from_clause where_clause
 std::shared_ptr<node> parse(std::vector<token> tokens) {
+
     std::vector<token>::const_iterator it = tokens.begin();
-    std::shared_ptr<node> sc = parse_select_clause(it);
-    std::shared_ptr<node> fc = parse_from_clause(it);
-    std::shared_ptr<node> wc = parse_where_clause(it);
-    std::shared_ptr<node> oc = parse_order_clause(it);
-    return std::make_shared<node>(statement, std::vector<std::shared_ptr<node>>{sc, fc, wc, oc});
+
+    // required clauses
+    std::vector<std::shared_ptr<node>> st_components;
+    st_components.push_back(parse_select_clause(it));
+    st_components.push_back(parse_from_clause(it));
+
+    // optional clauses
+    // following token must be kw_where, kw_order, or nothing
+    if (it->type == kw_where || it->type == kw_order || it == tokens.end()) {
+        if (it->type == kw_where) st_components.push_back(parse_where_clause(it));
+        if (it->type == kw_order) st_components.push_back(parse_order_clause(it));
+        if (it == tokens.end()) return std::make_shared<node>(statement, st_components);
+    }
+    else {
+        std::cout << "Expected a where clause, order clause, or end of statement.\n";
+        exit(1);
+    }
+
+    std::cout << "Unexpected text after statement.\n";
+    exit(1);
 }
 
 #endif
