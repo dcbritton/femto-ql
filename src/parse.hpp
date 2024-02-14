@@ -42,8 +42,28 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 
     std::shared_ptr<node> potential_lhs;
 
+    // !(bool-expr)
+    if (it->type == op_not) {
+        it++; // consume !
+        if (it->type != open_parenthesis) {
+            std::cout << "Expected ( after ! in boolean expression.\n";
+            exit(1);
+        }
+        it++; // consume (  
+        
+        std::shared_ptr<node> sub_be = parse_bool_expr(it);
+
+        if (it->type != close_parenthesis) {
+            std::cout << "Unpaired parentheses in boolean expression.\n";
+            exit(1);
+        }
+        it++; // consume )  
+
+        potential_lhs = std::make_shared<node>(bool_expr, std::vector<std::shared_ptr<node>>{std::make_shared<node>(op_not), sub_be});
+    }
+
     // (bool_expr)
-    if (it->type == open_parenthesis) {
+    else if (it->type == open_parenthesis) {
         it++; // consume (
         std::shared_ptr<node> sub_be = parse_bool_expr(it);
 

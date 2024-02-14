@@ -39,6 +39,7 @@ enum element_type {
     op_greater_than_equals = 35,
     op_and = 36,
     op_or = 37,
+    op_not = 38
 };
 
 #endif

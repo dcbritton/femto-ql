@@ -18,7 +18,8 @@ from_clause     ->      kw_from identifier
 
 where_clause    ->      kw_where bool_expr
 
-bool_expr       ->      ( bool_expr )
+bool_expr       ->      (bool_expr)
+                |       !(bool_expr)
                 |       identifier comparison int_literal
                 |       bool_expr bool_op bool_expr
 

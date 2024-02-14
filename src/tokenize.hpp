@@ -99,12 +99,11 @@ std::vector<token> tokenize(const std::string& statement) {
 
         else if (*it == '!') {
             it++;
-            if (*it != '=') {
-                std::cout << "Error while tokenizing. Expecting '=' after '!'\n";
-                exit(1);
+            if (*it == '=') {
+                it++;
+                tokens.push_back(token(op_not_equals, "!="));   
             }
-            it++;
-            tokens.push_back(token(op_not_equals, "!="));
+            tokens.push_back(token(op_not, "!"));
         }
 
         else if (*it == '<') {
