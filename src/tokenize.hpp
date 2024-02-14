@@ -103,7 +103,8 @@ std::vector<token> tokenize(const std::string& statement) {
                 it++;
                 tokens.push_back(token(op_not_equals, "!="));   
             }
-            tokens.push_back(token(op_not, "!"));
+            else 
+                tokens.push_back(token(op_not, "!"));
         }
 
         else if (*it == '<') {
