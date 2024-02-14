@@ -44,14 +44,18 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 
     // !(bool-expr)
     if (it->type == op_not) {
+        std::vector<std::shared_ptr<node>> be_components;
+
+        be_components.push_back(std::make_shared<node>(it->type));
         it++; // consume !
+
         if (it->type != open_parenthesis) {
             std::cout << "Expected ( after ! in boolean expression.\n";
             exit(1);
         }
         it++; // consume (  
         
-        std::shared_ptr<node> sub_be = parse_bool_expr(it);
+        be_components.push_back(parse_bool_expr(it));
 
         if (it->type != close_parenthesis) {
             std::cout << "Unpaired parentheses in boolean expression.\n";
@@ -59,13 +63,15 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         }
         it++; // consume )  
 
-        potential_lhs = std::make_shared<node>(bool_expr, std::vector<std::shared_ptr<node>>{std::make_shared<node>(op_not), sub_be});
+        potential_lhs = std::make_shared<node>(bool_expr, be_components);
     }
 
     // (bool_expr)
     else if (it->type == open_parenthesis) {
+        std::vector<std::shared_ptr<node>> be_components;
+
         it++; // consume (
-        std::shared_ptr<node> sub_be = parse_bool_expr(it);
+        be_components.push_back(parse_bool_expr(it));
 
         if (it->type != close_parenthesis) {
             std::cout << "Unpaired parentheses in boolean expression.\n";
@@ -73,36 +79,35 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         }
         it++; // consume )  
 
-        potential_lhs = std::make_shared<node>(bool_expr, std::vector<std::shared_ptr<node>>{sub_be});
+        potential_lhs = std::make_shared<node>(bool_expr, be_components);
     }
 
     // identifier comparison int_literal
     else if (it->type == identifier) {
-        it++;
+        std::vector<std::shared_ptr<node>> be_components;
 
-        std::shared_ptr<node> op_comparison;
-        if (it->type >= op_equals && it->type <= op_greater_than_equals) {
-            op_comparison = std::make_shared<node>(it->type);
-            it++;
-        }
-        else {
-            std::cout << "Error while parsing boolean expression.\nExpected a comparison after identifier.\n";
+        be_components.push_back(std::make_shared<node>(it->type));
+        it++; // consume identifier
+
+        // check if *it falls within range of comparison operators in enum
+        if (it->type < op_equals || it->type > op_greater_than_equals) {
+            std::cout << "Expected a comparison after identifier.\n";
             exit(1);
         }
+        be_components.push_back(std::make_shared<node>(it->type));
+        it++; // consume comparison
 
-        if (it->type == int_literal) it++;
-        else {
-            std::cout << "Error while parsing boolean expression.\nExpected an int literal after '=='.\n";
+        if (it->type != int_literal) {
+            std::cout << "Expected an int literal after comparison.\n";
             exit(1);
         }
-    
-        std::vector<std::shared_ptr<node>> temp = { std::make_shared<node>(identifier), 
-                                                   op_comparison,
-                                                   std::make_shared<node>(int_literal) };
-        potential_lhs = std::make_shared<node>(bool_expr, temp);
+        be_components.push_back(std::make_shared<node>(it->type));
+        it++; // consume int literal
+
+        potential_lhs = std::make_shared<node>(bool_expr, be_components);
     }
     else {
-        std::cout << "Error while parsing boolean expression.\nExpected an ( or identifier.\n";
+        std::cout << "Expected !, (, or identifier.\n";
         exit(1);
     }
 
