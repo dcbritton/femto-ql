@@ -77,6 +77,19 @@ std::vector<token> tokenize(const std::string& statement) {
             it = number_end;
         }
 
+        else if (*it == '\"') {
+            std::string::const_iterator chars_end = it;
+            chars_end++; // consume "
+            while (*chars_end != '\"') {
+                chars_end++;
+            }
+            chars_end++; // consume ending "
+
+            std::string chars(it, chars_end);
+            tokens.push_back(token(chars_literal, chars));
+            it = chars_end;
+        }
+
         // punctuation and operators
         else if (*it == '(') {
             tokens.push_back(token(open_parenthesis, "("));

@@ -1,4 +1,4 @@
-select distinct tabl.col1, col2 
+select col
 from table
-where (!(i == 0) && !(j != 0))
+where i == "i";
 order col asc;

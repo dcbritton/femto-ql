@@ -24,12 +24,13 @@ enum element_type {
     kw_desc = 16,
 
     identifier = 20,         // column name, table name, alias       
-    int_literal = 21,        
-    semicolon = 22,          
-    open_parenthesis = 23,
-    close_parenthesis = 24,
-    asterisk = 25,
-    comma = 26,
+    int_literal = 21,
+    chars_literal = 22,     // may contain anything but " because it is the delimiter        
+    semicolon = 25,          
+    open_parenthesis = 26,
+    close_parenthesis = 27,
+    asterisk = 28,
+    comma = 29,
 
     op_equals = 30,    // do not change order of enums between equals and greater than equals. parse_bool_expr() depends on it
     op_not_equals = 31,
