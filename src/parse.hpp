@@ -82,7 +82,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         potential_lhs = std::make_shared<node>(bool_expr, be_components);
     }
 
-    // identifier comparison int_literal
+    // identifier comparison int_literal|chars_literal
     else if (it->type == identifier) {
         std::vector<std::shared_ptr<node>> be_components;
 
@@ -97,8 +97,8 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         be_components.push_back(std::make_shared<node>(it->type));
         it++; // consume comparison
 
-        if (it->type != int_literal) {
-            std::cout << "Expected an int literal after comparison.\n";
+        if (it->type != int_literal && it->type != chars_literal) {
+            std::cout << "Expected an int or chars literal after comparison.\n";
             exit(1);
         }
         be_components.push_back(std::make_shared<node>(it->type));
