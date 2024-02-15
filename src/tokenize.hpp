@@ -35,8 +35,24 @@ std::vector<token> tokenize(const std::string& statement) {
 
             // iterate until end of word
             std::string::const_iterator word_end = it;
-            while (isalnum(*word_end)) 
+            while (isalnum(*word_end)) {        
                 word_end++;
+            }
+
+            if (*word_end == '.') {
+                word_end++;
+
+                if (isalpha(*word_end)) {
+                    word_end++;
+                    while(isalnum(*word_end)) {
+                        word_end++;
+                    }
+                }
+                else {
+                    std::cout << "Tokenization error. Expecting alpha after '.'. Had: \'" << *word_end << "\' instead.\n";
+                    exit(1);
+                }
+            }
             std::string word(it, word_end);
 
             // identifier found
@@ -148,7 +164,7 @@ std::vector<token> tokenize(const std::string& statement) {
         }
 
         else {
-            std::cout << "Unrecognized token";
+            std::cout << "Unrecognized token at: " << *it << '\n';
             exit(1);
         }
         
