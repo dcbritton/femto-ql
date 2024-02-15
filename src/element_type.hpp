@@ -25,7 +25,11 @@ enum element_type {
 
     identifier = 20,         // column name, table name, alias       
     int_literal = 21,
-    chars_literal = 22,     // may contain anything but " because it is the delimiter        
+    chars_literal = 22,     // may contain anything but " because it is the delimiter
+    kw_true = 23,           // kw_true and kw_false are placed here because they are "boolean literals"
+    kw_false = 24,
+
+    // punctuation 
     semicolon = 25,          
     open_parenthesis = 26,
     close_parenthesis = 27,

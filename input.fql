@@ -1,4 +1,4 @@
-select col
+select tablename.col, col2
 from table
-where i == "i";
+where col==true||(col2=="isTrue")
 order col asc;

@@ -19,6 +19,8 @@ std::vector<token> tokenize(const std::string& statement) {
     keyword_map["order"] = kw_order;
     keyword_map["asc"] = kw_asc;
     keyword_map["desc"] = kw_desc;
+    keyword_map["true"] = kw_true;
+    keyword_map["false"] = kw_false;
 
     // begin traversing input string
     std::vector<token> tokens = {};
