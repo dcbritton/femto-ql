@@ -7,25 +7,14 @@
 #include <memory>
 #include "token.hpp"
 #include "node.hpp"
+#include "consume.hpp"
 
 // order_clause -> kw_order identifier asc/desc | E
 std::shared_ptr<node> parse_order_clause(std::vector<token>::const_iterator& it) {
 
     std::vector<std::shared_ptr<node>> oc_components;
-
-    if (it->type != kw_order) {
-        std::cout << "Expecting keyword \"order\".\n";
-        exit(1);
-    }
-    oc_components.push_back(std::make_shared<node>(it->type));
-    it++; // consume kw_order
-
-    if (it->type != identifier) {
-        std::cout << "Expected identifier after \"order\".\n";
-        exit(1);
-    }
-    oc_components.push_back(std::make_shared<node>(it->type));
-    it++; // consume identifier
+    consume(kw_order, oc_components, it);
+    consume(identifier, oc_components it);
 
     if ( !(it->type == kw_asc || it->type == kw_desc) ) {
         std::cout << "Expected asc or desc after identifier.\n";
@@ -132,14 +121,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 std::shared_ptr<node> parse_where_clause(std::vector<token>::const_iterator& it) {
     
     std::vector<std::shared_ptr<node>> wc_components;
-
-    if (it->type != kw_where) {
-        std::cout << "Expecting keyword \"where\".\n";
-        exit(1);
-    }
-    wc_components.push_back(std::make_shared<node>(it->type));
-    it++; // consume kw_where
-
+    consume(kw_where, wc_components, it);
     wc_components.push_back(parse_bool_expr(it));
 
     return std::make_shared<node>(where_clause, wc_components);
@@ -176,23 +158,12 @@ std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) 
     return std::make_shared<node>(column_list, cl_components);
 }
 
-// select_clause -> kw_select column_list
+// select_clause -> kw_select kw_distinct|ε column_list
 std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it) {
 
     std::vector<std::shared_ptr<node>> sc_components;
-
-    if (it->type != kw_select) {
-        std::cout << "Expecting keyword \"select\" in select clause.\n";
-        exit(1);
-    }
-    sc_components.push_back(std::make_shared<node>(it->type));
-    it++; // consume kw_select
-
-    if (it->type == kw_distinct) {
-        sc_components.push_back(std::make_shared<node>(it->type));
-        it++;
-    }
-    
+    consume(kw_select, sc_components, it);
+    consume_optional(kw_distinct, sc_components, it);
     sc_components.push_back(parse_column_list(it));
 
     return std::make_shared<node>(select_clause, sc_components);
@@ -200,22 +171,10 @@ std::shared_ptr<node> parse_select_clause(std::vector<token>::const_iterator& it
 
 // from_clause -> kw_from identifier
 std::shared_ptr<node> parse_from_clause(std::vector<token>::const_iterator& it) {
-    
+
     std::vector<std::shared_ptr<node>> fc_components;
-
-    if (it->type != kw_from) {
-        std::cout << "Expecting keyword \"from\".\n";
-        exit(1);
-    }
-    fc_components.push_back(std::make_shared<node>(it->type));
-    it++; // consume kw_from
-
-    if (it->type != identifier) {
-        std::cout << "Expected identifier after \"from\".\n";
-        exit(1);
-    }
-    fc_components.push_back(std::make_shared<node>(it->type));
-    it++; // consume identifier
+    consume(kw_from, fc_components, it);
+    consume(identifier, fc_components, it);
 
     return std::make_shared<node>(from_clause, fc_components);
 }
