@@ -70,11 +70,29 @@ std::vector<token> tokenize(const std::string& statement) {
             it = word_end;
         }
         
-        // potential integer literal
+        // float or integer literal
         else if (isdigit(*it)) {
             std::string::const_iterator number_end = it;
             while (isdigit(*number_end))
                 number_end++;
+            
+            // float
+            if (*number_end == '.') {
+                number_end++; // consume .
+                if (!isdigit(*number_end)) {
+                    std::cout << "Tokenization error. Expecting digit after '.'. Had \'" << *number_end << "\' instead.\n";
+                    exit(1);
+                }
+                while (isdigit(*number_end))
+                    number_end++;
+            
+                std::string number(it, number_end);
+                tokens.push_back(token(float_literal, number));
+                it = number_end;
+                continue;
+            }
+
+            // integer, no internal .
             std::string number(it, number_end);
             tokens.push_back(token(int_literal, number));
             it = number_end;

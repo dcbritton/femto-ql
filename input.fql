@@ -1,4 +1,3 @@
-select tablename.col, col2, col3
+select tablename.col, col2, col3, col4
 from table
-where col ==true ||(col2== "isTrue" ) &&col3 != null
-order col asc;
+where (col3 <= 123.123)||col3 >= 124;

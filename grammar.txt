@@ -20,7 +20,7 @@ where_clause    ->      kw_where bool_expr
 
 bool_expr       ->      (bool_expr)
                 |       !(bool_expr)
-                |       identifier comparison int_literal|chars_literal|kw_true|kw_false
+                |       identifier comparison int_literal|float_literal|chars_literal|kw_true|kw_false
                 |       bool_expr bool_op bool_expr
 
 comparison      ->      ==
