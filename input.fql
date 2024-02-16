@@ -1,3 +1,4 @@
 select distinct table1.col, col2, col3, col4
 from table
-where !(col1 in x) && col2 >= any tableExample;
+where !(col1 in x) && col2 >= any tableExample
+order col2 desc;
