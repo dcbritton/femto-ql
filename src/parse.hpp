@@ -72,27 +72,34 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         potential_lhs = std::make_shared<node>(bool_expr, lhs_components);
     }
 
-    // identifier comparison int_literal|chars_literal
+    // identifier
     else if (it->type == identifier) {
+
         std::vector<std::shared_ptr<node>> lhs_components;
+        consume(identifier, lhs_components, it);
 
-        lhs_components.push_back(std::make_shared<node>(it->type));
-        it++; // consume identifier
+        // kw_in identifier
+        if (it->type == kw_in) {
+            consume(kw_in, lhs_components, it);
+            consume(identifier, lhs_components, it);
+        }
+        // comparison literal
+        else if (it->type >= op_equals && it->type <= op_greater_than_equals) {
+            lhs_components.push_back(std::make_shared<node>(it->type));
+            ++it; // consume comparison
 
-        // check if *it falls within range of comparison operators in enum
-        if (it->type < op_equals || it->type > op_greater_than_equals) {
-            std::cout << "Expected a comparison after identifier.\n";
+            // literal
+            if (it->type < int_literal || it->type > kw_null) {
+                std::cout << "Expected an int, float, chars, or bool literal after comparison.\n";
+                exit(1);
+            }
+            lhs_components.push_back(std::make_shared<node>(it->type));
+            ++it; // consume literal
+        }
+        else {
+            std::cout << "Expected comparison or kw_in after identifier in boolean expression.\n";
             exit(1);
         }
-        lhs_components.push_back(std::make_shared<node>(it->type));
-        ++it; // consume comparison
-
-        if (it->type < int_literal || it->type > kw_null) {
-            std::cout << "Expected an int, float, chars, or bool literal after comparison.\n";
-            exit(1);
-        }
-        lhs_components.push_back(std::make_shared<node>(it->type));
-        ++it; // consume literal
 
         potential_lhs = std::make_shared<node>(bool_expr, lhs_components);
     }

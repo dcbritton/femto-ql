@@ -1,3 +1,3 @@
-select distinct tablename.col, col2, col3, col4
+select distinct table1.col, col2, col3, col4
 from table
-where (col3 <= 123.123)||col3 >= 124;
+where !(col1 in x) && (!(col3 == "hello")||col3 >= 124) || col4 in table2;

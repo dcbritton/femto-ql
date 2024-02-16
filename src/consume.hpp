@@ -11,7 +11,7 @@
 
 void consume(element_type expected_type, std::vector<std::shared_ptr<node>>& components, std::vector<token>::const_iterator& it) {
     if (it->type != expected_type) {
-        std::cout << "Expecting token \" << expected_type << \".\n";
+        std::cout << "Expecting token \"" << expected_type << "\".\n";
         exit(1);
     }
     components.push_back(std::make_shared<node>(it->type));
