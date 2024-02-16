@@ -97,7 +97,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         be_components.push_back(std::make_shared<node>(it->type));
         it++; // consume comparison
 
-        if (it->type < int_literal || it->type > kw_false) {
+        if (it->type < int_literal || it->type > kw_null) {
             std::cout << "Expected an int, chars, or bool literal after comparison.\n";
             exit(1);
         }

@@ -1,4 +1,4 @@
-select tablename.col, col2
+select tablename.col, col2, col3
 from table
-where col==true||(col2=="isTrue")
+where col ==true ||(col2== "isTrue" ) &&col3 != null
 order col asc;

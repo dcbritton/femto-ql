@@ -23,28 +23,29 @@ enum element_type {
     kw_asc = 15,
     kw_desc = 16,
 
-    identifier = 20,         // column name, table name, alias       
-    int_literal = 21,
-    chars_literal = 22,     // may contain anything but " because it is the delimiter
-    kw_true = 23,           // kw_true and kw_false are placed here because they are "boolean literals"
-    kw_false = 24,
+    identifier = 30,         // column name, table name, alias       
+    int_literal = 31,
+    chars_literal = 32,     // may contain anything but " because it is the delimiter
+    kw_true = 33,           // kw_true and kw_false are placed here because they are "boolean literals"
+    kw_false = 34,
+    kw_null = 35,
 
     // punctuation 
-    semicolon = 25,          
-    open_parenthesis = 26,
-    close_parenthesis = 27,
-    asterisk = 28,
-    comma = 29,
+    semicolon = 45,          
+    open_parenthesis = 46,
+    close_parenthesis = 47,
+    asterisk = 48,
+    comma = 49,
 
-    op_equals = 30,    // do not change order of enums between equals and greater than equals. parse_bool_expr() depends on it
-    op_not_equals = 31,
-    op_less_than = 32,
-    op_less_than_equals = 33,
-    op_greater_than = 34,
-    op_greater_than_equals = 35,
-    op_and = 36,
-    op_or = 37,
-    op_not = 38
+    op_equals = 50,    // do not change order of enums between equals and greater than equals. parse_bool_expr() depends on it
+    op_not_equals = 51,
+    op_less_than = 52,
+    op_less_than_equals = 53,
+    op_greater_than = 54,
+    op_greater_than_equals = 55,
+    op_and = 56,
+    op_or = 57,
+    op_not = 58
 };
 
 #endif
