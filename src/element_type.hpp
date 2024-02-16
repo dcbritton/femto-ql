@@ -22,6 +22,8 @@ enum element_type {
     kw_order = 14,
     kw_asc = 15,
     kw_desc = 16,
+    kw_in = 17,
+    
 
     identifier = 30,         // column name, table name, alias       
     int_literal = 31,
