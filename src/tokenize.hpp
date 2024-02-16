@@ -10,6 +10,7 @@
 
 // tokenizer design based based on DFAs in chapter 2, from Engineering a Compiler 2nd Edition by Cooper & Torczon,
 std::vector<token> tokenize(const std::string& statement) {
+    unsigned int line_number = 1;
 
     std::unordered_map<std::string, element_type> keyword_map;
     keyword_map["select"] = kw_select;
@@ -33,7 +34,9 @@ std::vector<token> tokenize(const std::string& statement) {
 
         // ignore all whitespace
         if (isspace(*it)) {
-            it++;
+            if (*it == '\n')
+                ++line_number;
+            ++it;
         }
 
         // potential identifier or keyword, begins with alpha
@@ -64,11 +67,11 @@ std::vector<token> tokenize(const std::string& statement) {
             // identifier found
             std::unordered_map<std::string, element_type>::const_iterator found_keyword = keyword_map.find(word);
             if (found_keyword == keyword_map.end()) {
-                tokens.push_back(token(identifier, word));
+                tokens.push_back(token(identifier, word, line_number));
             }
             // otherwise keyword
             else {
-                tokens.push_back(token(found_keyword->second, word));
+                tokens.push_back(token(found_keyword->second, word, line_number));
             }
             it = word_end;
         }
@@ -90,14 +93,14 @@ std::vector<token> tokenize(const std::string& statement) {
                     number_end++;
             
                 std::string number(it, number_end);
-                tokens.push_back(token(float_literal, number));
+                tokens.push_back(token(float_literal, number, line_number));
                 it = number_end;
                 continue;
             }
 
             // integer, no internal .
             std::string number(it, number_end);
-            tokens.push_back(token(int_literal, number));
+            tokens.push_back(token(int_literal, number, line_number));
             it = number_end;
         }
 
@@ -110,33 +113,33 @@ std::vector<token> tokenize(const std::string& statement) {
             chars_end++; // consume ending "
 
             std::string chars(it, chars_end);
-            tokens.push_back(token(chars_literal, chars));
+            tokens.push_back(token(chars_literal, chars, line_number));
             it = chars_end;
         }
 
         // punctuation and operators
         else if (*it == '(') {
-            tokens.push_back(token(open_parenthesis, "("));
+            tokens.push_back(token(open_parenthesis, "(", line_number));
             it++;
         }
 
         else if (*it == ')') {
-            tokens.push_back(token(close_parenthesis, ")"));
+            tokens.push_back(token(close_parenthesis, ")", line_number));
             it++;
         }
 
         else if (*it == '*') {
-            tokens.push_back(token(asterisk, "*"));
+            tokens.push_back(token(asterisk, "*", line_number));
             it++;
         }
 
         else if (*it == ',') {
-            tokens.push_back(token(comma, ","));
+            tokens.push_back(token(comma, ",", line_number));
             it++;
         }
 
         else if (*it == ';') {
-            tokens.push_back(token(semicolon, ";"));
+            tokens.push_back(token(semicolon, ";", line_number));
             it++;
         }
 
@@ -147,37 +150,37 @@ std::vector<token> tokenize(const std::string& statement) {
                 exit(1);
             }
             it++;
-            tokens.push_back(token(op_equals, "=="));
+            tokens.push_back(token(op_equals, "==", line_number));
         }
 
         else if (*it == '!') {
             it++;
             if (*it == '=') {
                 it++;
-                tokens.push_back(token(op_not_equals, "!="));   
+                tokens.push_back(token(op_not_equals, "!=", line_number));   
             }
             else 
-                tokens.push_back(token(op_not, "!"));
+                tokens.push_back(token(op_not, "!", line_number));
         }
 
         else if (*it == '<') {
             it++;
             if (*it == '=') {
                 it++;
-                tokens.push_back(token(op_less_than_equals, "<="));
+                tokens.push_back(token(op_less_than_equals, "<=", line_number));
             }
             else
-                tokens.push_back(token(op_less_than, "<"));
+                tokens.push_back(token(op_less_than, "<", line_number));
         }
 
         else if (*it == '>') {
             it++;
             if (*it == '=') {
                 it++;
-                tokens.push_back(token(op_greater_than_equals, ">="));
+                tokens.push_back(token(op_greater_than_equals, ">=", line_number));
             }
             else 
-                tokens.push_back(token(op_greater_than, ">"));
+                tokens.push_back(token(op_greater_than, ">", line_number));
         }
  
         else if (*it == '&') {
@@ -187,7 +190,7 @@ std::vector<token> tokenize(const std::string& statement) {
                 exit(1);
             }
             it++;
-            tokens.push_back(token(op_and, "&&"));
+            tokens.push_back(token(op_and, "&&", line_number));
         }
 
         else if (*it == '|') {
@@ -197,7 +200,7 @@ std::vector<token> tokenize(const std::string& statement) {
                 exit(1);
             }
             it++;
-            tokens.push_back(token(op_or, "||"));
+            tokens.push_back(token(op_or, "||", line_number));
         }
 
         else {

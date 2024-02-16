@@ -10,7 +10,9 @@
 struct token {
     element_type type;
     std::string value = "";
-    token(element_type type, std::string value) : type(type), value(value) {}; // member initialization list :)
+    unsigned int line_number = 0;
+    // constructor with member initialization list
+    token(element_type type, std::string value, unsigned int line_number): type(type), value(value), line_number(line_number) {};
 };
 
 void print_token_stream(std::vector<token> token_stream) {
