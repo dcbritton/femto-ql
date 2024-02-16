@@ -83,18 +83,28 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
             consume(kw_in, lhs_components, it);
             consume(identifier, lhs_components, it);
         }
-        // comparison literal
+
+        // comparison
         else if (it->type >= op_equals && it->type <= op_greater_than_equals) {
             lhs_components.push_back(std::make_shared<node>(it->type));
             ++it; // consume comparison
 
-            // literal
-            if (it->type < int_literal || it->type > kw_null) {
-                std::cout << "Expected an int, float, chars, or bool literal after comparison.\n";
+            // literal (incl. null)
+            if (it->type >= int_literal && it->type <= kw_null) {
+                lhs_components.push_back(std::make_shared<node>(it->type));
+                ++it; // consume literal
+            }
+
+            // any|all
+            else if (it->type == kw_any || it->type == kw_all) {
+                lhs_components.push_back(std::make_shared<node>(it->type));
+                ++it; // consume kw_any/kw_all
+                consume(identifier, lhs_components, it);
+            }
+            else {
+                std::cout << "Expected keyword any/all/null or int/float/chars/bool literal after comparison.\n";
                 exit(1);
             }
-            lhs_components.push_back(std::make_shared<node>(it->type));
-            ++it; // consume literal
         }
         else {
             std::cout << "Expected comparison or kw_in after identifier in boolean expression.\n";

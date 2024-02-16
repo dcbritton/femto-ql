@@ -23,6 +23,8 @@ enum element_type {
     kw_asc = 15,
     kw_desc = 16,
     kw_in = 17,
+    kw_any = 18,
+    kw_all = 19,
     
 
     identifier = 30,         // column name, table name, alias       

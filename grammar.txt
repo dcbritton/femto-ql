@@ -21,7 +21,8 @@ where_clause    ->      kw_where bool_expr
 bool_expr       ->      (bool_expr)
                 |       !(bool_expr)
                 |       identifier comparison int_literal|float_literal|chars_literal|kw_true|kw_false
-                |       identifier in identifier
+                |       identifier in identifier            << will need to be table,column pair
+                |       identifier comparison any|all indentifier      << will need to be table,column pair
                 |       bool_expr bool_op bool_expr
 
 comparison      ->      ==
