@@ -145,7 +145,7 @@ public:
         if (it->type == identifier) {
             while (it->type == identifier && (it + 1)->type == comma) {
                 consume(identifier, cl_components);
-                consume(comma, cl_components);
+                discard(comma);
             }
             consume(identifier, cl_components);
         }
