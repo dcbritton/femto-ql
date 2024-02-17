@@ -8,6 +8,16 @@
 #include <vector>
 #include <memory>
 
+void discard(element_type expected_type, std::vector<token>::const_iterator& it) {
+        if (it->type != expected_type) {
+        std::cout << "Parser error on line " << it->line_number 
+                  << ". Expected a(n) " << tokenTypeToString(expected_type) 
+                  << " after " << tokenTypeToString((it-1)->type) << ".\n";
+        exit(1);
+    }
+    ++it; // consume token
+}
+
 void consume(element_type expected_type, std::vector<std::shared_ptr<node>>& components, std::vector<token>::const_iterator& it) {
     if (it->type != expected_type) {
         std::cout << "Parser error on line " << it->line_number 

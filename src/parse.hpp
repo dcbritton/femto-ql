@@ -16,7 +16,7 @@ std::shared_ptr<node> parse_order_clause(std::vector<token>::const_iterator& it)
     consume(kw_order, oc_components, it);
     consume(identifier, oc_components, it);
 
-    if ( !(it->type == kw_asc || it->type == kw_desc) ) {
+    if (it->type != kw_asc && it->type != kw_desc)  {
         std::cout << "Expected asc or desc after identifier.\n";
         exit(1);
     }
@@ -34,40 +34,23 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
 
     // !(bool-expr)
     if (it->type == op_not) {
+
         std::vector<std::shared_ptr<node>> lhs_components;
-
-        lhs_components.push_back(std::make_shared<node>(it->type));
-        it++; // consume !
-
-        if (it->type != open_parenthesis) {
-            std::cout << "Expected ( after ! in boolean expression.\n";
-            exit(1);
-        }
-        it++; // consume (  
-        
+        consume(op_not, lhs_components, it);
+        discard(open_parenthesis, it);
         lhs_components.push_back(parse_bool_expr(it));
-
-        if (it->type != close_parenthesis) {
-            std::cout << "Unpaired parentheses in boolean expression.\n";
-            exit(1);
-        }
-        it++; // consume )  
+        discard(close_parenthesis, it);
 
         potential_lhs = std::make_shared<node>(bool_expr, lhs_components);
     }
 
     // (bool_expr)
     else if (it->type == open_parenthesis) {
-        ++it; // consume (
 
         std::vector<std::shared_ptr<node>> lhs_components;
+        discard(open_parenthesis, it);
         lhs_components.push_back(parse_bool_expr(it));
-
-        if (it->type != close_parenthesis) {
-            std::cout << "Unpaired parentheses in boolean expression.\n";
-            exit(1);
-        }
-        ++it; // consume )  
+        discard(close_parenthesis, it);
 
         potential_lhs = std::make_shared<node>(bool_expr, lhs_components);
     }
@@ -118,6 +101,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         exit(1);
     }
 
+    // && or ||
     if (it->type == op_and || it->type == op_or) {
 
         std::vector<std::shared_ptr<node>> be_components;
@@ -129,6 +113,7 @@ std::shared_ptr<node> parse_bool_expr(std::vector<token>::const_iterator& it) {
         return std::make_shared<node>(bool_expr, be_components);
     }
 
+    // no && or ||
     return potential_lhs;
 }
 
@@ -142,29 +127,22 @@ std::shared_ptr<node> parse_where_clause(std::vector<token>::const_iterator& it)
     return std::make_shared<node>(where_clause, wc_components);
 }
 
-// column_list defined by either the pattern identifier, ... identifier or single *
+// column_list -> identifier, ... identifier 
+//              | *
 std::shared_ptr<node> parse_column_list(std::vector<token>::const_iterator& it) {
 
     std::vector<std::shared_ptr<node>> cl_components;
     // identifier list path
     if (it->type == identifier) {
         while (it->type == identifier && (it + 1)->type == comma) {
-            cl_components.push_back(std::make_shared<node>(identifier));
-            it += 2;
+            consume(identifier, cl_components, it);
+            consume(comma, cl_components, it);
         }
-        if (it->type == identifier)  {
-            it++;
-            cl_components.push_back(std::make_shared<node>(identifier));
-        }
-        else {
-            std::cout << "Expected the pattern identifier, identifier... identifier in column list.\n";
-            exit(1);
-        }
+        consume(identifier, cl_components, it);
     }
-    else if (it->type == asterisk) {
-        it++;
-        cl_components.push_back(std::make_shared<node>(asterisk));
-    }
+    // *
+    else if (it->type == asterisk)
+        consume(asterisk, cl_components, it);
     else {
         std::cout << "Expected column list to consist of identifiers or a *.\n";
         exit(1);
@@ -194,7 +172,7 @@ std::shared_ptr<node> parse_from_clause(std::vector<token>::const_iterator& it) 
     return std::make_shared<node>(from_clause, fc_components);
 }
 
-// statement -> select_clause from_clause where_clause
+//select_clause from_clause where_clause|ε order_clause|ε
 std::shared_ptr<node> parse(std::vector<token> tokens) {
 
     std::vector<token>::const_iterator it = tokens.begin();
