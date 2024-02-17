@@ -1,4 +1,4 @@
 select distinct *   # comment example
 from table
-where !(col1 in x) && col2 >= any tableExample
+where !(col1 == "x") && col2 >= any tableExample
 order col2 desc;

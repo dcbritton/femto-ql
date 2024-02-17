@@ -129,8 +129,13 @@ std::vector<token> tokenize(const std::string& statement) {
         else if (*it == '\"') {
             std::string::const_iterator chars_end = it;
             chars_end++; // consume "
-            while (*chars_end != '\"') {
+            while (*chars_end != '\"' && chars_end != statement.end()) {
                 chars_end++;
+            }
+
+            if (chars_end == statement.end()) {
+                std::cout << "Tokenizer error. Unpaired \" on line " << line_number << ".\n";
+                exit(1);
             }
             chars_end++; // consume ending "
 
@@ -226,7 +231,7 @@ std::vector<token> tokenize(const std::string& statement) {
         }
 
         else {
-            std::cout << "Unrecognized token at: " << *it << '\n';
+            std::cout << "Unrecognized token at: " << *it << " on line " << line_number << '\n';
             exit(1);
         }
         

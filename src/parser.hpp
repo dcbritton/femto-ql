@@ -7,7 +7,6 @@
 #include <memory>
 #include "token.hpp"
 #include "node.hpp"
-#include "consume.hpp"
 
 class Parser {
 private:
@@ -240,7 +239,7 @@ public:
     }
 
     void consume_optional(element_type expected_type, std::vector<std::shared_ptr<node>>& components) {
-        
+
         if (it == tokens.end()) {
             std::cout << "Parser error. Unexpected end of input after " << tokenTypeToString((it-1)->type) << ".\n";
             exit(1);
