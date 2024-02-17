@@ -1,7 +1,7 @@
 # header comment
 
-define tempTable as #dfn
+define tempTable as # dfn
     select distinct col1, col2 # sc
-    from table # fc
+        from table # fc
     where !(col1 == "x") && col2 >= any tableExample # wc
     order col2 desc; #oc

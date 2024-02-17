@@ -14,6 +14,7 @@ void remove_comments(std::string& script) {
     std::string::iterator it = script.begin();
     std::string::iterator comment_end;
     
+    std::cout << "Extracted comments:\n-------------------\n";
     while (it != script.end()) {
         if (it == script.end()) break; // Ensure we don't go past the end
         it = std::find(it, script.end(), '#');
@@ -24,10 +25,51 @@ void remove_comments(std::string& script) {
 
         script.erase(it, comment_end);
     }
+}
 
-    // outputs the whole script with comments removed
-    // expect lots of blank lines if lots of comments
-    std::cout << '\n' << script << "\n\n";
+// outputs the whole script with comments removed, newlines as \n, tabs as \t, and four spaces as \4
+void print_escaped_whitespace(const std::string& script) {
+    std::cout << "Script with removed comments:\n-----------------------------\n";
+    for (auto sit = script.begin(); sit != script.end(); ++sit) {
+        // newline to "\\n"
+        if (*sit == '\n' ) {
+            std::cout << "\\n";
+            continue;
+        }
+        // 
+        if (*sit == '\t' ) {
+            std::cout << "\\t";
+            continue;
+        }
+        else if (*sit == ' ') {
+            auto tab_end = sit;
+            while (*tab_end == ' ' && tab_end - sit < 4)
+                ++tab_end;
+            auto spaces = std::string(sit, tab_end);
+            if (spaces.length() == 4)
+                std::cout << "\\4";
+            if (spaces.length() < 4) 
+                std::cout << spaces;
+            sit = tab_end - 1;
+            continue;
+        }
+        std::cout << *sit;
+    }
+    std::cout << "\n\n";
+}
+
+// print token stream
+void print_token_stream(const std::vector<token>& token_stream) {
+
+    std::cout << "Token stream:\n-------------\n";
+    std::cout << "Values: ";
+    for (auto x : token_stream) 
+        std::cout << x.value << ' ';
+    std::cout << '\n';
+    std::cout << "Types: ";
+    for (auto x : token_stream) 
+        std::cout << x.type << ' ';
+    std::cout << "\n\n";
 }
 
 // tokenizer design based based on DFAs in chapter 2, from Engineering a Compiler 2nd Edition by Cooper & Torczon,
