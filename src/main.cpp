@@ -3,7 +3,7 @@
 #include <memory>
 #include "token.hpp"
 #include "tokenize.hpp"
-#include "parse.hpp"
+#include "parser.hpp"
 
 int main() {
     
@@ -17,8 +17,10 @@ int main() {
     std::vector<token> token_stream = tokenize(statement);
     print_token_stream(token_stream);
 
+    Parser p(token_stream);
+
     std::cout << '\n';
-    std::shared_ptr<node> ast = parse(token_stream);
+    std::shared_ptr<node> ast = p.parse_selection();
 
     std::cout << '\n';
     std::cout << "Pre-order traversal: ";

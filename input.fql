@@ -1,8 +1,4 @@
-# Header comment
-# This script contains an intentional error in order to
-# highlight a bug on line 8
-
-select distinct *
+select distinct *   # comment example
 from table
 where !(col1 in x) && col2 >= any tableExample
-order #col2 desc;
+order col2 desc;
