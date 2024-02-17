@@ -13,6 +13,7 @@ int main() {
     getline(input, statement, ';');
     // std::cout << "Query text:\n" << statement << "\n\n";
 
+    remove_comments(statement);
     std::vector<token> token_stream = tokenize(statement);
     print_token_stream(token_stream);
 
