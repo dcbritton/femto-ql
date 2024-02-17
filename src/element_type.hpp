@@ -56,41 +56,50 @@ enum element_type {
 
 std::string tokenTypeToString(element_type type) {
     switch (type) {
-        case kw_select: return "kw_select";
-        case kw_from: return "kw_from";
-        case kw_where: return "kw_where";
-        case kw_distinct: return "kw_distinct";
-        case kw_order: return "kw_order";
-        case kw_asc: return "kw_asc";
-        case kw_desc: return "kw_desc";
-        case kw_in: return "kw_in";
-        case kw_any: return "kw_any";
-        case kw_all: return "kw_all";
+        
+        case statement: return "statement";
+        case select_clause: return "select clause";
+        case from_clause: return "from clause";
+        case where_clause: return "where clause";
+        case bool_expr: return "boolean expression";
+        case column_list: return "column list";
+        case order_clause: return "order clause";
+
+        case kw_select: return "select";
+        case kw_from: return "from";
+        case kw_where: return "where";
+        case kw_distinct: return "distinct";
+        case kw_order: return "order";
+        case kw_asc: return "asc";
+        case kw_desc: return "desc";
+        case kw_in: return "in";
+        case kw_any: return "any";
+        case kw_all: return "all";
 
         case identifier: return "identifier";
-        case int_literal: return "int_literal";
-        case chars_literal: return "chars_literal";
-        case float_literal: return "float_literal";
-        case kw_true: return "kw_true";
-        case kw_false: return "kw_false";
-        case kw_null: return "kw_null";
+        case int_literal: return "int literal";
+        case chars_literal: return "chars literal";
+        case float_literal: return "float literal";
+        case kw_true: return "true";
+        case kw_false: return "false";
+        case kw_null: return "null";
 
         case semicolon: return "semicolon";
-        case open_parenthesis: return "open_parenthesis";
-        case close_parenthesis: return "close_parenthesis";
+        case open_parenthesis: return "open parenthesis";
+        case close_parenthesis: return "close parenthesis";
         case asterisk: return "asterisk";
         case comma: return "comma";
         
-        case op_equals: return "op_equals";
-        case op_not_equals: return "op_not_equals";
-        case op_less_than: return "op_less_than";
-        case op_less_than_equals: return "op_less_than_equals";
-        case op_greater_than: return "op_greater_than";
-        case op_greater_than_equals: return "op_greater_than_equals";
+        case op_equals: return "==";
+        case op_not_equals: return "!=";
+        case op_less_than: return "<";
+        case op_less_than_equals: return "<=";
+        case op_greater_than: return ">";
+        case op_greater_than_equals: return ">=";
 
-        case op_and: return "op_and";
-        case op_or: return "op_or";
-        case op_not: return "op_not";
+        case op_and: return "&&";
+        case op_or: return "||";
+        case op_not: return "!";
 
         default: return "Unknown type";
     }

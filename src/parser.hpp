@@ -12,7 +12,7 @@ class Parser {
 private:
     std::vector<token> tokens = {};
     std::vector<token>::const_iterator it;
-    element_type current_non_terminal;
+    element_type current_non_terminal = statement;
 public:
 
     Parser(std::vector<token> token_stream) 
@@ -20,13 +20,17 @@ public:
 
     // order_clause -> kw_order identifier asc/desc | E
     std::shared_ptr<node> parse_order_clause() {
+        current_non_terminal = order_clause;
 
         std::vector<std::shared_ptr<node>> oc_components;
         consume(kw_order, oc_components);
         consume(identifier, oc_components);
 
         if (it->type != kw_asc && it->type != kw_desc)  {
-            std::cout << "Expected asc or desc after identifier.\n";
+            std::cout << "Parser error on line " << it->line_number 
+                      << ". Expected a column list or * after "
+                      << tokenTypeToString((it-1)->type)
+                      << " in order clause.\n";
             exit(1);
         }
         oc_components.push_back(std::make_shared<node>(it->type));
@@ -37,6 +41,7 @@ public:
 
     // bool_expr -> ( bool_expr ) | identifier op_equals int_literal
     std::shared_ptr<node> parse_bool_expr() {
+        current_non_terminal = bool_expr;
 
         // anticipate that this node may be the lefthand side of an expression with && or ||
         std::shared_ptr<node> potential_lhs;
@@ -94,19 +99,28 @@ public:
                     consume(identifier, lhs_components);
                 }
                 else {
-                    std::cout << "Expected keyword any/all/null or int/float/chars/bool literal after comparison.\n";
+                    std::cout << "Parser error on line " << it->line_number 
+                              << ". Expected a keyword any/all/null or a(n) int/float/chars/bool literal after "
+                              << tokenTypeToString((it-1)->type)
+                              << " in boolean expression.\n";
                     exit(1);
                 }
             }
             else {
-                std::cout << "Expected comparison or kw_in after identifier in boolean expression.\n";
+                std::cout << "Parser error on line " << it->line_number 
+                          << ". Expected a keyword in or a comparison after "
+                          << tokenTypeToString((it-1)->type)
+                          << " in boolean expression.\n";
                 exit(1);
             }
 
             potential_lhs = std::make_shared<node>(bool_expr, lhs_components);
         }
         else {
-            std::cout << "Expected !, (, or identifier.\n";
+            std::cout << "Parser error on line " << it->line_number 
+                      << ". Expected !, (, or an identifier after "
+                      << tokenTypeToString((it-1)->type)
+                      << " in boolean expression.\n";
             exit(1);
         }
 
@@ -128,6 +142,7 @@ public:
 
     // where_clause -> kw_where bool_expr
     std::shared_ptr<node> parse_where_clause() {
+        current_non_terminal = where_clause;
         
         std::vector<std::shared_ptr<node>> wc_components;
         consume(kw_where, wc_components);
@@ -139,6 +154,7 @@ public:
     // column_list -> identifier, ... identifier 
     //              | *
     std::shared_ptr<node> parse_column_list() {
+        current_non_terminal = column_list;
 
         std::vector<std::shared_ptr<node>> cl_components;
         // identifier list path
@@ -153,7 +169,10 @@ public:
         else if (it->type == asterisk)
             consume(asterisk, cl_components);
         else {
-            std::cout << "Expected column list to consist of identifiers or a *.\n";
+            std::cout << "Parser error on line " << it->line_number 
+                      << ". Expected a column list or * after "
+                      << tokenTypeToString((it-1)->type)
+                      << " in select clause.\n";
             exit(1);
         }
 
@@ -162,6 +181,7 @@ public:
 
     // select_clause -> kw_select kw_distinct|ε column_list
     std::shared_ptr<node> parse_select_clause() {
+        current_non_terminal = select_clause;
 
         std::vector<std::shared_ptr<node>> sc_components;
         consume(kw_select, sc_components);
@@ -173,6 +193,7 @@ public:
 
     // from_clause -> kw_from identifier
     std::shared_ptr<node> parse_from_clause() {
+        current_non_terminal = from_clause;
 
         std::vector<std::shared_ptr<node>> fc_components;
         consume(kw_from, fc_components);
@@ -214,8 +235,9 @@ public:
 
         if (it->type != expected_type) {
             std::cout << "Parser error on line " << it->line_number 
-                    << ". Expected a(n) " << tokenTypeToString(expected_type) 
-                    << " after " << tokenTypeToString((it-1)->type) << ".\n";
+                      << ". Expected a(n) " << tokenTypeToString(expected_type) 
+                      << " after " << tokenTypeToString((it-1)->type)
+                      << " in " << tokenTypeToString(current_non_terminal) << ".\n";
             exit(1);
         }
         ++it; // consume token
@@ -230,8 +252,9 @@ public:
 
         if (it->type != expected_type) {
             std::cout << "Parser error on line " << it->line_number 
-                    << ". Expected a(n) " << tokenTypeToString(expected_type) 
-                    << " after " << tokenTypeToString((it-1)->type) << ".\n";
+                      << ". Expected a(n) " << tokenTypeToString(expected_type) 
+                      << " after " << tokenTypeToString((it-1)->type)
+                      << " in " << tokenTypeToString(current_non_terminal) << ".\n";
             exit(1);
         }
         components.push_back(std::make_shared<node>(it->type));
