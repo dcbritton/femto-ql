@@ -6,13 +6,15 @@
 enum element_type {
     
     // non-terminals - specific to internal nodes
-    statement = 0,
-    select_clause = 1,
-    from_clause = 2,
-    where_clause = 3,
-    bool_expr = 4,
-    column_list = 5,
-    order_clause = 6,
+    script = 0,
+    definition = 1,
+    selection = 2,
+    select_clause = 3,
+    column_list = 4,
+    from_clause = 5,
+    where_clause = 6,
+    bool_expr = 7,
+    order_clause = 8,
 
     // terminals - tokens and leaf nodes
     kw_select = 10,           
@@ -25,8 +27,9 @@ enum element_type {
     kw_in = 17,
     kw_any = 18,
     kw_all = 19,
+    kw_define = 20,
+    kw_as = 21,
     
-
     identifier = 30,         // column name, table name, alias       
     int_literal = 31,
     chars_literal = 32,     // may contain anything but " because it is the delimiter
@@ -57,13 +60,15 @@ enum element_type {
 std::string tokenTypeToString(element_type type) {
     switch (type) {
         
-        case statement: return "statement";
+        case selection: return "selection";
         case select_clause: return "select clause";
         case from_clause: return "from clause";
         case where_clause: return "where clause";
         case bool_expr: return "boolean expression";
         case column_list: return "column list";
         case order_clause: return "order clause";
+
+        case definition: return "definition";
 
         case kw_select: return "select";
         case kw_from: return "from";
@@ -75,6 +80,8 @@ std::string tokenTypeToString(element_type type) {
         case kw_in: return "in";
         case kw_any: return "any";
         case kw_all: return "all";
+        case kw_define: return "define";
+        case kw_as: return "as";
 
         case identifier: return "identifier";
         case int_literal: return "int literal";

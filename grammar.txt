@@ -5,7 +5,11 @@ LHS is always a non-terminal symbol.
 RHS contains the sequence of terminal (tokens) and/or non-terminal symbols that make up the non-terminal on the left.
 The | symbol indicates that a non-terminal may be composed of either one sequence or the other.
 
-statement       ->      select_clause from_clause where_clause|ε  order_clause|ε
+script          ->      definition | selection
+
+definition      ->      kw_define identifier kw_as selection
+
+selection       ->      select_clause from_clause where_clause|ε  order_clause|ε
 
 order_clause    ->      kw_order identifier asc|desc
 

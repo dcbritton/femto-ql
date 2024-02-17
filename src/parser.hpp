@@ -12,13 +12,40 @@ class Parser {
 private:
     std::vector<token> tokens = {};
     std::vector<token>::const_iterator it;
-    element_type current_non_terminal = statement;
+    element_type current_non_terminal = script;
 public:
 
     Parser(std::vector<token> token_stream) 
         : tokens(token_stream), it(tokens.begin()) {};
 
-    // order_clause -> kw_order identifier asc/desc | E
+    std::shared_ptr<node> parse_script() {
+        current_non_terminal = script;
+        std::vector<std::shared_ptr<node>> script_components;
+        if (it->type == kw_define)
+            script_components.push_back(parse_definition());
+        else if (it->type == kw_select)
+            script_components.push_back(parse_selection());
+        else {
+            std::cout << "Bad script start.\n";
+            exit(1);
+        }
+
+        return std::make_shared<node>(script, script_components);
+    }
+
+    // definition -> kw_define identifier kw_as selection
+    std::shared_ptr<node> parse_definition() {
+        current_non_terminal = definition;
+        std::vector<std::shared_ptr<node>> dfn_components;
+        consume(kw_define, dfn_components);
+        consume(identifier, dfn_components);
+        consume(kw_as, dfn_components);
+        dfn_components.push_back(parse_selection());
+
+        return std::make_shared<node>(definition, dfn_components);
+    }
+
+    // order_clause -> kw_order identifier asc/desc
     std::shared_ptr<node> parse_order_clause() {
         current_non_terminal = order_clause;
 
@@ -39,7 +66,11 @@ public:
         return std::make_shared<node>(order_clause, oc_components);
     }
 
-    // bool_expr -> ( bool_expr ) | identifier op_equals int_literal
+    // bool_expr -> !|ε ( bool_expr ) 
+    //              | identifier comparison literal 
+    //              | identifier in identifier
+    //              | identifier comparison any|all identifier
+    //              | bool_expr bool_op bool_expr
     std::shared_ptr<node> parse_bool_expr() {
         current_non_terminal = bool_expr;
 
@@ -151,8 +182,7 @@ public:
         return std::make_shared<node>(where_clause, wc_components);
     }
 
-    // column_list -> identifier, ... identifier 
-    //              | *
+    // column_list -> identifier, ... identifier | *
     std::shared_ptr<node> parse_column_list() {
         current_non_terminal = column_list;
 
@@ -202,7 +232,7 @@ public:
         return std::make_shared<node>(from_clause, fc_components);
     }
 
-    //select_clause from_clause where_clause|ε order_clause|ε
+    // select_clause from_clause where_clause|ε order_clause|ε
     std::shared_ptr<node> parse_selection() {
 
         // required clauses
@@ -215,14 +245,14 @@ public:
         if (it->type == kw_where || it->type == kw_order || it == tokens.end()) {
             if (it->type == kw_where) st_components.push_back(parse_where_clause());
             if (it->type == kw_order) st_components.push_back(parse_order_clause());
-            if (it == tokens.end()) return std::make_shared<node>(statement, st_components);
+            if (it == tokens.end()) return std::make_shared<node>(selection, st_components);
         }
         else {
-            std::cout << "Expected a where clause, order clause, or end of statement.\n";
+            std::cout << "Expected a where clause, order clause, or end of selection.\n";
             exit(1);
         }
 
-        std::cout << "Unexpected text after statement.\n";
+        std::cout << "Unexpected text after selection.\n";
         exit(1);
     }
 

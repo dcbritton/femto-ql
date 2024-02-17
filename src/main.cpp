@@ -20,7 +20,7 @@ int main() {
     Parser p(token_stream);
 
     std::cout << '\n';
-    std::shared_ptr<node> ast = p.parse_selection();
+    std::shared_ptr<node> ast = p.parse_script();
 
     std::cout << '\n';
     std::cout << "Pre-order traversal: ";
