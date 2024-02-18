@@ -1,11 +1,17 @@
 # header comment
 
+# definition for t3
 define t3 as
     join t1, t2 on t1.x == t2.x
-    
-define t5 as 
-    select distinct *
-    from t3
-    where t5.x > 1
 
+# definition for t5
+define t5 as 
+    select distinct col1, col2
+    from t3
+    where t5.x > 1 && t5.z >= all t5.z || t5.z == 1.12 || !(t5.z == "") || (t5.z in t6.x)
+    order t5.x asc
+
+# output table
 union t5, t6
+
+# end

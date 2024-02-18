@@ -58,7 +58,7 @@ public:
             dfn_components.push_back(parse_join_expr());
         // set_expr
         else if (it->type == kw_union || kw_intersect)
-            dfn_components.push_back(parse_join_expr());
+            dfn_components.push_back(parse_set_expr());
         else {
             std::cout << "Parser error on line " << it->line_number 
                       << ". Expected a selection, join expression, or set expression after as in definition.\n";
@@ -327,7 +327,9 @@ public:
     void discard(element_type expected_type) {
 
         if (it == tokens.end()) {
-            std::cout << "Parser error. Unexpected end of input after " << tokenTypeToString((it-1)->type) << ".\n";
+            std::cout << "Parser error on line " << (it-1)->line_number
+                      << ". Unexpected end of input after " << tokenTypeToString((it-1)->type) 
+                      << " in " << current_non_terminal << ".\n";
             exit(1);
         }
 
@@ -344,7 +346,9 @@ public:
     void consume(element_type expected_type, std::vector<std::shared_ptr<node>>& components) {
 
         if (it == tokens.end()) {
-            std::cout << "Parser error. Unexpected end of input after " << tokenTypeToString((it-1)->type) << ".\n";
+            std::cout << "Parser error on line " << (it-1)->line_number
+                      << ". Unexpected end of input after " << tokenTypeToString((it-1)->type) 
+                      << " in " << current_non_terminal << ".\n";
             exit(1);
         }
 
@@ -362,7 +366,9 @@ public:
     void consume_optional(element_type expected_type, std::vector<std::shared_ptr<node>>& components) {
 
         if (it == tokens.end()) {
-            std::cout << "Parser error. Unexpected end of input after " << tokenTypeToString((it-1)->type) << ".\n";
+            std::cout << "Parser error on line " << (it-1)->line_number
+                      << ". Unexpected end of input after " << tokenTypeToString((it-1)->type) 
+                      << " in " << current_non_terminal << ".\n";
             exit(1);
         }
 

@@ -5,6 +5,7 @@
 #include "token.hpp"
 #include "tokenize.hpp"
 #include "parser.hpp"
+#include "graph_viz.hpp"
 
 int main() {
     
@@ -32,6 +33,8 @@ int main() {
     std::cout << "Post-order: ";
     post_order_traversal(ast);
     std::cout << '\n';
+
+    make_dotfile(ast, "../dotfile.txt");
 
     std::cout << "\nProgram has ended properly.\n";
     input.close();
