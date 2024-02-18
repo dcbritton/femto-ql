@@ -1,4 +1,4 @@
 # header comment
 
 define tempTable as # dfn
-    t1 join t2 on t1.x == t2.y ; # je
+    t1 intersect t2; #union

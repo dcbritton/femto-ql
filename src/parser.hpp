@@ -44,13 +44,26 @@ public:
         consume(identifier, dfn_components);
         consume(kw_as, dfn_components);
 
+        // selection
         if (it->type == kw_select)
             dfn_components.push_back(parse_selection());
+        
+        // join_expr or set_expr
         else if (it->type == identifier)
-            dfn_components.push_back(parse_join_expr());
+            // join_expr
+            if ((it+1)->type == kw_join)
+                dfn_components.push_back(parse_join_expr());
+            // set_expr
+            else if ((it+1)->type == kw_union || (it+1)->type == kw_intersect)
+                dfn_components.push_back(parse_set_expr());
+            else {
+                std::cout << "Parser error on line " << it->line_number 
+                          << ". Expected a join, union, or interstect after identifier in definition.\n";
+                exit(1);
+            }
         else {
             std::cout << "Parser error on line " << it->line_number 
-                      << "Expected a selection or join expression after as in definition.\n";
+                      << ". Expected a selection, join expression, or set expression after as in definition.\n";
             exit(1);
         }
 
@@ -294,6 +307,27 @@ public:
         consume(identifier, je_components);
 
         return std::make_shared<node>(join_expr, je_components);
+    }
+
+    std::shared_ptr<node> parse_set_expr() {
+        current_non_terminal = set_expr;
+
+        std::vector<std::shared_ptr<node>> se_components;
+        consume(identifier, se_components);
+        if (it->type == kw_union || it->type == kw_intersect) {
+            se_components.push_back(std::make_shared<node>(it->type));
+            ++it; // consume union/intersect
+        }
+        else {
+            std::cout << "Parser error on line " << it->line_number 
+                      << ". Expected a union or intersect after "
+                      << tokenTypeToString((it-1)->type)
+                      << " in set expression.\n";
+            exit(1);
+        }
+        consume(identifier, se_components);
+
+        return std::make_shared<node>(set_expr, se_components);
     }
 
     void discard(element_type expected_type) {
