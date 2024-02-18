@@ -5,22 +5,22 @@ LHS is always a non-terminal symbol.
 RHS contains the sequence of terminal (tokens) and/or non-terminal symbols that make up the non-terminal on the left.
 The | symbol indicates that a non-terminal may be composed of either one sequence or the other.
 
-script          ->      definition | selection
+script          ->      [definition|selection|join_expr|set_expr]*
 
 definition      ->      kw_define identifier kw_as selection|join_expr|set_expr
 
-join_expr       ->      identifier join identifier on identifier comparison identifier
+join_expr       ->      kw_join identifier comma identifier kw_on identifier comparison identifier
 
-set_expr        ->      identifier union|intersect identifier
+set_expr        ->      kw_union|kw_intersect identifier comma identifier
 
 selection       ->      select_clause from_clause where_clause|ε  order_clause|ε
 
-order_clause    ->      kw_order identifier asc|desc
+order_clause    ->      kw_order identifier kw_asc|kw_desc
 
 select_clause   ->      kw_select kw_distinct|ε column_list
 
-column_list     ->      identifier, identifier, ... identifier
-                |       *
+column_list     ->      [identifier comma]* identifier
+                |       asterisk
 
 from_clause     ->      kw_from identifier
 

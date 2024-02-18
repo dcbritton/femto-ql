@@ -18,24 +18,30 @@ public:
     Parser(std::vector<token> token_stream) 
         : tokens(token_stream), it(tokens.begin()) {};
 
-    // script -> definition|selection
+    // script -> [definition|selection|join_expr|set_expr]*
     std::shared_ptr<node> parse_script() {
         current_non_terminal = script;
 
         std::vector<std::shared_ptr<node>> script_components;
-        if (it->type == kw_define)
-            script_components.push_back(parse_definition());
-        else if (it->type == kw_select)
-            script_components.push_back(parse_selection());
-        else {
-            std::cout << "Bad script start.\n";
-            exit(1);
+        while (it != tokens.end()) {
+            if (it->type == kw_define)
+                script_components.push_back(parse_definition());
+            else if (it->type == kw_select)
+                script_components.push_back(parse_selection());
+            else if (it->type == kw_join)
+                script_components.push_back(parse_join_expr());
+            else if (it->type == kw_union || it->type == kw_intersect)
+                script_components.push_back(parse_set_expr());
+            else {
+                std::cout << "Parser error on line " << it->line_number 
+                          << ". Unexpected " << tokenTypeToString(it->type) << " at start/end of statement.\n";
+                exit(1);
+            }
         }
-
         return std::make_shared<node>(script, script_components);
     }
 
-    // definition -> kw_define identifier kw_as selection|join_expr
+    // definition -> kw_define identifier kw_as selection|join_expr|set_expr
     std::shared_ptr<node> parse_definition() {
         current_non_terminal = definition;
 
@@ -47,20 +53,12 @@ public:
         // selection
         if (it->type == kw_select)
             dfn_components.push_back(parse_selection());
-        
-        // join_expr or set_expr
-        else if (it->type == identifier)
-            // join_expr
-            if ((it+1)->type == kw_join)
-                dfn_components.push_back(parse_join_expr());
-            // set_expr
-            else if ((it+1)->type == kw_union || (it+1)->type == kw_intersect)
-                dfn_components.push_back(parse_set_expr());
-            else {
-                std::cout << "Parser error on line " << it->line_number 
-                          << ". Expected a join, union, or interstect after identifier in definition.\n";
-                exit(1);
-            }
+        // join_expr
+        else if (it->type == kw_join)
+            dfn_components.push_back(parse_join_expr());
+        // set_expr
+        else if (it->type == kw_union || kw_intersect)
+            dfn_components.push_back(parse_join_expr());
         else {
             std::cout << "Parser error on line " << it->line_number 
                       << ". Expected a selection, join expression, or set expression after as in definition.\n";
@@ -72,26 +70,18 @@ public:
 
     // selection -> select_clause from_clause where_clause|ε order_clause|ε
     std::shared_ptr<node> parse_selection() {
+        current_non_terminal = selection;
 
         // required clauses
-        std::vector<std::shared_ptr<node>> st_components;
-        st_components.push_back(parse_select_clause());
-        st_components.push_back(parse_from_clause());
+        std::vector<std::shared_ptr<node>> sln_components;
+        sln_components.push_back(parse_select_clause());
+        sln_components.push_back(parse_from_clause());
 
         // optional clauses
-        // following token must be kw_where, kw_order, or nothing
-        if (it->type == kw_where || it->type == kw_order || it == tokens.end()) {
-            if (it->type == kw_where) st_components.push_back(parse_where_clause());
-            if (it->type == kw_order) st_components.push_back(parse_order_clause());
-            if (it == tokens.end()) return std::make_shared<node>(selection, st_components);
-        }
-        else {
-            std::cout << "Expected a where clause, order clause, or end of selection.\n";
-            exit(1);
-        }
+        if (it->type == kw_where) sln_components.push_back(parse_where_clause());
+        if (it->type == kw_order) sln_components.push_back(parse_order_clause());
 
-        std::cout << "Unexpected text after selection.\n";
-        exit(1);
+        return std::make_shared<node>(selection, sln_components);
     }
 
     // select_clause -> kw_select kw_distinct|ε column_list
@@ -281,13 +271,14 @@ public:
         return std::make_shared<node>(order_clause, oc_components);
     }
 
-    // join_expr -> identifier join identifier on identifier comparison identifier
+    // join_expr -> kw_join identifier comma identifier on identifier comparison identifier
     std::shared_ptr<node> parse_join_expr() {
         current_non_terminal = join_expr;
 
         std::vector<std::shared_ptr<node>> je_components;
-        consume(identifier, je_components);
         consume(kw_join, je_components);
+        consume(identifier, je_components);
+        discard(comma);
         consume(identifier, je_components);
         consume(kw_on, je_components);
         consume(identifier, je_components);
@@ -309,11 +300,12 @@ public:
         return std::make_shared<node>(join_expr, je_components);
     }
 
+    // set_expr -> kw_union|kw_intersect identifier comma identifier
     std::shared_ptr<node> parse_set_expr() {
         current_non_terminal = set_expr;
 
         std::vector<std::shared_ptr<node>> se_components;
-        consume(identifier, se_components);
+
         if (it->type == kw_union || it->type == kw_intersect) {
             se_components.push_back(std::make_shared<node>(it->type));
             ++it; // consume union/intersect
@@ -325,6 +317,8 @@ public:
                       << " in set expression.\n";
             exit(1);
         }
+        consume(identifier, se_components);
+        discard(comma);
         consume(identifier, se_components);
 
         return std::make_shared<node>(set_expr, se_components);

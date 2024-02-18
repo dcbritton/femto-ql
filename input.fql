@@ -1,4 +1,11 @@
 # header comment
 
-define tempTable as # dfn
-    t1 intersect t2; #union
+define t3 as
+    join t1, t2 on t1.x == t2.x
+    
+define t5 as 
+    select distinct *
+    from t3
+    where t5.x > 1
+
+union t5, t6

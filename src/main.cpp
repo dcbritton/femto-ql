@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <memory>
 #include "token.hpp"
 #include "tokenize.hpp"
@@ -8,10 +9,11 @@
 int main() {
     
     std::ifstream input;
+    std::stringstream s;
     std::string script;
     input.open("../input.fql");
-    getline(input, script, ';');
-    // std::cout << "Query text:\n" << script << "\n\n";
+    s << input.rdbuf();
+    script = s.str();
 
     remove_comments(script);
     print_escaped_whitespace(script);
