@@ -18,8 +18,10 @@ public:
     Parser(std::vector<token> token_stream) 
         : tokens(token_stream), it(tokens.begin()) {};
 
+    // script -> definition|selection
     std::shared_ptr<node> parse_script() {
         current_non_terminal = script;
+
         std::vector<std::shared_ptr<node>> script_components;
         if (it->type == kw_define)
             script_components.push_back(parse_definition());
@@ -33,37 +35,111 @@ public:
         return std::make_shared<node>(script, script_components);
     }
 
-    // definition -> kw_define identifier kw_as selection
+    // definition -> kw_define identifier kw_as selection|join_expr
     std::shared_ptr<node> parse_definition() {
         current_non_terminal = definition;
+
         std::vector<std::shared_ptr<node>> dfn_components;
         consume(kw_define, dfn_components);
         consume(identifier, dfn_components);
         consume(kw_as, dfn_components);
-        dfn_components.push_back(parse_selection());
+
+        if (it->type == kw_select)
+            dfn_components.push_back(parse_selection());
+        else if (it->type == identifier)
+            dfn_components.push_back(parse_join_expr());
+        else {
+            std::cout << "Parser error on line " << it->line_number 
+                      << "Expected a selection or join expression after as in definition.\n";
+            exit(1);
+        }
 
         return std::make_shared<node>(definition, dfn_components);
     }
 
-    // order_clause -> kw_order identifier asc/desc
-    std::shared_ptr<node> parse_order_clause() {
-        current_non_terminal = order_clause;
+    // selection -> select_clause from_clause where_clause|ε order_clause|ε
+    std::shared_ptr<node> parse_selection() {
 
-        std::vector<std::shared_ptr<node>> oc_components;
-        consume(kw_order, oc_components);
-        consume(identifier, oc_components);
+        // required clauses
+        std::vector<std::shared_ptr<node>> st_components;
+        st_components.push_back(parse_select_clause());
+        st_components.push_back(parse_from_clause());
 
-        if (it->type != kw_asc && it->type != kw_desc)  {
+        // optional clauses
+        // following token must be kw_where, kw_order, or nothing
+        if (it->type == kw_where || it->type == kw_order || it == tokens.end()) {
+            if (it->type == kw_where) st_components.push_back(parse_where_clause());
+            if (it->type == kw_order) st_components.push_back(parse_order_clause());
+            if (it == tokens.end()) return std::make_shared<node>(selection, st_components);
+        }
+        else {
+            std::cout << "Expected a where clause, order clause, or end of selection.\n";
+            exit(1);
+        }
+
+        std::cout << "Unexpected text after selection.\n";
+        exit(1);
+    }
+
+    // select_clause -> kw_select kw_distinct|ε column_list
+    std::shared_ptr<node> parse_select_clause() {
+        current_non_terminal = select_clause;
+
+        std::vector<std::shared_ptr<node>> sc_components;
+        consume(kw_select, sc_components);
+        consume_optional(kw_distinct, sc_components);
+        sc_components.push_back(parse_column_list());
+
+        return std::make_shared<node>(select_clause, sc_components);
+    }
+
+    // column_list -> identifier, ... identifier | *
+    std::shared_ptr<node> parse_column_list() {
+        current_non_terminal = column_list;
+
+        std::vector<std::shared_ptr<node>> cl_components;
+        // identifier list path
+        if (it->type == identifier) {
+            while (it->type == identifier && (it + 1)->type == comma) {
+                consume(identifier, cl_components);
+                discard(comma);
+            }
+            consume(identifier, cl_components);
+        }
+        // *
+        else if (it->type == asterisk)
+            consume(asterisk, cl_components);
+        else {
             std::cout << "Parser error on line " << it->line_number 
                       << ". Expected a column list or * after "
                       << tokenTypeToString((it-1)->type)
-                      << " in order clause.\n";
+                      << " in select clause.\n";
             exit(1);
         }
-        oc_components.push_back(std::make_shared<node>(it->type));
-        it++; // consume kw_asc/desc
-            
-        return std::make_shared<node>(order_clause, oc_components);
+
+        return std::make_shared<node>(column_list, cl_components);
+    }
+
+    // from_clause -> kw_from identifier
+    std::shared_ptr<node> parse_from_clause() {
+        current_non_terminal = from_clause;
+
+        std::vector<std::shared_ptr<node>> fc_components;
+        consume(kw_from, fc_components);
+        consume(identifier, fc_components);
+
+        return std::make_shared<node>(from_clause, fc_components);
+    }
+
+    // where_clause -> kw_where bool_expr
+    std::shared_ptr<node> parse_where_clause() {
+        current_non_terminal = where_clause;
+        
+        std::vector<std::shared_ptr<node>> wc_components;
+        consume(kw_where, wc_components);
+        wc_components.push_back(parse_bool_expr());
+
+        return std::make_shared<node>(where_clause, wc_components);
     }
 
     // bool_expr -> !|ε ( bool_expr ) 
@@ -171,89 +247,53 @@ public:
         return potential_lhs;
     }
 
-    // where_clause -> kw_where bool_expr
-    std::shared_ptr<node> parse_where_clause() {
-        current_non_terminal = where_clause;
-        
-        std::vector<std::shared_ptr<node>> wc_components;
-        consume(kw_where, wc_components);
-        wc_components.push_back(parse_bool_expr());
+    // order_clause -> kw_order identifier asc/desc
+    std::shared_ptr<node> parse_order_clause() {
+        current_non_terminal = order_clause;
 
-        return std::make_shared<node>(where_clause, wc_components);
-    }
+        std::vector<std::shared_ptr<node>> oc_components;
+        consume(kw_order, oc_components);
+        consume(identifier, oc_components);
 
-    // column_list -> identifier, ... identifier | *
-    std::shared_ptr<node> parse_column_list() {
-        current_non_terminal = column_list;
-
-        std::vector<std::shared_ptr<node>> cl_components;
-        // identifier list path
-        if (it->type == identifier) {
-            while (it->type == identifier && (it + 1)->type == comma) {
-                consume(identifier, cl_components);
-                discard(comma);
-            }
-            consume(identifier, cl_components);
-        }
-        // *
-        else if (it->type == asterisk)
-            consume(asterisk, cl_components);
-        else {
+        if (it->type != kw_asc && it->type != kw_desc)  {
             std::cout << "Parser error on line " << it->line_number 
                       << ". Expected a column list or * after "
                       << tokenTypeToString((it-1)->type)
-                      << " in select clause.\n";
+                      << " in order clause.\n";
             exit(1);
         }
-
-        return std::make_shared<node>(column_list, cl_components);
+        oc_components.push_back(std::make_shared<node>(it->type));
+        it++; // consume kw_asc/desc
+            
+        return std::make_shared<node>(order_clause, oc_components);
     }
 
-    // select_clause -> kw_select kw_distinct|ε column_list
-    std::shared_ptr<node> parse_select_clause() {
-        current_non_terminal = select_clause;
+    // join_expr -> identifier join identifier on identifier comparison identifier
+    std::shared_ptr<node> parse_join_expr() {
+        current_non_terminal = join_expr;
 
-        std::vector<std::shared_ptr<node>> sc_components;
-        consume(kw_select, sc_components);
-        consume_optional(kw_distinct, sc_components);
-        sc_components.push_back(parse_column_list());
+        std::vector<std::shared_ptr<node>> je_components;
+        consume(identifier, je_components);
+        consume(kw_join, je_components);
+        consume(identifier, je_components);
+        consume(kw_on, je_components);
+        consume(identifier, je_components);
 
-        return std::make_shared<node>(select_clause, sc_components);
-    }
-
-    // from_clause -> kw_from identifier
-    std::shared_ptr<node> parse_from_clause() {
-        current_non_terminal = from_clause;
-
-        std::vector<std::shared_ptr<node>> fc_components;
-        consume(kw_from, fc_components);
-        consume(identifier, fc_components);
-
-        return std::make_shared<node>(from_clause, fc_components);
-    }
-
-    // select_clause from_clause where_clause|ε order_clause|ε
-    std::shared_ptr<node> parse_selection() {
-
-        // required clauses
-        std::vector<std::shared_ptr<node>> st_components;
-        st_components.push_back(parse_select_clause());
-        st_components.push_back(parse_from_clause());
-
-        // optional clauses
-        // following token must be kw_where, kw_order, or nothing
-        if (it->type == kw_where || it->type == kw_order || it == tokens.end()) {
-            if (it->type == kw_where) st_components.push_back(parse_where_clause());
-            if (it->type == kw_order) st_components.push_back(parse_order_clause());
-            if (it == tokens.end()) return std::make_shared<node>(selection, st_components);
+        if (it->type >= op_equals && it->type <= op_greater_than_equals) {
+            je_components.push_back(std::make_shared<node>(it->type));
+            ++it; // consume comparison
         }
         else {
-            std::cout << "Expected a where clause, order clause, or end of selection.\n";
+            std::cout << "Parser error on line " << it->line_number 
+                      << ". Expected a keyword in or a comparison after "
+                      << tokenTypeToString((it-1)->type)
+                      << " in join expression.\n";
             exit(1);
         }
 
-        std::cout << "Unexpected text after selection.\n";
-        exit(1);
+        consume(identifier, je_components);
+
+        return std::make_shared<node>(join_expr, je_components);
     }
 
     void discard(element_type expected_type) {

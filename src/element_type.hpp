@@ -15,6 +15,7 @@ enum element_type {
     where_clause = 6,
     bool_expr = 7,
     order_clause = 8,
+    join_expr = 9,
 
     // terminals - tokens and leaf nodes
     kw_select = 10,           
@@ -29,6 +30,8 @@ enum element_type {
     kw_all = 19,
     kw_define = 20,
     kw_as = 21,
+    kw_join = 22,
+    kw_on = 23,
     
     identifier = 30,         // column name, table name, alias       
     int_literal = 31,
@@ -59,7 +62,9 @@ enum element_type {
 
 std::string tokenTypeToString(element_type type) {
     switch (type) {
-        
+
+        case script: return "script";
+        case definition: return "definition";
         case selection: return "selection";
         case select_clause: return "select clause";
         case from_clause: return "from clause";
@@ -67,8 +72,7 @@ std::string tokenTypeToString(element_type type) {
         case bool_expr: return "boolean expression";
         case column_list: return "column list";
         case order_clause: return "order clause";
-
-        case definition: return "definition";
+        case join_expr: return "join expression";
 
         case kw_select: return "select";
         case kw_from: return "from";

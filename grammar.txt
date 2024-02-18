@@ -7,7 +7,9 @@ The | symbol indicates that a non-terminal may be composed of either one sequenc
 
 script          ->      definition | selection
 
-definition      ->      kw_define identifier kw_as selection
+definition      ->      kw_define identifier kw_as selection|join_expr
+
+join_expr       ->      identifier join identifier on identifier comparison identifier
 
 selection       ->      select_clause from_clause where_clause|ε  order_clause|ε
 

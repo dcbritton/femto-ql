@@ -1,7 +1,4 @@
 # header comment
 
 define tempTable as # dfn
-    select distinct col1, col2 # sc
-        from table # fc
-    where !(col1 == "x") && col2 >= any tableExample # wc
-    order col2 desc; #oc
+    t1 join t2 on t1.x == t2.y ; # je
