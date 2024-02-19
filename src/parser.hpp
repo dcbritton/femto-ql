@@ -198,8 +198,8 @@ public:
 
                 // literal (incl. null)
                 if (it->type >= int_literal && it->type <= kw_null) {
-                    lhs_components.push_back(std::make_shared<node>(it->type));
-                    ++it; // consume literal
+                    // @TODO: unexpected end of input here still results in issue #6
+                    consume(it->type, lhs_components);
                 }
 
                 // any|all
@@ -369,6 +369,14 @@ public:
                       << " in " << tokenTypeToString(current_non_terminal) << ".\n";
             exit(1);
         }
+
+        // use constructor with value for identifiers and literals
+        if (it->type >= identifier && it->type <= float_literal) {
+            components.push_back(std::make_shared<node>(it->type, it->value));
+            ++it; // consume token
+            return;
+        }
+
         components.push_back(std::make_shared<node>(it->type));
         ++it; // consume token
     }

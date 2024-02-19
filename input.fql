@@ -8,9 +8,9 @@ define t3 as
 define t5 as 
     select distinct col1, col2
     from t3
-    where t5.x == 1
+    where !(t5.x == 1 || t5.y == 1.1) && t5.z == "John" && t5.w >= true && t5.a >= null  || t5.b in t6.b && t7 != any table.x
 
-# output table
-intersect t1, t2 #intersect
+# this union is the output
+union t1, t2
 
 # end

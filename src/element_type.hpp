@@ -39,6 +39,7 @@ enum element_type {
     kw_union = 34,
     kw_intersect = 35,
     
+    // identifiers and literals
     identifier = 50,         // column name, table name, alias       
     int_literal = 51,
     chars_literal = 52,     // may contain anything but " because it is the delimiter

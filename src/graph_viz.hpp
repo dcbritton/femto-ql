@@ -16,7 +16,9 @@ void traverse(const std::shared_ptr<node>& current_node, std::ofstream& out) {
 
     // create node
     int node_id = global_id++;
-    out << "    node" << node_id << " [label=\"" << tokenTypeToString(current_node->type) << "\"];\n";
+    out << "    node" << node_id << " [label=\"" 
+                                 << (current_node->value == "" ? tokenTypeToString(current_node->type) : current_node->value)
+                                 << "\"];\n";
 
     //  for each child, traverse() and connect back to this node
     for (auto& child : current_node->components) {
