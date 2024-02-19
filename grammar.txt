@@ -9,7 +9,9 @@ script          ->      [definition|selection|join_expr|set_expr]*
 
 definition      ->      kw_define identifier kw_as selection|join_expr|set_expr
 
-join_expr       ->      kw_join identifier comma identifier kw_on identifier comparison identifier
+join_expr       ->      kw_join identifier comma identifier on_expr
+
+on_expr         ->      identifier comparison identifier
 
 set_expr        ->      kw_union|kw_intersect identifier comma identifier
 

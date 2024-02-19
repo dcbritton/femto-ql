@@ -8,10 +8,9 @@ define t3 as
 define t5 as 
     select distinct col1, col2
     from t3
-    where t5.x > 1 && t5.z >= all t5.z || t5.z == 1.12 || !(t5.z == "") || (t5.z in t6.x)
-    order t5.x asc
+    where t5.x == 1
 
 # output table
-union t5, t6
+intersect t1, t2 #intersect
 
 # end

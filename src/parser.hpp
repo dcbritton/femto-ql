@@ -46,9 +46,9 @@ public:
         current_non_terminal = definition;
 
         std::vector<std::shared_ptr<node>> dfn_components;
-        consume(kw_define, dfn_components);
+        discard(kw_define);
         consume(identifier, dfn_components);
-        consume(kw_as, dfn_components);
+        discard(kw_as);
 
         // selection
         if (it->type == kw_select)
@@ -89,7 +89,7 @@ public:
         current_non_terminal = select_clause;
 
         std::vector<std::shared_ptr<node>> sc_components;
-        consume(kw_select, sc_components);
+        discard(kw_select);
         consume_optional(kw_distinct, sc_components);
         sc_components.push_back(parse_column_list());
 
@@ -128,7 +128,7 @@ public:
         current_non_terminal = from_clause;
 
         std::vector<std::shared_ptr<node>> fc_components;
-        consume(kw_from, fc_components);
+        discard(kw_from);
         consume(identifier, fc_components);
 
         return std::make_shared<node>(from_clause, fc_components);
@@ -139,7 +139,7 @@ public:
         current_non_terminal = where_clause;
         
         std::vector<std::shared_ptr<node>> wc_components;
-        consume(kw_where, wc_components);
+        discard(kw_where);
         wc_components.push_back(parse_bool_expr());
 
         return std::make_shared<node>(where_clause, wc_components);
@@ -255,7 +255,7 @@ public:
         current_non_terminal = order_clause;
 
         std::vector<std::shared_ptr<node>> oc_components;
-        consume(kw_order, oc_components);
+        discard(kw_order);
         consume(identifier, oc_components);
 
         if (it->type != kw_asc && it->type != kw_desc)  {
@@ -276,28 +276,38 @@ public:
         current_non_terminal = join_expr;
 
         std::vector<std::shared_ptr<node>> je_components;
-        consume(kw_join, je_components);
+        discard(kw_join);
         consume(identifier, je_components);
         discard(comma);
         consume(identifier, je_components);
-        consume(kw_on, je_components);
-        consume(identifier, je_components);
+        je_components.push_back(parse_on_expr());
+
+        return std::make_shared<node>(join_expr, je_components);
+    }
+
+    // on_expr -> kw_on identifier comparison identifier
+    std::shared_ptr<node> parse_on_expr() {
+        current_non_terminal = on_expr;
+
+        std::vector<std::shared_ptr<node>> oe_components;
+        discard(kw_on);
+        consume(identifier, oe_components);
 
         if (it->type >= op_equals && it->type <= op_greater_than_equals) {
-            je_components.push_back(std::make_shared<node>(it->type));
+            oe_components.push_back(std::make_shared<node>(it->type));
             ++it; // consume comparison
         }
         else {
             std::cout << "Parser error on line " << it->line_number 
-                      << ". Expected a keyword in or a comparison after "
+                      << ". Expected a comparison after "
                       << tokenTypeToString((it-1)->type)
-                      << " in join expression.\n";
+                      << " in on expression.\n";
             exit(1);
         }
 
-        consume(identifier, je_components);
+        consume(identifier, oe_components);
 
-        return std::make_shared<node>(join_expr, je_components);
+        return std::make_shared<node>(on_expr, oe_components);
     }
 
     // set_expr -> kw_union|kw_intersect identifier comma identifier
@@ -329,7 +339,7 @@ public:
         if (it == tokens.end()) {
             std::cout << "Parser error on line " << (it-1)->line_number
                       << ". Unexpected end of input after " << tokenTypeToString((it-1)->type) 
-                      << " in " << current_non_terminal << ".\n";
+                      << " in " <<  tokenTypeToString(current_non_terminal) << ".\n";
             exit(1);
         }
 
@@ -348,7 +358,7 @@ public:
         if (it == tokens.end()) {
             std::cout << "Parser error on line " << (it-1)->line_number
                       << ". Unexpected end of input after " << tokenTypeToString((it-1)->type) 
-                      << " in " << current_non_terminal << ".\n";
+                      << " in " << tokenTypeToString(current_non_terminal) << ".\n";
             exit(1);
         }
 

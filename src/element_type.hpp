@@ -16,7 +16,8 @@ enum element_type {
     bool_expr = 7,
     order_clause = 8,
     join_expr = 9,
-    set_expr = 10,
+    on_expr = 10,
+    set_expr = 11,
 
     // terminals - tokens and leaf nodes
     // keywords
@@ -79,6 +80,7 @@ std::string tokenTypeToString(element_type type) {
         case column_list: return "column list";
         case order_clause: return "order clause";
         case join_expr: return "join expression";
+        case on_expr: return "on expression";
         case set_expr: return "set expression";
 
         case kw_select: return "select";
