@@ -30,6 +30,8 @@ public:
                 script_components.push_back(parse_selection());
             else if (it->type == kw_join)
                 script_components.push_back(parse_join_expr());
+            else if (it->type == kw_delete)
+                script_components.push_back(parse_deletion());
             else if (it->type == kw_union || it->type == kw_intersect)
                 script_components.push_back(parse_set_expr());
             else {
@@ -332,6 +334,18 @@ public:
         consume(identifier, se_components);
 
         return std::make_shared<node>(set_expr, se_components);
+    }
+
+    // deletion -> kw_delete from_clause where_clause|
+    std::shared_ptr<node> parse_deletion() {
+        current_non_terminal = deletion;
+
+        std::vector<std::shared_ptr<node>> dc_components;
+        discard(kw_delete);
+        dc_components.push_back(parse_from_clause());
+        if (it->type == kw_where) dc_components.push_back(parse_where_clause());
+
+        return std::make_shared<node>(deletion, dc_components);
     }
 
     void discard(element_type expected_type) {

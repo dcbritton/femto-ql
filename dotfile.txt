@@ -134,4 +134,20 @@ graph G {
     node67 [label="t2"];
     node64 -- node67;
     node0 -- node64;
+    node68 [label="deletion"];
+    node69 [label="from clause"];
+    node70 [label="t5"];
+    node69 -- node70;
+    node68 -- node69;
+    node71 [label="where clause"];
+    node72 [label="boolean expression"];
+    node73 [label="i"];
+    node72 -- node73;
+    node74 [label="=="];
+    node72 -- node74;
+    node75 [label="0"];
+    node72 -- node75;
+    node71 -- node72;
+    node68 -- node71;
+    node0 -- node68;
 }

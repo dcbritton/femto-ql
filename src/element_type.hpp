@@ -18,6 +18,7 @@ enum element_type {
     join_expr = 9,
     on_expr = 10,
     set_expr = 11,
+    deletion = 12,
 
     // terminals - tokens and leaf nodes
     // keywords
@@ -38,6 +39,8 @@ enum element_type {
     kw_on = 33,
     kw_union = 34,
     kw_intersect = 35,
+
+    kw_delete = 36,
     
     // identifiers and literals
     identifier = 50,         // column name, table name, alias       
@@ -84,6 +87,8 @@ std::string tokenTypeToString(element_type type) {
         case on_expr: return "on expression";
         case set_expr: return "set expression";
 
+        case deletion: return "deletion";
+
         case kw_select: return "select";
         case kw_from: return "from";
         case kw_where: return "where";
@@ -100,6 +105,8 @@ std::string tokenTypeToString(element_type type) {
         case kw_on: return "on";
         case kw_union: return "union";
         case kw_intersect: return "intersect";
+
+        case kw_delete: return "delete";
 
         case identifier: return "identifier";
         case int_literal: return "int literal";

@@ -13,4 +13,9 @@ define t5 as
 # this union is the output
 union t1, t2
 
+# delete everything from t5
+delete
+from t5
+where i == 0
+
 # end
