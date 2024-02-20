@@ -34,6 +34,8 @@ public:
                 script_components.push_back(parse_set_expr());
             else if (it->type == kw_insert)
                 script_components.push_back(parse_insertion());
+             else if (it->type == kw_update)
+                script_components.push_back(parse_update_expr());
             else if (it->type == kw_delete)
                 script_components.push_back(parse_deletion());
             else {
@@ -349,6 +351,20 @@ public:
 
         return std::make_shared<node>(deletion, dc_components);
     }
+
+    // update_expr -> kw_update identifier colon col_val_list where_clause
+    std::shared_ptr<node> parse_update_expr() {
+        current_non_terminal = update_expr;
+
+        std::vector<std::shared_ptr<node>> ue_components;
+        discard(kw_update);
+        consume(identifier, ue_components);
+        discard(colon);
+        ue_components.push_back(parse_col_val_list());
+        ue_components.push_back(parse_where_clause());
+
+        return std::make_shared<node>(update_expr, ue_components);
+    }
     
     // insertion -> kw_insert kw_into indentifier colon col_val_list
     std::shared_ptr<node> parse_insertion() {
@@ -369,7 +385,6 @@ public:
         current_non_terminal = col_val_list;
 
         std::vector<std::shared_ptr<node>> cvl_components;
-
         bool cvl = true;
         while(cvl){
             cvl_components.push_back(parse_col_val());
@@ -389,7 +404,6 @@ public:
         std::vector<std::shared_ptr<node>> cv_components;
         consume(identifier, cv_components);
         discard(open_parenthesis);
-        
         // literal (incl. null)
         if (it->type >= int_literal && it->type <= kw_null)
             // @TODO: unexpected end of input here still results in issue #6
@@ -405,7 +419,6 @@ public:
 
         return std::make_shared<node>(col_val, cv_components);
     }
-
 
     void discard(element_type expected_type) {
 

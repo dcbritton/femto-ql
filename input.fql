@@ -1,5 +1,16 @@
 # header comment
 
-insert into tbl: x(1), y("string value")
+define tbl as 
+    join t1, t2 on t1.w == t2.w
+
+insert into tbl: 
+    x(1), y(true)
+
+insert into tbl: 
+    x(1), y(null)
+
+update tbl: 
+    x(1), y(null)
+    where z == 1
 
 # end

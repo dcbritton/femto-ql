@@ -24,6 +24,8 @@ enum element_type {
     col_val_list = 14,
     col_val = 15,
 
+    update_expr = 16,
+
     // terminals - tokens and leaf nodes
     // keywords
     kw_select = 20,
@@ -48,6 +50,8 @@ enum element_type {
 
     kw_insert = 37,
     kw_into = 38,
+
+    kw_update = 39,
     
     // identifiers and literals
     identifier = 50,         // column name, table name, alias       
@@ -100,6 +104,8 @@ std::string tokenTypeToString(element_type type) {
         case col_val_list: return "column, value list";
         case col_val: return "column, value pair";
 
+        case update_expr: return "update expression";
+
         case kw_select: return "select";
         case kw_from: return "from";
         case kw_where: return "where";
@@ -122,6 +128,7 @@ std::string tokenTypeToString(element_type type) {
         case kw_insert: return "insert";
         case kw_into: return "into";
 
+        case kw_update: return "update";
 
         case identifier: return "identifier";
         case int_literal: return "int literal";
