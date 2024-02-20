@@ -34,12 +34,14 @@ public:
                 script_components.push_back(parse_set_expr());
             else if (it->type == kw_insert)
                 script_components.push_back(parse_insertion());
-             else if (it->type == kw_update)
+            else if (it->type == kw_update)
                 script_components.push_back(parse_update_expr());
             else if (it->type == kw_delete)
                 script_components.push_back(parse_deletion());
             else if (it->type == kw_create)
                 script_components.push_back(parse_creation());
+            else if (it->type == kw_drop)
+                script_components.push_back(parse_drop_expr());
             else {
                 std::cout << "Parser error on line " << it->line_number 
                           << ". Unexpected " << tokenTypeToString(it->type) << " at start/end of statement.\n";
@@ -479,6 +481,17 @@ public:
         discard(close_parenthesis);
 
         return std::make_shared<node>(col_type, ct_components);
+    }
+
+    // drop_expr -> kw_drop identifier
+    std::shared_ptr<node> parse_drop_expr() {
+        current_non_terminal = drop_expr;
+
+        std::vector<std::shared_ptr<node>> de_components;
+        discard(kw_drop);
+        consume(identifier, de_components);
+
+        return std::make_shared<node>(drop_expr, de_components);
     }
 
     void discard(element_type expected_type) {

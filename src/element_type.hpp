@@ -8,6 +8,7 @@ enum element_type {
     // non-terminals - specific to internal nodes
     script = 0,
     definition = 1,
+
     selection = 2,
     select_clause = 3,
     column_list = 4,
@@ -15,9 +16,12 @@ enum element_type {
     where_clause = 6,
     bool_expr = 7,
     order_clause = 8,
+
     join_expr = 9,
     on_expr = 10,
+
     set_expr = 11,
+
     deletion = 12,
 
     insertion = 13,
@@ -29,6 +33,8 @@ enum element_type {
     creation = 17,
     col_type_list = 18,
     col_type = 19,
+
+    drop_expr = -1,
 
     // terminals - tokens and leaf nodes
     // keywords
@@ -62,6 +68,8 @@ enum element_type {
     kw_float = 42,
     kw_bool = 43,
     kw_chars = 44,
+
+    kw_drop = 45,
     
     // identifiers and literals
     identifier = 50,         // column name, table name, alias       
@@ -120,6 +128,8 @@ std::string tokenTypeToString(element_type type) {
         case col_type_list: return "column, type list";
         case col_type: return "column, type pair";
 
+        case drop_expr: return "drop expression";
+
         case kw_select: return "select";
         case kw_from: return "from";
         case kw_where: return "where";
@@ -149,6 +159,8 @@ std::string tokenTypeToString(element_type type) {
         case kw_float: return "float";
         case kw_bool: return "bool";
         case kw_chars: return "chars";
+
+        case kw_drop: return "drop";
 
         case identifier: return "identifier";
         case int_literal: return "int literal";
