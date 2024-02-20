@@ -20,6 +20,10 @@ enum element_type {
     set_expr = 11,
     deletion = 12,
 
+    insertion = 13,
+    col_val_list = 14,
+    col_val = 15,
+
     // terminals - tokens and leaf nodes
     // keywords
     kw_select = 20,
@@ -41,6 +45,9 @@ enum element_type {
     kw_intersect = 35,
 
     kw_delete = 36,
+
+    kw_insert = 37,
+    kw_into = 38,
     
     // identifiers and literals
     identifier = 50,         // column name, table name, alias       
@@ -52,7 +59,7 @@ enum element_type {
     kw_null = 56,
 
     // punctuation 
-    semicolon = 70,          
+    colon = 70,          
     open_parenthesis = 71,
     close_parenthesis = 72,
     asterisk = 73,
@@ -89,6 +96,10 @@ std::string tokenTypeToString(element_type type) {
 
         case deletion: return "deletion";
 
+        case insertion: return "insertion";
+        case col_val_list: return "column, value list";
+        case col_val: return "column, value pair";
+
         case kw_select: return "select";
         case kw_from: return "from";
         case kw_where: return "where";
@@ -108,6 +119,10 @@ std::string tokenTypeToString(element_type type) {
 
         case kw_delete: return "delete";
 
+        case kw_insert: return "insert";
+        case kw_into: return "into";
+
+
         case identifier: return "identifier";
         case int_literal: return "int literal";
         case chars_literal: return "chars literal";
@@ -116,7 +131,7 @@ std::string tokenTypeToString(element_type type) {
         case kw_false: return "false";
         case kw_null: return "null";
 
-        case semicolon: return "semicolon";
+        case colon: return "colon";
         case open_parenthesis: return "open parenthesis";
         case close_parenthesis: return "close parenthesis";
         case asterisk: return "asterisk";

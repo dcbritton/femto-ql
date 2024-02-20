@@ -97,6 +97,8 @@ std::vector<token> tokenize(const std::string& statement) {
     keyword_map["union"] = kw_union;
     keyword_map["intersect"] = kw_intersect;
     keyword_map["delete"] = kw_delete;
+    keyword_map["insert"] = kw_insert;
+    keyword_map["into"] = kw_into;
 
     // begin traversing input string
     std::vector<token> tokens = {};
@@ -214,8 +216,8 @@ std::vector<token> tokenize(const std::string& statement) {
             it++;
         }
 
-        else if (*it == ';') {
-            tokens.push_back(token(semicolon, ";", line_number));
+        else if (*it == ':') {
+            tokens.push_back(token(colon, ":", line_number));
             it++;
         }
 

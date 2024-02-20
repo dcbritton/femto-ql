@@ -1,21 +1,5 @@
 # header comment
 
-# definition for t3
-define t3 as
-    join t1, t2 on t1.x == t2.x
-
-# definition for t5
-define t5 as 
-    select distinct col1, col2
-    from t3
-    where !(t5.x == 1 || t5.y == 1.1) && t5.z == "John" && t5.w >= true && t5.a >= null  || t5.b in t6.b && t7 != any table.x
-
-# this union is the output
-union t1, t2
-
-# delete everything from t5
-delete
-from t5
-where i == 0
+insert into tbl: x(1), y("string value")
 
 # end
