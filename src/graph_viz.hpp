@@ -16,9 +16,29 @@ void traverse(const std::shared_ptr<node>& current_node, std::ofstream& out) {
 
     // create node
     int node_id = global_id++;
-    out << "    node" << node_id << " [label=\"" 
-                                 << (current_node->value == "" ? tokenTypeToString(current_node->type) : current_node->value)
-                                 << "\"];\n";
+    out << "    node" << node_id << " [label=\"";
+    // on non-literal/non-identifiers use type
+    if (current_node->value == "")
+        out <<  tokenTypeToString(current_node->type);
+    // on literals and identifiers use value
+    else {
+        // for chars literal, replace each " with \"
+        if (current_node->type == chars_literal) {
+            auto sit = current_node->value.begin();
+            while(sit != current_node->value.end()){
+                if (*sit == '\"') {
+                    out << "\\\"";
+                    sit++;
+                    continue;
+                }
+                out << *sit;
+                sit++;
+            }
+        }
+        else
+            out << current_node->value;
+    }
+    out << "\"];\n";
 
     //  for each child, traverse() and connect back to this node
     for (auto& child : current_node->components) {

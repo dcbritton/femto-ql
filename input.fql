@@ -1,21 +1,29 @@
-# assume t1 and t2 exist
+# assume LivesIn: name(chars 16), town(chars 16)
 
-drop t3
+insert into LivesIn:
+    name("Rob Stark"),
+    town("Winterfell")
 
-create t3:
+drop People
+
+create People:
     name(chars 16),
     age(int),
     height(float),
     married(bool)
 
-insert into t3:
+insert into People:
     name("Rob Stark"),
     age(21),
     height(5.9),
     married(false)
 
-update t3:
+update People:
     married(false)
     where name == "Rob Stark"
+
+join People, LivesIn
+    on People.name == LivesIn.name
+
 
 # end
