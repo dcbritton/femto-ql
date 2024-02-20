@@ -1,16 +1,30 @@
-# header comment
+# assume t1 and t2 exist
 
 define tbl as 
     join t1, t2 on t1.w == t2.w
 
-insert into tbl: 
-    x(1), y(true)
-
-insert into tbl: 
-    x(1), y(null)
-
 update tbl: 
-    x(1), y(null)
-    where z == 1
+    x(1)
+    where z == "test"
+
+create tbl
+
+create tbl2:
+    x(int),
+    z(float),
+    y(bool),
+    w(chars 4)
+
+insert into tbl2: 
+    x(1), y(1.2)
+
+insert into tbl2: 
+    x(2), y(1.2)
+
+define tbl3 as
+    select distinct x, y, z, w
+    from tbl2
+    where x > 0 && x < 3
+    order x asc
 
 # end

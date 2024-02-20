@@ -38,6 +38,8 @@ public:
                 script_components.push_back(parse_update_expr());
             else if (it->type == kw_delete)
                 script_components.push_back(parse_deletion());
+            else if (it->type == kw_create)
+                script_components.push_back(parse_creation());
             else {
                 std::cout << "Parser error on line " << it->line_number 
                           << ". Unexpected " << tokenTypeToString(it->type) << " at start/end of statement.\n";
@@ -366,7 +368,7 @@ public:
         return std::make_shared<node>(update_expr, ue_components);
     }
     
-    // insertion -> kw_insert kw_into indentifier colon col_val_list
+    // insertion -> kw_insert kw_into identifier colon col_val_list
     std::shared_ptr<node> parse_insertion() {
         current_non_terminal = insertion;
 
@@ -418,6 +420,65 @@ public:
         discard(close_parenthesis);
 
         return std::make_shared<node>(col_val, cv_components);
+    }
+
+    // creation -> kw_create identifier :col_type_list|ε
+    std::shared_ptr<node> parse_creation() {
+        current_non_terminal = creation;
+
+        std::vector<std::shared_ptr<node>> crn_components;
+        discard(kw_create);
+        consume(identifier, crn_components);
+        if (it->type == colon) {
+            discard(colon);
+            crn_components.push_back(parse_col_type_list());
+        }
+
+        return std::make_shared<node>(creation, crn_components);
+    }
+
+    // col_type_list -> col_type, ... col_type
+    std::shared_ptr<node> parse_col_type_list() {
+        current_non_terminal = col_type_list;
+
+        std::vector<std::shared_ptr<node>> ctl_components;
+        bool ctl = true;
+        while(ctl) {
+            ctl_components.push_back(parse_col_type());
+            if (it->type == comma)
+                discard(comma);
+            else 
+                ctl = false;
+        }
+
+        return std::make_shared<node>(col_type_list, ctl_components);
+    }
+
+    // col_type -> identifier(int|float|bool| chars int_literal)
+    std::shared_ptr<node> parse_col_type() {
+        current_non_terminal = col_type;
+
+        std::vector<std::shared_ptr<node>> ct_components;
+        consume(identifier, ct_components);
+        discard(open_parenthesis);
+        // type
+        if (it->type >= kw_int && it->type <= kw_chars) {
+            // @TODO: unexpected end of input here still results in issue #6
+            consume(it->type, ct_components);
+            // if it was chars, then consume the number
+            if ((it-1)->type == kw_chars)
+                consume(int_literal, ct_components);
+        }
+        else {
+            std::cout << "Parser error on line " << it->line_number 
+                      << ". Expected a type after "
+                      << tokenTypeToString((it-1)->type)
+                      << " in column, type pair.\n";
+            exit(1);
+        }
+        discard(close_parenthesis);
+
+        return std::make_shared<node>(col_type, ct_components);
     }
 
     void discard(element_type expected_type) {

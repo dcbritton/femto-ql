@@ -7,6 +7,14 @@ The | symbol indicates that a non-terminal may be composed of either one sequenc
 
 script          ->      [definition|selection|join_expr|set_expr]*
 
+drop_expr       ->      kw_drop identifier
+
+creation        ->      kw_create identifier :col_type_list|ε
+
+col_type_list   ->      col_type, ... col_type
+
+col_type        ->      identifier(int|float|bool| chars int_literal)
+
 update_expr     ->      kw_update identifier colon col_val_list where_clause
 
 insertion       ->      kw_insert kw_into identifier colon col_val_list
