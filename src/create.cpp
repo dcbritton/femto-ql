@@ -1,23 +1,14 @@
 // create.cpp
-// this file is temporary, defining a function to create the file format.
+// this file is temporary, a prototype for creating the file format's header
 
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <string>
 #include <utility>
+#include "table.hpp"
 
-using std::vector, std::pair, std::string;
-
-struct column {
-    string name;
-    string type;
-    string charsLength; // null for non-chars
-    column(string columnName, string columnType) : name(columnName), type(columnType), charsLength("") {}; // for non-chars columns
-    column(string columnName, string columnType, string len) : name(columnName), type(columnType), charsLength(len) {}; // for chars columns
-};
-
-unsigned char columnTypeToByte(const string& columnType) {
+unsigned char columnTypeToByte(const std::string& columnType) {
     unsigned char byte = '\0';
     switch (columnType[0]) {
     case 'i':
@@ -33,29 +24,29 @@ unsigned char columnTypeToByte(const string& columnType) {
         byte = static_cast<unsigned char>(0b00000011); // EOT
         break;
     default:
-        std::cout << "Error in reading table. Unknown datatype: \"" << columnType << "\"\n";
+        std::cout << "Error while reading a table. Unknown datatype: \"" << columnType << "\"\n";
         break;
     }
     return byte;
 }
 
-void create(string tableName, vector<column> columns) {
+void create(const table& table) {
 
     std::ofstream header;
-    header.open("../tables/" + tableName + ".data");
+    header.open("../tables/" + table.name + ".data");
 
     // bytes 0-63 for tableName
-    if (tableName.length() > 64) {
+    if (table.name.length() > 64) {
         std::cout << "Creation error. Table name \"" << "\" is longer than 64 bytes.\n";
         exit(1);
     }
-    header << tableName;
+    header << table.name;
     // fill the rest with NUL if not exactly 64 bytes.
-    for (int i = 0; i < 64 - tableName.length(); ++i)
+    for (int i = 0; i < 64 - table.name.length(); ++i)
         header << '\0';
 
     // next byte reserved for # of columns
-    unsigned int numColumns = columns.size();
+    unsigned int numColumns = table.columns.size();
     // get int as bytes in a buffer
     unsigned char buffer[4];
     for (int i = 3; i >= 0; --i) {
@@ -67,10 +58,10 @@ void create(string tableName, vector<column> columns) {
         header << x;
 
     // 64 bytes for column name followed by 4 bytes for type
-    for (const auto& col : columns) {
+    for (const auto& col : table.columns) {
         // bytes 0-63 for tableName
         if (col.name.length() > 64) {
-            std::cout << "Creation error. Column name \"" << col.name << "\" in table \"" << tableName << "\" is longer than 64 bytes.\n";
+            std::cout << "Creation error. Column name \"" << col.name << "\" in table \"" << table.name << "\" is longer than 64 bytes.\n";
             exit(1);
         }
         header << col.name;
@@ -105,10 +96,14 @@ void create(string tableName, vector<column> columns) {
 }
 
 int main(int argc, char const *argv[]) {
-    create("This should be a 35 byte table name",
-            {{"WordWordWordWordWordWordWordWordWordWordWordWordWordWordWordWord", "int"},
-            {"WordWordWordWordWordWordWordWordWordWordWordWordWordWordWordWord", "float"},
-            {"WordWordWordWordWordWordWordWordWordWordWordWordWordWordWordWord", "bool"},
-            {"WordWordWordWordWordWordWordWordWordWordWordWordWordWordWordWord", "chars", "16"}});
+    std::vector<column> cols = {
+            {"col1", "int"},
+            {"col2", "float"},
+            {"col3", "bool"},
+            {"col4", "chars", "16"}
+        };
+    table tbl("This should be a 35 byte table name", cols);
+    create(tbl);
+    
     return 0;
 }
