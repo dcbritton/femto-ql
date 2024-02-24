@@ -6,6 +6,7 @@
 #include "tokenize.hpp"
 #include "parser.hpp"
 #include "graph_viz.hpp"
+#include "validate.hpp"
 
 int main() {
     
@@ -35,6 +36,10 @@ int main() {
     std::cout << '\n';
 
     make_dotfile(ast, "../dotfile.txt");
+
+    std::cout << '\n';
+    std::vector<table> symbolTable = buildSymbolTable("../tables");
+    printSymbolTable(symbolTable);
 
     std::cout << "\nProgram has ended properly.\n";
     input.close();

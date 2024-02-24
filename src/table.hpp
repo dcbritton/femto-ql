@@ -7,13 +7,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 struct column {
     std::string name;
     std::string type;
-    std::string charsLength; // null for non-chars
-    column(std::string columnName, std::string columnType) : name(columnName), type(columnType), charsLength("") {}; // for non-chars columns
-    column(std::string columnName, std::string columnType, std::string len) : name(columnName), type(columnType), charsLength(len) {}; // for chars columns
+    int charsLength = 0; // 0 for non-chars
+    column(std::string columnName, std::string columnType) : name(columnName), type(columnType), charsLength(0) {}; // for non-chars columns
+    column(std::string columnName, std::string columnType, int len) : name(columnName), type(columnType), charsLength(len) {}; // for chars columns
 };
 
 struct table {
@@ -21,5 +22,37 @@ struct table {
     std::vector<column> columns;
     table(std::string tableName, std::vector<column> tableColumns) : name(tableName), columns(tableColumns) {};
 };
+
+std::string byteToColumnType(char signedByte) {
+    unsigned char byte = static_cast<unsigned char>(signedByte);
+    std::unordered_map<unsigned char, std::string> typeMap;
+    typeMap[0b00000000] = "int";
+    typeMap[0b00000001] = "float";
+    typeMap[0b00000010] = "bool";
+    typeMap[0b00000011] = "chars";
+
+    if (typeMap.find(byte) == typeMap.end()) {
+        std::cout << "Error while reading a table. Could not recognize column type: \"" << byte << "\"\n";
+        exit(1);
+    }
+
+    return typeMap[byte];
+}
+
+unsigned char columnTypeToByte(const std::string& columnType) {
+    unsigned char byte = '\0';
+    std::unordered_map<std::string, unsigned char> typeMap;
+    typeMap["int"] = 0b00000000;
+    typeMap["float"] = 0b00000001;
+    typeMap["bool"] = 0b00000010;
+    typeMap["chars"] = 0b00000011;
+
+    if (typeMap.find(columnType) == typeMap.end()) {
+        std::cout << "Error while reading a table. Unknown datatype: \"" << columnType << "\"\n";
+        exit(1);
+    }
+
+    return typeMap[columnType];
+}
 
 #endif

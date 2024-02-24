@@ -8,32 +8,10 @@
 #include <utility>
 #include "table.hpp"
 
-unsigned char columnTypeToByte(const std::string& columnType) {
-    unsigned char byte = '\0';
-    switch (columnType[0]) {
-    case 'i':
-        byte = static_cast<unsigned char>(0b00000000); // NUL
-        break;
-    case 'f':
-        byte = static_cast<unsigned char>(0b00000001); // SOH
-        break;
-    case 'b':
-        byte = static_cast<unsigned char>(0b00000010); // STX
-        break;
-    case 'c':
-        byte = static_cast<unsigned char>(0b00000011); // EOT
-        break;
-    default:
-        std::cout << "Error while reading a table. Unknown datatype: \"" << columnType << "\"\n";
-        break;
-    }
-    return byte;
-}
-
 void create(const table& table) {
 
     std::ofstream header;
-    header.open("../tables/" + table.name + ".data");
+    header.open("../tables/" + table.name + ".ftbl");
 
     // bytes 0-63 for tableName
     if (table.name.length() > 64) {
@@ -75,7 +53,7 @@ void create(const table& table) {
         // type is chars
         if (col.type == "chars") {
             // last 3 bytes indicate # of chars
-            unsigned int numChars = stoi(col.charsLength);
+            unsigned int numChars = col.charsLength;
             unsigned char charsLengthBuffer[3];
             for (int i = 2; i >= 0; --i) {
                 charsLengthBuffer[i] = static_cast<unsigned char>(numChars & 0b11111111); // ETX
@@ -100,10 +78,20 @@ int main(int argc, char const *argv[]) {
             {"col1", "int"},
             {"col2", "float"},
             {"col3", "bool"},
-            {"col4", "chars", "16"}
+            {"col4", "chars", 16}
         };
-    table tbl("This should be a 35 byte table name", cols);
+
+    std::vector<column> cols2 = {
+            {"charsColumn", "chars", 1023},
+            {"col2", "float"},
+            {"col3", "bool"},
+            {"col4", "chars", 16}
+    };
+
+    table tbl("testTable", cols);
+    table tbl2("anotherTestTable", cols2);
     create(tbl);
-    
+    create(tbl2);
+
     return 0;
 }
