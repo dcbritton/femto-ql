@@ -68,9 +68,8 @@ unsigned char columnTypeToByte(const std::string& columnType) {
     return typeMap[columnType];
 }
 
-void printTableList(std::vector<table> symbols) {
-    std::cout << "Current Tables:\n---------------\n";
-    for (table t : symbols) {
+void printTableList(std::vector<table> tables) {
+    for (table t : tables) {
         std::cout << "Table: \"" << t.name << "\"\n";
         std::cout << "        ";
         for (column c : t.columns)

@@ -40,11 +40,12 @@ int main() {
     post_order_traversal(ast);
     std::cout << '\n';
 
-    // make graphviz  output
+    // make graphviz output
     make_dotfile(ast, "../dotfile.txt");
 
     // get and print current state of tables
     std::cout << '\n';
+    std::cout << "Current tables:\n---------------\n";
     std::vector<table> symbolTable = buildTableList("../tables");
     printTableList(symbolTable);
     
@@ -52,8 +53,8 @@ int main() {
     Validator v(symbolTable);
     v.validate(ast);
 
-    std::cout << '\n';
     std::cout << "\nProgram has ended properly.\n";
     input.close();
+
     return 0;
 }
