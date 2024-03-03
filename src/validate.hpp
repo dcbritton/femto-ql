@@ -27,12 +27,12 @@ public:
         for (auto nodePtr : astRoot->components) {
             switch (nodePtr->type) {
                 // @TODO Add more validation functions
-                case drop_expr:
-                    validateDropExpr(nodePtr);
+                case drop:
+                    validateDrop(nodePtr);
                     break;
                 
                 default:
-                    std::cout << "Validation error. Tried to validate an unknown expression type: " << tokenTypeToString(nodePtr->type) << ".\n";
+                    std::cout << "Validation error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
                     break;
             }
         }
@@ -40,9 +40,9 @@ public:
 
     // a million validation functions
 
-    // validate drop expressions
-    void validateDropExpr(std::shared_ptr<node> dropExpr) {
-        std::string tableName = dropExpr->components[0]->value;
+    // validate drop statement
+    void validateDrop(std::shared_ptr<node> dropRoot) {
+        std::string tableName = dropRoot->components[0]->value;
         auto p = find(persistents, tableName);
         auto t = find(temporaries, tableName);
 
@@ -60,7 +60,7 @@ public:
             exit(1);
         }
 
-        std::cout << "Drop expression validated.\n";
+        std::cout << "Drop statement validated.\n";
         printTableList(persistents);
         printTableList(temporaries);
         return;

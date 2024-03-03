@@ -18,7 +18,7 @@ public:
     Parser(std::vector<token> token_stream) 
         : tokens(token_stream), it(tokens.begin()) {};
 
-    // script -> [definition|selection|join_expr|set_expr|creation|drop_expr|insertion|update_expr|deletion]*
+    // script -> [definition|selection|join|set_op|creation|drop|insertion|update|deletion]*
     std::shared_ptr<node> parse_script() {
         current_non_terminal = script;
 
@@ -29,19 +29,19 @@ public:
             else if (it->type == kw_select)
                 script_components.push_back(parse_selection());
             else if (it->type == kw_join)
-                script_components.push_back(parse_join_expr());
+                script_components.push_back(parse_join());
             else if (it->type == kw_union || it->type == kw_intersect)
-                script_components.push_back(parse_set_expr());
+                script_components.push_back(parse_set_op());
             else if (it->type == kw_insert)
                 script_components.push_back(parse_insertion());
             else if (it->type == kw_update)
-                script_components.push_back(parse_update_expr());
+                script_components.push_back(parse_update());
             else if (it->type == kw_delete)
                 script_components.push_back(parse_deletion());
             else if (it->type == kw_create)
                 script_components.push_back(parse_creation());
             else if (it->type == kw_drop)
-                script_components.push_back(parse_drop_expr());
+                script_components.push_back(parse_drop());
             else {
                 std::cout << "Parser error on line " << it->line_number 
                           << ". Unexpected " << tokenTypeToString(it->type) << " at start/end of statement.\n";
@@ -51,7 +51,7 @@ public:
         return std::make_shared<node>(script, script_components);
     }
 
-    // definition -> kw_define identifier kw_as selection|join_expr|set_expr
+    // definition -> kw_define identifier kw_as selection|join|set_op
     std::shared_ptr<node> parse_definition() {
         current_non_terminal = definition;
 
@@ -63,15 +63,15 @@ public:
         // selection
         if (it->type == kw_select)
             dfn_components.push_back(parse_selection());
-        // join_expr
+        // join
         else if (it->type == kw_join)
-            dfn_components.push_back(parse_join_expr());
-        // set_expr
+            dfn_components.push_back(parse_join());
+        // set_op
         else if (it->type == kw_union || it->type == kw_intersect)
-            dfn_components.push_back(parse_set_expr());
+            dfn_components.push_back(parse_set_op());
         else {
             std::cout << "Parser error on line " << it->line_number 
-                      << ". Expected a selection, join expression, or set expression after as in definition.\n";
+                      << ". Expected a selection, join, or set operation after as in definition.\n";
             exit(1);
         }
 
@@ -281,9 +281,9 @@ public:
         return std::make_shared<node>(order_clause, oc_components);
     }
 
-    // join_expr -> kw_join identifier comma identifier on_expr alias_list|ε
-    std::shared_ptr<node> parse_join_expr() {
-        current_non_terminal = join_expr;
+    // join -> kw_join identifier comma identifier on_expr alias_list|ε
+    std::shared_ptr<node> parse_join() {
+        current_non_terminal = join;
 
         std::vector<std::shared_ptr<node>> je_components;
         discard(kw_join);
@@ -296,7 +296,7 @@ public:
             je_components.push_back(parse_alias_list());
         }
 
-        return std::make_shared<node>(join_expr, je_components);
+        return std::make_shared<node>(join, je_components);
     }
 
     // on_expr -> kw_on identifier comparison identifier [as identifier]|ε
@@ -359,9 +359,9 @@ public:
         return std::make_shared<node>(alias, alias_components);
     }
 
-    // set_expr -> kw_union|kw_intersect identifier comma identifier
-    std::shared_ptr<node> parse_set_expr() {
-        current_non_terminal = set_expr;
+    // set_op -> kw_union|kw_intersect identifier comma identifier
+    std::shared_ptr<node> parse_set_op() {
+        current_non_terminal = set_op;
 
         std::vector<std::shared_ptr<node>> se_components;
 
@@ -373,14 +373,14 @@ public:
             std::cout << "Parser error on line " << it->line_number 
                       << ". Expected a union or intersect after "
                       << tokenTypeToString((it-1)->type)
-                      << " in set expression.\n";
+                      << " in set operation.\n";
             exit(1);
         }
         consume(identifier, se_components);
         discard(comma);
         consume(identifier, se_components);
 
-        return std::make_shared<node>(set_expr, se_components);
+        return std::make_shared<node>(set_op, se_components);
     }
 
     // deletion -> kw_delete from_clause where_clause|ε
@@ -395,9 +395,9 @@ public:
         return std::make_shared<node>(deletion, dc_components);
     }
 
-    // update_expr -> kw_update identifier colon col_val_list where_clause
-    std::shared_ptr<node> parse_update_expr() {
-        current_non_terminal = update_expr;
+    // update -> kw_update identifier colon col_val_list where_clause
+    std::shared_ptr<node> parse_update() {
+        current_non_terminal = update;
 
         std::vector<std::shared_ptr<node>> ue_components;
         discard(kw_update);
@@ -406,7 +406,7 @@ public:
         ue_components.push_back(parse_col_val_list());
         ue_components.push_back(parse_where_clause());
 
-        return std::make_shared<node>(update_expr, ue_components);
+        return std::make_shared<node>(update, ue_components);
     }
     
     // insertion -> kw_insert kw_into identifier colon col_val_list
@@ -522,15 +522,15 @@ public:
         return std::make_shared<node>(col_type, ct_components);
     }
 
-    // drop_expr -> kw_drop identifier
-    std::shared_ptr<node> parse_drop_expr() {
-        current_non_terminal = drop_expr;
+    // drop -> kw_drop identifier
+    std::shared_ptr<node> parse_drop() {
+        current_non_terminal = drop;
 
         std::vector<std::shared_ptr<node>> de_components;
         discard(kw_drop);
         consume(identifier, de_components);
 
-        return std::make_shared<node>(drop_expr, de_components);
+        return std::make_shared<node>(drop, de_components);
     }
 
     void discard(element_type expected_type) {

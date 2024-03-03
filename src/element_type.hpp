@@ -17,13 +17,12 @@ enum element_type {
     bool_expr = 7,
     order_clause = 8,
 
-    join_expr = 9,
+    join = 9,
     on_expr = 10,
     alias_list = -2,
-    kw_with = -3,
     alias = -4,
 
-    set_expr = 11,
+    set_op = 11,
 
     deletion = 12,
 
@@ -31,13 +30,13 @@ enum element_type {
     col_val_list = 14,
     col_val = 15,
 
-    update_expr = 16,
+    update = 16,
 
     creation = 17,
     col_type_list = 18,
     col_type = 19,
 
-    drop_expr = -1,
+    drop = -1,
 
     // terminals - tokens and leaf nodes
     // keywords
@@ -56,6 +55,8 @@ enum element_type {
     kw_as = 31,
     kw_join = 32,
     kw_on = 33,
+    kw_with = -3,
+
     kw_union = 34,
     kw_intersect = 35,
 
@@ -91,7 +92,7 @@ enum element_type {
     comma = 74,
     
     // operators
-    op_equals = 80,    // do not change order of enums between equals and greater than equals. parse_bool_expr() depends on it
+    op_equals = 80,    // do not change order of enums between equals and greater than equals. anywhere that consumes a comparison depends on it
     op_not_equals = 81,
     op_less_than = 82,
     op_less_than_equals = 83,
@@ -116,13 +117,13 @@ std::string tokenTypeToString(element_type type) {
         case column_list: return "column list";
         case order_clause: return "order clause";
 
-        case join_expr: return "join expression";
+        case join: return "join statement";
         case on_expr: return "on expression";
         case alias_list: return "alias list";
         case kw_with: return "with";
         case alias: return "alias";
 
-        case set_expr: return "set expression";
+        case set_op: return "set operation";
 
         case deletion: return "deletion";
 
@@ -130,13 +131,13 @@ std::string tokenTypeToString(element_type type) {
         case col_val_list: return "column, value list";
         case col_val: return "column, value pair";
 
-        case update_expr: return "update expression";
+        case update: return "update statement";
 
         case creation: return "creation";
         case col_type_list: return "column, type list";
         case col_type: return "column, type pair";
 
-        case drop_expr: return "drop expression";
+        case drop: return "drop statement";
 
         case kw_select: return "select";
         case kw_from: return "from";

@@ -5,9 +5,9 @@ LHS is always a non-terminal symbol.
 RHS contains the sequence of terminal (tokens) and/or non-terminal symbols that make up the non-terminal on the left.
 The | symbol indicates that a non-terminal may be composed of either one sequence or the other.
 
-script          ->      [definition|selection|join_expr|set_expr|creation|drop_expr|insertion|update_expr|deletion]*
+script          ->      [definition|selection|join|set_op|creation|drop|insertion|update|deletion]*
 
-drop_expr       ->      kw_drop identifier
+drop            ->      kw_drop identifier
 
 creation        ->      kw_create identifier [colon col_type_list]|ε
 
@@ -15,7 +15,7 @@ col_type_list   ->      col_type, ... col_type
 
 col_type        ->      identifier(int|float|bool|[chars int_literal])
 
-update_expr     ->      kw_update identifier colon col_val_list where_clause
+update          ->      kw_update identifier colon col_val_list where_clause
 
 insertion       ->      kw_insert kw_into identifier colon col_val_list
 
@@ -25,9 +25,9 @@ col_val         ->      identifier(literal)
 
 deletion        ->      kw_delete from_clause where_clause|ε
 
-definition      ->      kw_define identifier kw_as selection|join_expr|set_expr
+definition      ->      kw_define identifier kw_as selection|join|set_op
 
-join_expr       ->      kw_join identifier comma identifier on_expr alias_list|ε
+join            ->      kw_join identifier comma identifier on_expr alias_list|ε
 
 on_expr         ->      identifier comparison identifier [as identifier]|ε
 
@@ -35,7 +35,7 @@ alias_list      ->      kw_with [alias , ]* alias
 
 alias           ->      indentifier as identifier
 
-set_expr        ->      kw_union|kw_intersect identifier comma identifier
+set_op          ->      kw_union|kw_intersect identifier comma identifier
 
 selection       ->      select_clause from_clause where_clause|ε  order_clause|ε
 
