@@ -19,7 +19,7 @@ graph G {
     node1 -- node3;
     node0 -- node1;
     node10 [label="drop expression"];
-    node11 [label="People"];
+    node11 [label="testTable"];
     node10 -- node11;
     node0 -- node10;
     node12 [label="creation"];

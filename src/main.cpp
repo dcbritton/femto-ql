@@ -47,7 +47,12 @@ int main() {
     std::cout << '\n';
     std::vector<table> symbolTable = buildTableList("../tables");
     printTableList(symbolTable);
+    
+    std::cout << '\n';
+    Validator v(symbolTable);
+    v.validate(ast);
 
+    std::cout << '\n';
     std::cout << "\nProgram has ended properly.\n";
     input.close();
     return 0;

@@ -4,7 +4,7 @@ insert into LivesIn:
     name("Rob Stark"),
     town("Winterfell")
 
-drop People
+drop testTable
 
 create People:
     name(chars 16),

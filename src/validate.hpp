@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include <algorithm>
 #include "table.hpp"
 #include "node.hpp"
 
@@ -75,46 +76,57 @@ std::vector<table> buildTableList(const std::string& tableDirectory) {
     return tables;
 }
 
-struct SymbolTable {
-    std::vector<table> persistent;
-    std::vector<table> temporary;
-};
-
 class Validator {
 private:
-    SymbolTable symbols;
+    std::vector<table> persistents;
+    std::vector<table> temporaries;
 
 public:
 
     Validator(std::vector<table> initialSymbols) {
-        symbols.persistent = initialSymbols;
+        persistents = initialSymbols;
     }
     
     // validate the AST
     void validate(std::shared_ptr<node> astRoot) {
-        traverse(astRoot);
-    }
-
-    // traverse the tree and validate each node
-    void traverse(std::shared_ptr<node> currentNode) {
-
-        // validate this node
-        bool validateChildren = true;
-        validateNode(currentNode, validateChildren);
-
-        // validate the children
-        if (validateChildren) {
-            for (auto child : currentNode->components) {
-                traverse(child);
+        for (auto nodePtr : astRoot->components) {
+            switch (nodePtr->type) {
+                // @TODO Add more validation functions
+                case drop_expr:
+                    validateDropExpr(nodePtr);
+                    break;
+                
+                default:
+                    std::cout << "Validation error. Tried to validate an unknown expression type: " << tokenTypeToString(nodePtr->type) << ".\n";
+                    break;
             }
         }
     }
 
-    // validate this node. switch to node-specific function based on type
-    void validateNode(std::shared_ptr<node> currentNode, bool validateChildren) {
-        switch (currentNode->type) {
+    // a million validation functions
 
+    // validate drop expressions
+    void validateDropExpr(std::shared_ptr<node> dropExpr) {
+        std::string tableName = dropExpr->components[0]->value;
+        auto p = find(persistents, tableName);
+        auto t = find(temporaries, tableName);
+
+        // if table is in permanents, drop it
+        if (p != persistents.end()) 
+            persistents.erase(p);
+
+        // if table is in temporaries, drop it
+        else if (t != temporaries.end()) 
+            temporaries.erase(t);
+
+        // if table is in neither, error
+        else {
+            std::cout << "Validation error. Table \"" << tableName << "\" exists neither as a permanent nor temporary table.\n";
+            exit(1);
         }
+
+        std::cout << "Drop expression validated.\n";
+        return;
     }
     
 };
