@@ -196,8 +196,9 @@ std::vector<token> tokenize(const std::string& statement) {
                 exit(1);
             }
             chars_end++; // consume ending "
-
-            std::string chars(it, chars_end);
+            
+            // keep the value BETWEEN the "..." 
+            std::string chars(it+1, chars_end-1);
             tokens.push_back(token(chars_literal, chars, line_number));
             it = chars_end;
         }

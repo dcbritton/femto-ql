@@ -22,18 +22,9 @@ void traverse(const std::shared_ptr<node>& current_node, std::ofstream& out) {
         out <<  tokenTypeToString(current_node->type);
     // on literals and identifiers use value
     else {
-        // for chars literal, replace each " with \"
+        // for chars literal, add "
         if (current_node->type == chars_literal) {
-            auto sit = current_node->value.begin();
-            while(sit != current_node->value.end()){
-                if (*sit == '\"') {
-                    out << "\\\"";
-                    sit++;
-                    continue;
-                }
-                out << *sit;
-                sit++;
-            }
+            out << "\\\"" << current_node->value << "\\\"";
         }
         else
             out << current_node->value;
