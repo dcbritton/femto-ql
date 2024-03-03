@@ -21,7 +21,7 @@ int main() {
     // remove comments and print resultant text
     remove_comments(script);
     std::cout << '\n';
-    print_escaped_whitespace(script);
+    // print_escaped_whitespace(script);
 
     // tokenize and print tokens
     std::vector<token> token_stream = tokenize(script);

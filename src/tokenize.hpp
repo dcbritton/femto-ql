@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <cctype>
 
+const int MAX_CHARS_LENGTH = 64;
+
 // remove everything in [#,\n)
 // keep \n for accurate line number in parse errors
 void remove_comments(std::string& script) {
@@ -127,9 +129,18 @@ std::vector<token> tokenize(const std::string& statement) {
             while (isalnum(*word_end)) {        
                 word_end++;
             }
+            std::string word(it, word_end);
 
+            // check length
+            if (word.length() > MAX_CHARS_LENGTH) {
+                std::cout << "Tokenization error on line " << line_number << ". Table/column name " << word << " is greater than 64 characters long.\n";
+                exit(1);
+            }
+
+            // if it contains a '.', we know the following must be a column name
             if (*word_end == '.') {
                 word_end++;
+                std::string::const_iterator column_name_begin = word_end;
 
                 if (isalpha(*word_end)) {
                     word_end++;
@@ -141,10 +152,18 @@ std::vector<token> tokenize(const std::string& statement) {
                     std::cout << "Tokenization error. Expecting alpha after '.'. Had: \'" << *word_end << "\' instead.\n";
                     exit(1);
                 }
-            }
-            std::string word(it, word_end);
 
-            // identifier found
+                std::string column_name(column_name_begin, word_end);
+                // check length
+                if (column_name.length() > MAX_CHARS_LENGTH) {
+                    std::cout << "Tokenization error on line " << line_number << ". Column name " << column_name << " is greater than 64 characters long.\n";
+                    exit(1);
+                }
+            }
+
+            word = std::string(it, word_end);
+
+            // identifier found if not in keyword map
             std::unordered_map<std::string, element_type>::const_iterator found_keyword = keyword_map.find(word);
             if (found_keyword == keyword_map.end()) {
                 tokens.push_back(token(identifier, word, line_number));

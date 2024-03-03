@@ -23,7 +23,7 @@ update People:
     where name == "Rob Stark"
 
 join People, LivesIn
-    on People.name == LivesIn.name
+    on People.name == LivesIn.iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
 
 
 # end
