@@ -23,7 +23,7 @@ public:
     
     // validate the AST
     void validate(std::shared_ptr<node> astRoot) {
-        std::cout << "Validation log:\n---------------\n";
+        std::cout << "\nValidation log:\n---------------\n";
         for (auto nodePtr : astRoot->components) {
             switch (nodePtr->type) {
                 // @TODO Add more validation functions

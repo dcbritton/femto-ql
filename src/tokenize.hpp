@@ -27,6 +27,7 @@ void remove_comments(std::string& script) {
 
         script.erase(it, comment_end);
     }
+    std::cout << '\n';
 }
 
 // outputs the whole script with comments removed, newlines as \n, tabs as \t, and four spaces as \4

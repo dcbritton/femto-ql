@@ -16,11 +16,11 @@ int main() {
     std::string script;
     input.open("../input.fql");
     s << input.rdbuf();
+    input.close();
     script = s.str();
 
     // remove comments and print resultant text
     remove_comments(script);
-    std::cout << '\n';
     // print_escaped_whitespace(script);
 
     // tokenize and print tokens
@@ -32,29 +32,20 @@ int main() {
     std::shared_ptr<node> ast = p.parse_script();
 
     // traverse syntax trees
-    std::cout << "Syntax tree traversals:\n------------------------\n";
-    std::cout << "Pre-order: ";
-    pre_order_traversal(ast);
-    std::cout << '\n';
-    std::cout << "Post-order: ";
-    post_order_traversal(ast);
-    std::cout << '\n';
+    print_traversals(ast);
 
     // make graphviz output
     make_dotfile(ast, "../dotfile.txt");
 
     // get and print current state of tables
-    std::cout << '\n';
-    std::cout << "Current tables:\n---------------\n";
-    std::vector<table> symbolTable = buildTableList("../tables");
-    printTableList(symbolTable);
+    std::vector<table> initialTables = buildTableList("../tables");
+    std::cout << "\nCurrent tables:\n---------------\n";
+    printTableList(initialTables);
     
-    std::cout << '\n';
-    Validator v(symbolTable);
+    // validate
+    Validator v(initialTables);
     v.validate(ast);
 
     std::cout << "\nProgram has ended properly.\n";
-    input.close();
-
     return 0;
 }

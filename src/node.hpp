@@ -39,4 +39,14 @@ void pre_order_traversal(std::shared_ptr<node> root) {
     }
 }
 
+void print_traversals(std::shared_ptr<node> root) {
+    std::cout << "Syntax tree traversals:\n------------------------\n";
+    std::cout << "Pre-order: ";
+    pre_order_traversal(root);
+    std::cout << '\n';
+    std::cout << "Post-order: ";
+    post_order_traversal(root);
+    std::cout << '\n';
+}
+
 #endif
