@@ -108,6 +108,7 @@ std::vector<token> tokenize(const std::string& statement) {
     keyword_map["bool"] = kw_bool;
     keyword_map["chars"] = kw_chars;
     keyword_map["drop"] = kw_drop;
+    keyword_map["with"] = kw_with;
 
     // begin traversing input string
     std::vector<token> tokens = {};

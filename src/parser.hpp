@@ -18,7 +18,7 @@ public:
     Parser(std::vector<token> token_stream) 
         : tokens(token_stream), it(tokens.begin()) {};
 
-    // script -> [definition|selection|join_expr|set_expr]*
+    // script -> [definition|selection|join_expr|set_expr|creation|drop_expr|insertion|update_expr|deletion]*
     std::shared_ptr<node> parse_script() {
         current_non_terminal = script;
 
@@ -281,7 +281,7 @@ public:
         return std::make_shared<node>(order_clause, oc_components);
     }
 
-    // join_expr -> kw_join identifier comma identifier on identifier comparison identifier
+    // join_expr -> kw_join identifier comma identifier on_expr alias_list|ε
     std::shared_ptr<node> parse_join_expr() {
         current_non_terminal = join_expr;
 
@@ -292,10 +292,14 @@ public:
         consume(identifier, je_components);
         je_components.push_back(parse_on_expr());
 
+        if (it->type == kw_with) {
+            je_components.push_back(parse_alias_list());
+        }
+
         return std::make_shared<node>(join_expr, je_components);
     }
 
-    // on_expr -> kw_on identifier comparison identifier
+    // on_expr -> kw_on identifier comparison identifier [as identifier]|ε
     std::shared_ptr<node> parse_on_expr() {
         current_non_terminal = on_expr;
 
@@ -317,7 +321,42 @@ public:
 
         consume(identifier, oe_components);
 
+        if (it->type == kw_as) {
+            discard(kw_as);
+            consume(identifier, oe_components);
+        }
+
         return std::make_shared<node>(on_expr, oe_components);
+    }
+
+    // alias_list -> kw_with [alias , ]* alias
+    std::shared_ptr<node> parse_alias_list() {
+        current_non_terminal = alias_list;
+
+        std::vector<std::shared_ptr<node>> al_components;
+        discard(kw_with);
+        bool al = true;
+        while (al) {
+            al_components.push_back(parse_alias());
+            if (it->type == comma)
+                discard(comma);
+            else 
+                al = false;
+        }
+
+        return std::make_shared<node>(alias_list, al_components);
+    }
+
+    // alias -> identifier as identifier
+    std::shared_ptr<node> parse_alias() {
+        current_non_terminal = alias;
+
+        std::vector<std::shared_ptr<node>> alias_components;
+        consume(identifier, alias_components);
+        discard(kw_as);
+        consume(identifier, alias_components);
+
+        return std::make_shared<node>(alias, alias_components);
     }
 
     // set_expr -> kw_union|kw_intersect identifier comma identifier

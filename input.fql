@@ -22,8 +22,14 @@ update People:
     married(false)
     where name == "Rob Stark"
 
-join People, LivesIn
-    on People.name == LivesIn.iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+define extendedPeople as
+    join People, LivesIn
+        on People.name == LivesIn.name 
 
-
+define t3 as
+    join t1, t2
+        on t1.a == t2.b as t3.c 
+        with t1.x as x1, 
+             t2.x as x2
+             
 # end

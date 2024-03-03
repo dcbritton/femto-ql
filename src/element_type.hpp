@@ -19,6 +19,9 @@ enum element_type {
 
     join_expr = 9,
     on_expr = 10,
+    alias_list = -2,
+    kw_with = -3,
+    alias = -4,
 
     set_expr = 11,
 
@@ -112,8 +115,13 @@ std::string tokenTypeToString(element_type type) {
         case bool_expr: return "boolean expression";
         case column_list: return "column list";
         case order_clause: return "order clause";
+
         case join_expr: return "join expression";
         case on_expr: return "on expression";
+        case alias_list: return "alias list";
+        case kw_with: return "with";
+        case alias: return "alias";
+
         case set_expr: return "set expression";
 
         case deletion: return "deletion";
