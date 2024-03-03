@@ -7,8 +7,9 @@
 #include <iostream>
 #include <filesystem>
 #include "table.hpp"
+#include "node.hpp"
 
-void printSymbolTable(std::vector<table> symbols) {
+void printTableList(std::vector<table> symbols) {
     std::cout << "Current Tables:\n---------------\n";
     for (table t : symbols) {
         std::cout << "Table: \"" << t.name << "\"\n";
@@ -20,7 +21,7 @@ void printSymbolTable(std::vector<table> symbols) {
 }
 
 // a symbol table is constructed and used during validation to ensure that all referenced tables and columns indeed exist
-std::vector<table> buildSymbolTable(const std::string& tableDirectory) {
+std::vector<table> buildTableList(const std::string& tableDirectory) {
     std::vector<table> tables;
     // for each table
     for (const auto& file : std::filesystem::directory_iterator(tableDirectory)) {
@@ -74,8 +75,48 @@ std::vector<table> buildSymbolTable(const std::string& tableDirectory) {
     return tables;
 }
 
-void validate() {
-    return;
-}
+struct SymbolTable {
+    std::vector<table> persistent;
+    std::vector<table> temporary;
+};
+
+class Validator {
+private:
+    SymbolTable symbols;
+
+public:
+
+    Validator(std::vector<table> initialSymbols) {
+        symbols.persistent = initialSymbols;
+    }
+    
+    // validate the AST
+    void validate(std::shared_ptr<node> astRoot) {
+        traverse(astRoot);
+    }
+
+    // traverse the tree and validate each node
+    void traverse(std::shared_ptr<node> currentNode) {
+
+        // validate this node
+        bool validateChildren = true;
+        validateNode(currentNode, validateChildren);
+
+        // validate the children
+        if (validateChildren) {
+            for (auto child : currentNode->components) {
+                traverse(child);
+            }
+        }
+    }
+
+    // validate this node. switch to node-specific function based on type
+    void validateNode(std::shared_ptr<node> currentNode, bool validateChildren) {
+        switch (currentNode->type) {
+
+        }
+    }
+    
+};
 
 #endif

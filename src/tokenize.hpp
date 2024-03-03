@@ -32,27 +32,27 @@ void print_escaped_whitespace(const std::string& script) {
     std::cout << "Script with removed comments:\n-----------------------------\n";
     for (auto sit = script.begin(); sit != script.end(); ++sit) {
         // newline to "\\n"
-        if (*sit == '\n' ) {
-            std::cout << "\\n";
-            continue;
-        }
-        // 
-        if (*sit == '\t' ) {
-            std::cout << "\\t";
-            continue;
-        }
-        else if (*sit == ' ') {
-            auto tab_end = sit;
-            while (*tab_end == ' ' && tab_end - sit < 4)
-                ++tab_end;
-            auto spaces = std::string(sit, tab_end);
-            if (spaces.length() == 4)
-                std::cout << "\\4";
-            if (spaces.length() < 4) 
-                std::cout << spaces;
-            sit = tab_end - 1;
-            continue;
-        }
+        // if (*sit == '\n' ) {
+        //     std::cout << "\\n";
+        //     continue;
+        // }
+        // // 
+        // if (*sit == '\t' ) {
+        //     std::cout << "\\t";
+        //     continue;
+        // }
+        // else if (*sit == ' ') {
+        //     auto tab_end = sit;
+        //     while (*tab_end == ' ' && tab_end - sit < 4)
+        //         ++tab_end;
+        //     auto spaces = std::string(sit, tab_end);
+        //     if (spaces.length() == 4)
+        //         std::cout << "\\4";
+        //     if (spaces.length() < 4) 
+        //         std::cout << spaces;
+        //     sit = tab_end - 1;
+        //     continue;
+        // }
         std::cout << *sit;
     }
     std::cout << "\n\n";
