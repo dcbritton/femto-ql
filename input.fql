@@ -1,13 +1,14 @@
 # header comment
 
 create t1:
-    a(int),
+    a(chars 1),
     x(int),
     w(int)
 
 drop testTable
 
 union t8, t9
+
 intersect t8, t9
 
 join t1, t2
@@ -17,7 +18,7 @@ join t1, t2
 
 select distinct *
     from t1
-    where x == 1 && w == 3
+    where x == 1 && w == 3 
     order x asc
 
 delete from t1
@@ -30,6 +31,9 @@ update t1:
 insert into t1:
     a(3), x(3), w(3)
 
-
-             
+define t20 as
+    select *
+    from t1
+    where a == 0
+  
 # end comment
