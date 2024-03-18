@@ -9,7 +9,7 @@
 #include <memory>
 #include "element_type.hpp"
 
-// this feels like a use for polymorphism -_-
+// @TODO polymorphism
 struct node {
     element_type type;
     std::string value; // empty on all but literals and identifiers (a subset non-terminal symbols)

@@ -70,7 +70,6 @@ public:
         // Cannot create a table from a definition that does not exist.
 
         // add table to permanents
-        // @TODO overload []
         // @TODO nodeToTable(table)
         // persistents.push_back(nodeToTable(???));
 

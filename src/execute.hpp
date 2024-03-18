@@ -1,12 +1,14 @@
-// create.cpp
-// this file is temporary, a prototype for creating the file format's header
+// execute.hpp
+
+#ifndef EXECUTE
+#define EXECUTE
 
 #include <fstream>
 #include <iostream>
-#include <vector>
-#include <string>
-#include <utility>
+#include <filesystem>
+#include <algorithm>
 #include "table.hpp"
+#include "node.hpp"
 
 void create(const table& table) {
 
@@ -73,25 +75,4 @@ void create(const table& table) {
     header.close();
 }
 
-int main(int argc, char const *argv[]) {
-    std::vector<column> cols = {
-            {"col1", "int"},
-            {"col2", "float"},
-            {"col3", "bool"},
-            {"col4", "chars", 16}
-        };
-
-    std::vector<column> cols2 = {
-            {"charsColumn", "chars", 1023},
-            {"col2", "float"},
-            {"col3", "bool"},
-            {"col4", "chars", 16}
-    };
-
-    table tbl("testTable", cols);
-    table tbl2("anotherTestTable", cols2);
-    create(tbl);
-    create(tbl2);
-
-    return 0;
-}
+#endif

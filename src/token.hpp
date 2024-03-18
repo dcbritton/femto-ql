@@ -11,7 +11,6 @@ struct token {
     element_type type;
     std::string value = "";
     unsigned int line_number = 0;
-    // constructor with member initialization list
     token(element_type type, std::string value, unsigned int line_number): type(type), value(value), line_number(line_number) {};
 };
 
