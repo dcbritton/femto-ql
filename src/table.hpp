@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <memory>
+#include "node.hpp"
 
 struct column {
     std::string name;
@@ -22,6 +24,30 @@ struct table {
     std::vector<column> columns;
     table(std::string tableName, std::vector<column> tableColumns) : name(tableName), columns(tableColumns) {};
 };
+
+// create a table struct from a node
+table nodeToTable(const std::shared_ptr<node>& n) {
+    // node must be a creation
+    if (n->type != creation) {
+        std::cout << "Error converting node to table: Node is not a creation!\n";
+        exit(1);        
+    }
+
+    std::vector<column> cols;
+    for (auto& columnTypePair : n->components[1]->components) {
+        // identifier name stored in value
+        std::string colName = columnTypePair->components[0]->value;
+        // for kw_chars, kw_int, kw_float, kw_bool, there's no value, so infer by type
+        std::string colType = tokenTypeToString(columnTypePair->components[1]->type);
+        // if the type is chars, then we need know how many
+        int numChars = 0;
+        if (colType == "chars") numChars = std::stoi(columnTypePair->components[2]->value);
+
+        cols.push_back(column(colName, colType, numChars));
+    }
+
+    return (table(n->components[0]->value, cols));
+}
 
 // free function to find a table by name in a vector of tables
 // iterator may be used to remove a table?

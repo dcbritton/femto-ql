@@ -70,10 +70,12 @@ public:
         // Cannot create a table from a definition that does not exist.
 
         // add table to permanents
-        // @TODO nodeToTable(table)
-        // persistents.push_back(nodeToTable(???));
+        persistents.push_back(nodeToTable(creationRoot));
 
-        std::cout << "Creation validated.\n"; 
+        std::cout << "Creation validated.\n";
+        printTableList(persistents);
+        printTableList(temporaries);
+        std::cout << '\n';
     }
 
     // validate drop statement
@@ -99,6 +101,7 @@ public:
         std::cout << "Drop statement validated.\n";
         printTableList(persistents);
         printTableList(temporaries);
+        std::cout << '\n';
         return;
     }
     
