@@ -96,8 +96,7 @@ unsigned char columnTypeToByte(const std::string& columnType) {
 
 void printTableList(std::vector<table> tables) {
     for (table t : tables) {
-        std::cout << "Table: \"" << t.name << "\"\n";
-        std::cout << "        ";
+        std::cout << "\"" << t.name << "\": ";
         for (column c : t.columns)
             std::cout << c.name << ' ' << c.type << (c.type == "chars" ? std::to_string(c.charsLength) : "") << ", ";
         std::cout << '\n';
