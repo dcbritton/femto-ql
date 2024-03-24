@@ -34,6 +34,10 @@ public:
                 case creation:
                     validateCreation(nodePtr);
                     break;
+
+                case set_op:
+                    validateSetOp(nodePtr);
+                    break;
                 
                 default:
                     std::cout << "Validation error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
@@ -43,6 +47,12 @@ public:
     }
 
     // a million validation functions
+
+    void validateSetOp(std::shared_ptr<node> setOpRoot) {
+	// Cannot union|intersect tables with different numbers of columns.
+	// Cannot union|intersect tables with different column names.
+	// Cannot union|intersect tables with different column types.
+    }
 
     // validate create (original)
     void validateCreation(std::shared_ptr<node> creationRoot) {
