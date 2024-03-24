@@ -12,14 +12,11 @@
 
 class Validator {
 private:
-    std::vector<table> permanents;
-    std::vector<table> temporaries;
+    std::vector<table> tables;
 
 public:
 
-    Validator(std::vector<table> initialSymbols) {
-        permanents = initialSymbols;
-    }
+    Validator(std::vector<table> initials) : tables(initials) {}
     
     // validate the AST
     void validate(std::shared_ptr<node> astRoot) {
@@ -52,24 +49,17 @@ public:
         // Only union|intersect tables that exist.
         std::string firstTableName = setOpRoot->components[1]->value;
         std::string secondTableName = setOpRoot->components[2]->value;
-        if (!exists(firstTableName, permanents) && !exists(firstTableName, temporaries)) {
-            std::cout << "Validator error. Table \"" << firstTableName << "\" exists as neither a permanent nor a temporary table.\n";
+        if (!exists(firstTableName, tables)) {
+            std::cout << "Validator error. Table \"" << firstTableName << "\" doesn't exist.\n";
             exit(1);
         }
-        if (!exists(firstTableName, permanents) && !exists(firstTableName, temporaries)) {
-            std::cout << "Validator error. Table \"" << secondTableName << "\" exists as neither a permanent nor a temporary table.\n";
-            exit(1);
-        }
-
-        // @TODO REMOVE THE CONCEPT OF TEMPORARY AND PERMANENT TABLES, INCLUDING DEFINE VS CREATE
 
         // Cannot union|intersect tables with different numbers of columns.
         // Cannot union|intersect tables with different column names.
         // Cannot union|intersect tables with different column types.
 
         std::cout << "Set operation validated.\n";
-        printTableList(permanents);
-        printTableList(temporaries);
+        printTableList(tables);
         std::cout << '\n';
     }
 
@@ -82,11 +72,10 @@ public:
         }
 
         std::string tableName = definitionRoot->components[0]->value;
-        auto p = find(permanents, tableName);
 
-        // if table already exists in permanents, can't create
-        if (p != permanents.end()) {
-            std::cout << "Validation error. Table \"" << tableName << "\" already exists.\n";
+        // if table already exists
+        if (exists(tableName, tables)) {
+            std::cout << "Validation error. Table \"" << tableName << "\" already exists. Cannot define a table with the same name.\n";
             exit(1);
         }
 
@@ -101,38 +90,31 @@ public:
             }
         }
 
-        // add table to permanents
-        permanents.push_back(nodeToTable(definitionRoot));
+        // add table
+        tables.push_back(nodeToTable(definitionRoot));
 
         std::cout << "Definition validated.\n";
-        printTableList(permanents);
-        printTableList(temporaries);
+        printTableList(tables);
         std::cout << '\n';
     }
 
     // validate drop statement
     void validateDrop(std::shared_ptr<node> dropRoot) {
         std::string tableName = dropRoot->components[0]->value;
-        auto p = find(permanents, tableName);
-        auto t = find(temporaries, tableName);
+        auto t = find(tables, tableName);
 
-        // if table is in permanents, drop it
-        if (p != permanents.end()) 
-            permanents.erase(p);
-
-        // if table is in temporaries, drop it
-        else if (t != temporaries.end()) 
-            temporaries.erase(t);
+        // if table exists, drop it
+        if (t != tables.end()) 
+            tables.erase(t);
 
         // if table is in neither, error
         else {
-            std::cout << "Validation error. Table \"" << tableName << "\" exists neither as a permanent nor temporary table.\n";
+            std::cout << "Validation error. Table \"" << tableName << "\" doesn't exist.\n";
             exit(1);
         }
 
         std::cout << "Drop statement validated.\n";
-        printTableList(permanents);
-        printTableList(temporaries);
+        printTableList(tables);
         std::cout << '\n';
         return;
     }
