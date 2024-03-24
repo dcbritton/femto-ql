@@ -45,18 +45,44 @@ public:
 
     // a million validation functions
 
+    // validate set operation
     void validateSetOp(std::shared_ptr<node> setOpRoot) {
-        // Only union|intersect tables that exist.
+
+        // only union/intersect tables that exist
         std::string firstTableName = setOpRoot->components[1]->value;
         std::string secondTableName = setOpRoot->components[2]->value;
         if (!exists(firstTableName, tables)) {
             std::cout << "Validator error. Table \"" << firstTableName << "\" doesn't exist.\n";
             exit(1);
         }
+        if (!exists(secondTableName, tables)) {
+            std::cout << "Validator error. Table \"" << secondTableName << "\" doesn't exist.\n";
+            exit(1);
+        }
 
-        // Cannot union|intersect tables with different numbers of columns.
-        // Cannot union|intersect tables with different column names.
-        // Cannot union|intersect tables with different column types.
+        // cannot union|intersect tables with different numbers of columns
+        auto first = find(firstTableName, tables);
+        auto second = find(secondTableName, tables);
+        if (first->columns.size() != second->columns.size()) {
+            std::cout << "Validator error. Tables \"" << firstTableName << "\" and \"" << secondTableName << "\" don't have the same number of columns.\n";
+            exit(1);
+        }
+        
+        // cannot union|intersect tables with different column names
+        for (int i = 0; i < first->columns.size(); ++i) {
+            if (first->columns[i].name != second->columns[i].name) {
+                std::cout << "Validator error. Tables \"" << firstTableName << "\" and \"" << secondTableName << "\" have different column names (or are in different orders).\n";
+                exit(1);
+            }
+        }
+
+        // cannot union|intersect tables with different column types
+        for (int i = 0; i < first->columns.size(); ++i) {
+            if (first->columns[i].type != second->columns[i].type) {
+                std::cout << "Validator error. Tables \"" << firstTableName << "\" and \"" << secondTableName << "\" have different column types.\n";
+                exit(1);
+            }
+        }
 
         std::cout << "Set operation validated.\n";
         printTableList(tables);
@@ -80,9 +106,9 @@ public:
         }
 
         // no <= 0 length chars
-        // loop through all columns of the table, if chars, check that -> type >= 1
         for (auto columnTypePair : definitionRoot->components[1]->components) {
             if (columnTypePair->components[1]->type == kw_chars) {
+                // check that -> type >= 1
                 if (stoi(columnTypePair->components[2]->value) <= 0) {
                     std::cout << "Validation error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[0]->value << "\" may not have a non-positive number of columns.\n";
                     exit(1);
