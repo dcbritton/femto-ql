@@ -90,6 +90,10 @@ public:
             }
         }
 
+        // @TODO
+        // Cannot create a table with two columns of the same name
+        // Cannot create a table from a definition that does not exist.
+
         // add table
         tables.push_back(nodeToTable(definitionRoot));
 
@@ -101,11 +105,10 @@ public:
     // validate drop statement
     void validateDrop(std::shared_ptr<node> dropRoot) {
         std::string tableName = dropRoot->components[0]->value;
-        auto t = find(tables, tableName);
 
         // if table exists, drop it
-        if (t != tables.end()) 
-            tables.erase(t);
+        if (exists(tableName, tables)) 
+            tables.erase(find(tableName, tables));
 
         // if table is in neither, error
         else {

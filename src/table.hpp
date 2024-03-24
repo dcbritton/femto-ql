@@ -51,7 +51,7 @@ table nodeToTable(const std::shared_ptr<node>& n) {
 
 // free function to find a table by name in a vector of tables
 // iterator may be used to remove a table?
-std::vector<table>::const_iterator find(const std::vector<table>& tables, const std::string& tableName) {
+std::vector<table>::const_iterator find(const std::string& tableName, const std::vector<table>& tables) {
     auto it = tables.begin();
     while (it != tables.end()) {
         if (it->name == tableName)
@@ -63,7 +63,7 @@ std::vector<table>::const_iterator find(const std::vector<table>& tables, const 
 }
 
 bool exists(const std::string& tableName, const std::vector<table>& tables) {
-    return find(tables, tableName) != tables.end();
+    return find(tableName, tables) != tables.end();
 }
 
 std::string byteToColumnType(char signedByte) {
