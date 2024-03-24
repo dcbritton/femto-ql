@@ -62,6 +62,10 @@ std::vector<table>::const_iterator find(const std::vector<table>& tables, const 
     return it;
 }
 
+bool exists(const std::string& tableName, const std::vector<table>& tables) {
+    return find(tables, tableName) != tables.end();
+}
+
 std::string byteToColumnType(char signedByte) {
     unsigned char byte = static_cast<unsigned char>(signedByte);
     std::unordered_map<unsigned char, std::string> typeMap;

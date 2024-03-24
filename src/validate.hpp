@@ -12,13 +12,13 @@
 
 class Validator {
 private:
-    std::vector<table> persistents;
+    std::vector<table> permanents;
     std::vector<table> temporaries;
 
 public:
 
     Validator(std::vector<table> initialSymbols) {
-        persistents = initialSymbols;
+        permanents = initialSymbols;
     }
     
     // validate the AST
@@ -40,7 +40,7 @@ public:
                     break;
                 
                 default:
-                    std::cout << "Validation error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
+                    std::cout << "Validator error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
                     break;
             }
         }
@@ -49,18 +49,37 @@ public:
     // a million validation functions
 
     void validateSetOp(std::shared_ptr<node> setOpRoot) {
-	// Cannot union|intersect tables with different numbers of columns.
-	// Cannot union|intersect tables with different column names.
-	// Cannot union|intersect tables with different column types.
+        // Only union|intersect tables that exist.
+        std::string firstTableName = setOpRoot->components[1]->value;
+        std::string secondTableName = setOpRoot->components[2]->value;
+        if (!exists(firstTableName, permanents) && !exists(firstTableName, temporaries)) {
+            std::cout << "Validator error. Table \"" << firstTableName << "\" exists as neither a permanent nor a temporary table.\n";
+            exit(1);
+        }
+        if (!exists(firstTableName, permanents) && !exists(firstTableName, temporaries)) {
+            std::cout << "Validator error. Table \"" << secondTableName << "\" exists as neither a permanent nor a temporary table.\n";
+            exit(1);
+        }
+
+        // @TODO REMOVE THE CONCEPT OF TEMPORARY AND PERMANENT TABLES, INCLUDING DEFINE VS CREATE
+
+        // Cannot union|intersect tables with different numbers of columns.
+        // Cannot union|intersect tables with different column names.
+        // Cannot union|intersect tables with different column types.
+
+        std::cout << "Set operation validated.\n";
+        printTableList(permanents);
+        printTableList(temporaries);
+        std::cout << '\n';
     }
 
     // validate create (original)
     void validateCreation(std::shared_ptr<node> creationRoot) {
         std::string tableName = creationRoot->components[0]->value;
-        auto p = find(persistents, tableName);
+        auto p = find(permanents, tableName);
 
         // if table already exists in permanents, can't create
-        if (p != persistents.end()) {
+        if (p != permanents.end()) {
             std::cout << "Validation error. Table \"" << tableName << "\" already exists.\n";
             exit(1);
         }
@@ -80,10 +99,10 @@ public:
         // Cannot create a table from a definition that does not exist.
 
         // add table to permanents
-        persistents.push_back(nodeToTable(creationRoot));
+        permanents.push_back(nodeToTable(creationRoot));
 
         std::cout << "Creation validated.\n";
-        printTableList(persistents);
+        printTableList(permanents);
         printTableList(temporaries);
         std::cout << '\n';
     }
@@ -91,12 +110,12 @@ public:
     // validate drop statement
     void validateDrop(std::shared_ptr<node> dropRoot) {
         std::string tableName = dropRoot->components[0]->value;
-        auto p = find(persistents, tableName);
+        auto p = find(permanents, tableName);
         auto t = find(temporaries, tableName);
 
         // if table is in permanents, drop it
-        if (p != persistents.end()) 
-            persistents.erase(p);
+        if (p != permanents.end()) 
+            permanents.erase(p);
 
         // if table is in temporaries, drop it
         else if (t != temporaries.end()) 
@@ -109,7 +128,7 @@ public:
         }
 
         std::cout << "Drop statement validated.\n";
-        printTableList(persistents);
+        printTableList(permanents);
         printTableList(temporaries);
         std::cout << '\n';
         return;
