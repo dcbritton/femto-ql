@@ -28,7 +28,7 @@ struct table {
 // create a table struct from a node
 table nodeToTable(const std::shared_ptr<node>& n) {
     // node must be a creation
-    if (n->type != creation) {
+    if (n->type != definition) {
         std::cout << "Error converting node to table: Node is not a creation!\n";
         exit(1);        
     }

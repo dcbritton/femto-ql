@@ -18,7 +18,7 @@ public:
     Parser(std::vector<token> token_stream) 
         : tokens(token_stream), it(tokens.begin()) {};
 
-    // script -> [definition|selection|join|set_op|creation|drop|insertion|update|deletion]*
+    // script -> [definition|selection|join|set_op|drop|insertion|update|deletion]*
     std::shared_ptr<node> parse_script() {
         current_non_terminal = script;
 
@@ -38,8 +38,6 @@ public:
                 script_components.push_back(parse_update());
             else if (it->type == kw_delete)
                 script_components.push_back(parse_deletion());
-            else if (it->type == kw_create)
-                script_components.push_back(parse_creation());
             else if (it->type == kw_drop)
                 script_components.push_back(parse_drop());
             else {
@@ -58,10 +56,13 @@ public:
         std::vector<std::shared_ptr<node>> dfn_components;
         discard(kw_define);
         consume(identifier, dfn_components);
-        discard(kw_as);
+        discard(colon);
 
+        // col, type list
+        if (it->type == identifier)
+            dfn_components.push_back(parse_col_type_list());
         // selection
-        if (it->type == kw_select)
+        else if (it->type == kw_select)
             dfn_components.push_back(parse_selection());
         // join
         else if (it->type == kw_join)
@@ -461,21 +462,6 @@ public:
         discard(close_parenthesis);
 
         return std::make_shared<node>(col_val, cv_components);
-    }
-
-    // creation -> kw_create identifier :col_type_list|ε
-    std::shared_ptr<node> parse_creation() {
-        current_non_terminal = creation;
-
-        std::vector<std::shared_ptr<node>> crn_components;
-        discard(kw_create);
-        consume(identifier, crn_components);
-        if (it->type == colon) {
-            discard(colon);
-            crn_components.push_back(parse_col_type_list());
-        }
-
-        return std::make_shared<node>(creation, crn_components);
     }
 
     // col_type_list -> col_type, ... col_type

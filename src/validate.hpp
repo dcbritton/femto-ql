@@ -31,8 +31,8 @@ public:
                     validateDrop(nodePtr);
                     break;
 
-                case creation:
-                    validateCreation(nodePtr);
+                case definition:
+                    validateDefinition(nodePtr);
                     break;
 
                 case set_op:
@@ -74,8 +74,14 @@ public:
     }
 
     // validate create (original)
-    void validateCreation(std::shared_ptr<node> creationRoot) {
-        std::string tableName = creationRoot->components[0]->value;
+    void validateDefinition(std::shared_ptr<node> definitionRoot) {
+        // @TODO validation for definitions other than those of column, type list
+        if (definitionRoot->components[1]->type != col_type_list) {
+            std::cout << "Validation of a definition other than from a column, type list";
+            return;
+        }
+
+        std::string tableName = definitionRoot->components[0]->value;
         auto p = find(permanents, tableName);
 
         // if table already exists in permanents, can't create
@@ -86,22 +92,19 @@ public:
 
         // no <= 0 length chars
         // loop through all columns of the table, if chars, check that -> type >= 1
-        for (auto columnTypePair : creationRoot->components[1]->components) {
+        for (auto columnTypePair : definitionRoot->components[1]->components) {
             if (columnTypePair->components[1]->type == kw_chars) {
                 if (stoi(columnTypePair->components[2]->value) <= 0) {
-                    std::cout << "Validation error. Column \"" << columnTypePair->components[0]->value << "\" in created table \"" << creationRoot->components[0]->value << "\" may not have a non-positive number of columns.\n";
+                    std::cout << "Validation error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[0]->value << "\" may not have a non-positive number of columns.\n";
                     exit(1);
                 }
             }
         }
 
-        // @TODO
-        // Cannot create a table from a definition that does not exist.
-
         // add table to permanents
-        permanents.push_back(nodeToTable(creationRoot));
+        permanents.push_back(nodeToTable(definitionRoot));
 
-        std::cout << "Creation validated.\n";
+        std::cout << "Definition validated.\n";
         printTableList(permanents);
         printTableList(temporaries);
         std::cout << '\n';

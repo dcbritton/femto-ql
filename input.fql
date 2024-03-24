@@ -1,11 +1,11 @@
 # header comment
 
-create t1:
+define t1:
     a(chars 1),
     x(int),
     w(int)
 
-create t3:
+define t3:
     a(chars 1),
     x(int),
     w(int)
@@ -36,7 +36,7 @@ update t1:
 insert into t1:
     a(3), x(3), w(3)
 
-define t20 as
+define t20:
     select *
     from t1
     where a == 0

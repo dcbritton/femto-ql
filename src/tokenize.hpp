@@ -103,7 +103,6 @@ std::vector<token> tokenize(const std::string& statement) {
     keyword_map["insert"] = kw_insert;
     keyword_map["into"] = kw_into;
     keyword_map["update"] = kw_update;
-    keyword_map["create"] = kw_create;
     keyword_map["int"] = kw_int;
     keyword_map["float"] = kw_float;
     keyword_map["bool"] = kw_bool;

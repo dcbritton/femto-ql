@@ -32,7 +32,6 @@ enum element_type {
 
     update = 16,
 
-    creation = 17,
     col_type_list = 18,
     col_type = 19,
 
@@ -67,7 +66,6 @@ enum element_type {
 
     kw_update = 39,
 
-    kw_create = 40,
     kw_int = 41,
     kw_float = 42,
     kw_bool = 43,
@@ -133,7 +131,6 @@ std::string tokenTypeToString(element_type type) {
 
         case update: return "update statement";
 
-        case creation: return "creation";
         case col_type_list: return "column, type list";
         case col_type: return "column, type pair";
 
@@ -163,7 +160,6 @@ std::string tokenTypeToString(element_type type) {
 
         case kw_update: return "update";
 
-        case kw_create: return "create";
         case kw_int: return "int"; 
         case kw_float: return "float";
         case kw_bool: return "bool";

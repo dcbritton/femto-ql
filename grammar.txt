@@ -9,8 +9,6 @@ script          ->      [definition|selection|join|set_op|creation|drop|insertio
 
 drop            ->      kw_drop identifier
 
-creation        ->      kw_create identifier [colon col_type_list]|ε
-
 col_type_list   ->      col_type, ... col_type
 
 col_type        ->      identifier(int|float|bool|[chars int_literal])
@@ -26,6 +24,7 @@ col_val         ->      identifier(literal)
 deletion        ->      kw_delete from_clause where_clause|ε
 
 definition      ->      kw_define identifier kw_as selection|join|set_op
+                |       kw_define identifier [colon col_type_list]|ε
 
 join            ->      kw_join identifier comma identifier on_expr alias_list|ε
 
