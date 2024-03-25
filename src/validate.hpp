@@ -35,6 +35,10 @@ public:
                 case set_op:
                     validateSetOp(nodePtr);
                     break;
+
+                case join:
+                    validateJoin(nodePtr);
+                    break;
                 
                 default:
                     std::cout << "Validator error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
@@ -44,6 +48,55 @@ public:
     }
 
     // a million validation functions
+
+    // validate join statement
+    void validateJoin(std::shared_ptr<node> joinRoot) {
+        // cannot join tables that don't exist
+        std::string firstTableName = joinRoot->components[0]->value;
+        std::string secondTableName = joinRoot->components[1]->value;
+
+        if (!exists(firstTableName, tables)) {
+            std::cout << "Validator error. Table \"" << firstTableName << "\" doesn't exist.\n";
+            exit(1);
+        }
+        if (!exists(secondTableName, tables)) {
+            std::cout << "Validator error. Table \"" << secondTableName << "\" doesn't exist.\n";
+            exit(1);
+        }
+
+        // ON_EXPR
+        std::shared_ptr<node> onExprRoot = joinRoot->components[2];
+
+        // @TODO (but handled implicitly in tokenizer, with MAX_IDENTIFIER_LENGTH)
+        // new aliases cannot exceed 64 characters
+
+        // cannot join tables on columns that don't exist
+
+        // joined column alias must not conflict with other column names
+        std::string joinedColumnAlias = onExprRoot->components[3]->value;
+        auto first = find(firstTableName, tables);
+        auto second = find(secondTableName, tables);
+        for (const auto& col : first->columns)
+            if (col.name == joinedColumnAlias) {
+                std::cout << "Validator error. Joined column alias \"" << joinedColumnAlias << "\" already exists in " << first->name << ".\n";
+                exit(1);
+            }
+        for (const auto& col : second->columns)
+            if (col.name == joinedColumnAlias) {
+                std::cout << "Validator error. Joined column alias \"" << joinedColumnAlias << "\" already exists in " << second->name << ".\n";
+                exit(1);
+            }
+
+        // these columns must me in table.column form.
+        // joined columns must be of the same type.
+
+        // require aliasing on column name conflicts
+        // aliased columns must exist
+
+        std::cout << "Join validated.\n";
+        printTableList(tables);
+        std::cout << '\n';
+    }
 
     // validate set operation
     void validateSetOp(std::shared_ptr<node> setOpRoot) {
@@ -83,6 +136,8 @@ public:
                 exit(1);
             }
         }
+
+        // @TODO default to larger chars on resultant table
 
         std::cout << "Set operation validated.\n";
         printTableList(tables);

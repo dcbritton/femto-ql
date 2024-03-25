@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cctype>
 
-const int MAX_CHARS_LENGTH = 64;
+const int MAX_IDENTIFIER_LENGTH = 64;
 
 // remove everything in [#,\n)
 // keep \n for accurate line number in parse errors
@@ -133,7 +133,7 @@ std::vector<token> tokenize(const std::string& statement) {
             std::string word(it, word_end);
 
             // check length
-            if (word.length() > MAX_CHARS_LENGTH) {
+            if (word.length() > MAX_IDENTIFIER_LENGTH) {
                 std::cout << "Tokenization error on line " << line_number << ". Table/column name " << word << " is greater than 64 characters long.\n";
                 exit(1);
             }
@@ -156,7 +156,7 @@ std::vector<token> tokenize(const std::string& statement) {
 
                 std::string column_name(column_name_begin, word_end);
                 // check length
-                if (column_name.length() > MAX_CHARS_LENGTH) {
+                if (column_name.length() > MAX_IDENTIFIER_LENGTH) {
                     std::cout << "Tokenization error on line " << line_number << ". Column name " << column_name << " is greater than 64 characters long.\n";
                     exit(1);
                 }

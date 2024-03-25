@@ -5,6 +5,11 @@ define t1:
     x(int),
     w(int)
 
+define t2:
+    b(chars 2),
+    x(int),
+    w(int)
+
 define t3:
     a(chars 1),
     x(int),
@@ -17,9 +22,9 @@ union t1, t3
 intersect t1, t3
 
 join t1, t2
-    on t1.a == t2.b as t3.c 
+    on t1.a == t2.b as w
     with t1.x as x1, 
-            t2.x as x2
+         t2.x as x2
 
 select distinct *
     from t1
