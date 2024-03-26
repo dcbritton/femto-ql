@@ -6,6 +6,7 @@
 enum element_type {
     
     // non-terminals - specific to internal nodes
+    nullnode = 127,
     script = 0,
     definition = 1,
 
@@ -104,6 +105,7 @@ enum element_type {
 
 std::string tokenTypeToString(element_type type) {
     switch (type) {
+        case nullnode: return "null node";
 
         case script: return "script";
         case definition: return "definition";

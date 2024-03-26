@@ -49,7 +49,7 @@ public:
         return std::make_shared<node>(script, script_components);
     }
 
-    // definition -> kw_define identifier kw_as selection|join|set_op
+    // definition -> kw_define identifier colon selection|join|set_op
     std::shared_ptr<node> parse_definition() {
         current_non_terminal = definition;
 
@@ -90,7 +90,9 @@ public:
 
         // optional clauses
         if (it->type == kw_where) sln_components.push_back(parse_where_clause());
+        else sln_components.push_back(std::make_shared<node>(nullnode));
         if (it->type == kw_order) sln_components.push_back(parse_order_clause());
+        else sln_components.push_back(std::make_shared<node>(nullnode));
 
         return std::make_shared<node>(selection, sln_components);
     }
@@ -101,7 +103,10 @@ public:
 
         std::vector<std::shared_ptr<node>> sc_components;
         discard(kw_select);
-        consume_optional(kw_distinct, sc_components);
+        if (it->type == kw_distinct)
+            consume(kw_distinct, sc_components);
+        else 
+            sc_components.push_back(std::make_shared<node>(nullnode));
         sc_components.push_back(parse_column_list());
 
         return std::make_shared<node>(select_clause, sc_components);
@@ -293,9 +298,10 @@ public:
         consume(identifier, je_components);
         je_components.push_back(parse_on_expr());
 
-        if (it->type == kw_with) {
+        if (it->type == kw_with)
             je_components.push_back(parse_alias_list());
-        }
+        else
+            je_components.push_back(std::make_shared<node>(nullnode));
 
         return std::make_shared<node>(join, je_components);
     }
@@ -326,6 +332,8 @@ public:
             discard(kw_as);
             consume(identifier, oe_components);
         }
+        else
+            oe_components.push_back(std::make_shared<node>(nullnode));
 
         return std::make_shared<node>(on_expr, oe_components);
     }
@@ -392,6 +400,7 @@ public:
         discard(kw_delete);
         dc_components.push_back(parse_from_clause());
         if (it->type == kw_where) dc_components.push_back(parse_where_clause());
+        else dc_components.push_back(std::make_shared<node>(nullnode));
 
         return std::make_shared<node>(deletion, dc_components);
     }

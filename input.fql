@@ -22,17 +22,14 @@ union t1, t3
 intersect t1, t3
 
 join t1, t2
-    on t1.w == t2.b as newCol 
-    with t1.x as x1, 
-         t2.x as x2
+    on t1.w == t2.b
 
-select distinct *
+select *
     from t1
-    where x == 1 && w == 3 
-    order x asc
+
 
 delete from t1
-    where x == 3
+
 
 update t1:
     a(0), w(1)
