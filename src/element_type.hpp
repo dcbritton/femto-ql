@@ -66,7 +66,7 @@ enum element_type {
     kw_into = 38,
 
     kw_update = 39,
-
+    kw_temporary = 40,
     kw_int = 41,
     kw_float = 42,
     kw_bool = 43,
@@ -162,6 +162,7 @@ std::string tokenTypeToString(element_type type) {
 
         case kw_update: return "update";
 
+        case kw_temporary: return "temporary";
         case kw_int: return "int"; 
         case kw_float: return "float";
         case kw_bool: return "bool";

@@ -55,7 +55,7 @@ table nodeToTable(const std::shared_ptr<node>& n) {
     }
 
     std::vector<column> cols;
-    for (auto& columnTypePair : n->components[1]->components) {
+    for (auto& columnTypePair : n->components[2]->components) {
         // identifier name stored in value
         std::string colName = columnTypePair->components[0]->value;
         // for kw_chars, kw_int, kw_float, kw_bool, there's no value, so infer by type
@@ -67,7 +67,7 @@ table nodeToTable(const std::shared_ptr<node>& n) {
         cols.push_back(column(colName, colType, numChars));
     }
 
-    return (table(n->components[0]->value, cols));
+    return (table(n->components[1]->value, cols));
 }
 
 // free function to find a table by name in a vector of tables

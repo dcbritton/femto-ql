@@ -173,12 +173,12 @@ public:
     // validate create (original)
     void validateDefinition(std::shared_ptr<node> definitionRoot) {
         // @TODO validation for definitions other than those of column, type list
-        if (definitionRoot->components[1]->type != col_type_list) {
+        if (definitionRoot->components[2]->type != col_type_list) {
             std::cout << "Validation of a definition other than from a column, type list";
             return;
         }
 
-        std::string tableName = definitionRoot->components[0]->value;
+        std::string tableName = definitionRoot->components[1]->value;
 
         // if table already exists
         if (exists(tableName, tables)) {
@@ -187,11 +187,11 @@ public:
         }
 
         // no <= 0 length chars
-        for (auto columnTypePair : definitionRoot->components[1]->components) {
+        for (auto columnTypePair : definitionRoot->components[2]->components) {
             if (columnTypePair->components[1]->type == kw_chars) {
                 // check that -> type >= 1
                 if (stoi(columnTypePair->components[2]->value) <= 0) {
-                    std::cout << "Validation error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[0]->value << "\" may not have a non-positive number of columns.\n";
+                    std::cout << "Validation error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[1]->value << "\" may not have a non-positive number of columns.\n";
                     exit(1);
                 }
             }

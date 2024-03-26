@@ -55,6 +55,10 @@ public:
 
         std::vector<std::shared_ptr<node>> dfn_components;
         discard(kw_define);
+        if (it->type == kw_temporary)
+            consume(kw_temporary, dfn_components);
+        else
+            dfn_components.push_back(std::make_shared<node>(nullnode));
         consume(identifier, dfn_components);
         discard(colon);
 
