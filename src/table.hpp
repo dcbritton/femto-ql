@@ -83,6 +83,11 @@ std::vector<table>::const_iterator find(const std::string& tableName, const std:
     return it;
 }
 
+// column exists in a vector of columns
+bool exists(const std::string& columnName, const std::vector<column>& columns) {
+    return std::find_if(columns.begin(), columns.end(), [&columnName](const auto& c){return c.name == columnName;}) != columns.end();
+}
+
 // table exists in a vector of tables
 bool exists(const std::string& tableName, const std::vector<table>& tables) {
     return find(tableName, tables) != tables.end();
