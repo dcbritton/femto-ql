@@ -9,6 +9,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <optional>
 #include "node.hpp"
 
 struct column {
@@ -24,6 +25,26 @@ struct table {
     std::vector<column> columns;
     table(std::string tableName, std::vector<column> tableColumns) : name(tableName), columns(tableColumns) {};
 };
+
+// identifier has '.'
+bool hasDot(const std::string& name) {
+    return std::find(name.begin(), name.end(), '.') != name.end();
+}
+
+// split an identifier name on the '.'
+// 2nd string will be "" if no '.' is present
+std::pair<std::string, std::string> split(const std::string& name) {
+    // find '.'
+    int dotPosition = name.find('.');
+
+    // no '.'
+    if (std::find(name.begin(), name.end(), '.') == name.end())  {
+        return std::make_pair(name, "");
+    }
+    
+    // std::cout << "TEST SPLIT: " << name.substr(0, dotPosition) << " : " << name.substr(dotPosition+1, name.length()-1) << "\n";
+    return std::make_pair(name.substr(0, dotPosition), name.substr(dotPosition+1, name.length()-1));
+} 
 
 // create a table struct from a node
 table nodeToTable(const std::shared_ptr<node>& n) {
@@ -62,6 +83,7 @@ std::vector<table>::const_iterator find(const std::string& tableName, const std:
     return it;
 }
 
+// table exists in a vector of tables
 bool exists(const std::string& tableName, const std::vector<table>& tables) {
     return find(tableName, tables) != tables.end();
 }

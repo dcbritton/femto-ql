@@ -104,13 +104,13 @@ graph G {
     node52 [label="t2"];
     node50 -- node52;
     node53 [label="on expression"];
-    node54 [label="t1.a"];
+    node54 [label="t1.w"];
     node53 -- node54;
     node55 [label="=="];
     node53 -- node55;
     node56 [label="t2.b"];
     node53 -- node56;
-    node57 [label="w"];
+    node57 [label="newCol"];
     node53 -- node57;
     node50 -- node53;
     node58 [label="alias list"];

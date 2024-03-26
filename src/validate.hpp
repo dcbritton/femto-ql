@@ -52,46 +52,72 @@ public:
     // validate join statement
     void validateJoin(std::shared_ptr<node> joinRoot) {
         // cannot join tables that don't exist
-        std::string firstTableName = joinRoot->components[0]->value;
-        std::string secondTableName = joinRoot->components[1]->value;
+        std::string table1Name = joinRoot->components[0]->value;
+        std::string table2Name = joinRoot->components[1]->value;
 
-        if (!exists(firstTableName, tables)) {
-            std::cout << "Validator error. Table \"" << firstTableName << "\" doesn't exist.\n";
+        if (!exists(table1Name, tables)) {
+            std::cout << "Validator error. Table \"" << table1Name << "\" doesn't exist.\n";
             exit(1);
         }
-        if (!exists(secondTableName, tables)) {
-            std::cout << "Validator error. Table \"" << secondTableName << "\" doesn't exist.\n";
+        if (!exists(table2Name, tables)) {
+            std::cout << "Validator error. Table \"" << table2Name << "\" doesn't exist.\n";
             exit(1);
         }
 
         // ON_EXPR
         std::shared_ptr<node> onExprRoot = joinRoot->components[2];
+        std::string col1Name = onExprRoot->components[0]->value;
+        auto split1 = split(col1Name);
+        split1.first;
+        std::string col2Name = onExprRoot->components[2]->value;
+        auto split2 = split(col2Name);
 
         // @TODO (but handled implicitly in tokenizer, with MAX_IDENTIFIER_LENGTH)
         // new aliases cannot exceed 64 characters
 
-        // cannot join tables on columns that don't exist
+        // joined columns must be in table.column form
+        if (!hasDot(col1Name)) {
+            std::cout << "Validator error. Column \"" << col1Name << "\" isn't in table.column form.\n";
+            exit(1);
+        }
+        if (!hasDot(col2Name)) {
+            std::cout << "Validator error. Column \"" << col1Name << "\" isn't in table.column form.\n";
+            exit(1);
+        }
 
-        // joined column alias must not conflict with other column names
-        std::string joinedColumnAlias = onExprRoot->components[3]->value;
-        auto first = find(firstTableName, tables);
-        auto second = find(secondTableName, tables);
-        for (const auto& col : first->columns)
-            if (col.name == joinedColumnAlias) {
-                std::cout << "Validator error. Joined column alias \"" << joinedColumnAlias << "\" already exists in " << first->name << ".\n";
-                exit(1);
-            }
-        for (const auto& col : second->columns)
-            if (col.name == joinedColumnAlias) {
-                std::cout << "Validator error. Joined column alias \"" << joinedColumnAlias << "\" already exists in " << second->name << ".\n";
-                exit(1);
-            }
+        // verify that split1/2->first must match joined tables
+        if (split1.first == joinRoot->components[0]->value && split2.first == joinRoot->components[1]->value) {}
+        else if (split2.first == joinRoot->components[0]->value && split1.first == joinRoot->components[1]->value) {}
+        else {
+            std::cout << "Validator error. Columns to join on must reference the tables stated after \"join\"!\n";
+            exit(1); 
+        }
 
-        // these columns must me in table.column form.
-        // joined columns must be of the same type.
+        // cannot join tables on columns that the tables don't have
+        auto table1 = find(table1Name, tables);
+        auto table2 = find(table2Name, tables);
 
+        // verify that the column exists in the table
+        auto it1 = std::find_if(table1->columns.begin(), table1->columns.end(),
+                                [&split1](const auto& c){return c.name == split1.second;});
+        if (it1 == table1->columns.end()) {
+            std::cout << "Validator error. Column \"" << split1.second << "\" isn't a column in table \"" << table1->name << "\".\n";
+            exit(1);
+        }
+        auto it2 = std::find_if(table2->columns.begin(), table2->columns.end(),
+                                [&split2](const auto& c){return c.name == split2.second;});
+        if (it2 == table2->columns.end()) {
+            std::cout << "Validator error. Column \"" << split2.second << "\" isn't a column in table \"" << table2->name << "\".\n";
+            exit(1);
+        }
+
+        // @TODO
+        // joined columns must be of the same type
+
+        // TODOS
         // require aliasing on column name conflicts
         // aliased columns must exist
+        // alias names must not conflict with eachother or non-referenced columns
 
         std::cout << "Join validated.\n";
         printTableList(tables);
@@ -102,29 +128,29 @@ public:
     void validateSetOp(std::shared_ptr<node> setOpRoot) {
 
         // only union/intersect tables that exist
-        std::string firstTableName = setOpRoot->components[1]->value;
-        std::string secondTableName = setOpRoot->components[2]->value;
-        if (!exists(firstTableName, tables)) {
-            std::cout << "Validator error. Table \"" << firstTableName << "\" doesn't exist.\n";
+        std::string table1Name = setOpRoot->components[1]->value;
+        std::string table2Name = setOpRoot->components[2]->value;
+        if (!exists(table1Name, tables)) {
+            std::cout << "Validator error. Table \"" << table1Name << "\" doesn't exist.\n";
             exit(1);
         }
-        if (!exists(secondTableName, tables)) {
-            std::cout << "Validator error. Table \"" << secondTableName << "\" doesn't exist.\n";
+        if (!exists(table2Name, tables)) {
+            std::cout << "Validator error. Table \"" << table2Name << "\" doesn't exist.\n";
             exit(1);
         }
 
         // cannot union|intersect tables with different numbers of columns
-        auto first = find(firstTableName, tables);
-        auto second = find(secondTableName, tables);
+        auto first = find(table1Name, tables);
+        auto second = find(table2Name, tables);
         if (first->columns.size() != second->columns.size()) {
-            std::cout << "Validator error. Tables \"" << firstTableName << "\" and \"" << secondTableName << "\" don't have the same number of columns.\n";
+            std::cout << "Validator error. Tables \"" << table1Name << "\" and \"" << table2Name << "\" don't have the same number of columns.\n";
             exit(1);
         }
         
         // cannot union|intersect tables with different column names
         for (int i = 0; i < first->columns.size(); ++i) {
             if (first->columns[i].name != second->columns[i].name) {
-                std::cout << "Validator error. Tables \"" << firstTableName << "\" and \"" << secondTableName << "\" have different column names (or are in different orders).\n";
+                std::cout << "Validator error. Tables \"" << table1Name << "\" and \"" << table2Name << "\" have different column names (or are in different orders).\n";
                 exit(1);
             }
         }
@@ -132,7 +158,7 @@ public:
         // cannot union|intersect tables with different column types
         for (int i = 0; i < first->columns.size(); ++i) {
             if (first->columns[i].type != second->columns[i].type) {
-                std::cout << "Validator error. Tables \"" << firstTableName << "\" and \"" << secondTableName << "\" have different column types.\n";
+                std::cout << "Validator error. Tables \"" << table1Name << "\" and \"" << table2Name << "\" have different column types.\n";
                 exit(1);
             }
         }
