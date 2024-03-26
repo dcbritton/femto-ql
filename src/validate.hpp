@@ -123,8 +123,8 @@ public:
         // @TODO make sure the above alias does not conflict with any other columns
 
         // make sure the above alias is not in table.column form
-        if (hasDot(onExprRoot->components[3]->value)) {
-            std::cout << "Validator error. The alias \"" << onExprRoot->components[3]->value << "\" should not be in table.column form.\n";
+        if (onExprRoot->components[3]->type == nullnode && hasDot(onExprRoot->components[3]->value)) {
+            std::cout << "Validator error. The column alias \"" << onExprRoot->components[3]->value << "\" should not be in table.column form.\n";
             exit(1);   
         }
 
@@ -165,14 +165,36 @@ public:
             }
         }
 
-        // @TODO that table must be either table1 or table2
+        // that table must be either table1 or table2
+        // cannot alias columns that the tables don't have
+        for (auto& aliasRoot : aliasListRoot->components) {
+            auto aliasedName = split(aliasRoot->components[0]->value);
 
+            // find which table to use
+            auto it_table = tables.cend();
+            if (aliasedName.first == table1->name)
+                it_table = table1;
+            else if (aliasedName.first == table2->name)
+                it_table = table2;
+            // in neither
+            else {
+                std::cout << "Validator error. Aliased column \"" << aliasRoot->components[0]->value << "\" references table \"" << aliasedName.first
+                          << "\", which is neither of the joined tables.\n";
+                exit(1);
+            }
+            
+            // check if the column is in the table
+            if (!exists(aliasedName.second, it_table->columns)) {
+                std::cout << "Validator error. Aliased column \"" << aliasRoot->components[0]->value << "\" doesn't exist.\n";
+                exit(1);
+            }
+
+        }
 
         // not more than one alias for the same column
         std::vector<std::string> names;
         for (auto& aliasRoot : aliasListRoot->components) {
             std::string aliasedName = aliasRoot->components[0]->value;
-            std::cout << aliasedName << '\n';
             if (std::find(names.begin(), names.end(), aliasedName) != names.end()) {
                 std::cout << "Validator error. Multiple aliases of column \"" << aliasedName << "\".\n";
                 exit(1);
@@ -180,8 +202,71 @@ public:
             names.push_back(aliasedName);
         }
 
-        // @TODO aliased columns must exist
-        // @TODO alias names must not conflict with eachother or non-referenced columns
+        // cannot do an alias of the joined columns in the alias list
+        for (auto& aliasRoot : aliasListRoot->components) {
+            std::string aliasedName = split(aliasRoot->components[0]->value).second;
+            std::string aliasName = aliasRoot->components[1]->value;
+            if (aliasedName == col1->name || aliasedName == col2->name) {
+                std::cout << "Validator error. Cannot apply the alias \"" << aliasName << "\" to \"" << aliasRoot->components[0]->value << "\" because it is one of the joined columns.\n";
+                exit(1);
+            }
+        }
+
+        // @TODO the below approaches disallow using names that have been aliased away
+        // e.g. if t1.x is aliased to x1, t2.y cannot be aliased to x
+        // allow that kind of thing (low-priority, this could cause headaches anyways)
+
+        // if it exists, make sure the on_expr alias does not conflict with ANY columns in table1 and table2 other than the joined columns
+        if (onExprRoot->components[3]->type != nullnode) {
+            std::string onExprAlias = onExprRoot->components[3]->value;
+            if (!(onExprAlias == col1->name || onExprAlias == col2->name)) {
+                if (exists(onExprAlias, table1->columns)) {
+                    std::cout << "Validator error. Alias \"" << onExprAlias << "\" conflicts with a column in table \"" << table1->name << "\".\n";
+                    exit(1);
+                }
+                if (exists(onExprAlias, table2->columns)) {
+                    std::cout << "Validator error. Alias \"" << onExprAlias << "\" conflicts with a column in table \"" << table2->name << "\".\n";
+                    exit(1);
+                }
+            }
+        }
+
+        // @TODO alias names must not conflict with eachother, columns in table1 or table2, or the on_expr alias
+        std::vector<std::string> aliases;
+        for (auto& aliasRoot : aliasListRoot->components) {
+            std::string aliasName = aliasRoot->components[1]->value;
+
+            // conflicting aliases
+            if (std::find(aliases.begin(), aliases.end(), aliasName) != aliases.end()) {
+                std::cout << "Validator error. Attempted to alias two columns to the same name: \"" << aliasName << "\".\n";
+                exit(1);
+            }
+            aliases.push_back(aliasName);
+
+            // conflict with a column in table1 or table2
+            if (exists(aliasName, table1->columns)) {
+                std::cout << "Validator error. Alias \"" << aliasName << "\" of column \"" << aliasRoot->components[0]->value 
+                          << "\" conflicts with column \"" << aliasName << "\" in table \"" << table1->name << "\".\n";
+                exit(1);
+            }
+            if (exists(aliasName, table2->columns)) {
+                std::cout << "Validator error. Alias \"" << aliasName << "\" of column \"" << aliasRoot->components[0]->value 
+                          << "\" conflicts with column \"" << aliasName << "\" in table \"" << table2->name << "\".\n";
+                exit(1);
+            }
+
+
+            // if it exists, handle conflict with on_expr alias
+            if (onExprRoot->components[3]->type != nullnode) {
+                std::string onExprAlias = onExprRoot->components[3]->value;
+                if (aliasName == onExprAlias) {
+                    std::cout << "Validator error. Alias \"" << aliasName << "\" of column \"" << aliasRoot->components[0]->value
+                              << "\" conflicts with the alias of joined columns \"" << onExprAlias << "\".\n";
+                    exit(1);
+                }
+            }
+
+        }
 
         std::cout << "Join validated.\n";
         printTableList(tables);
