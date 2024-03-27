@@ -39,6 +39,10 @@ public:
                 case join:
                     validateJoin(nodePtr);
                     break;
+
+                case insertion:
+                    validateInsertion(nodePtr);
+                    break;
                 
                 default:
                     std::cout << "Validator error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
@@ -48,6 +52,70 @@ public:
     }
 
     // a million validation functions
+
+    // validate insertion
+    void validateInsertion(std::shared_ptr<node> insertionRoot) {
+        auto columnValueListRoot = insertionRoot->components[1];
+
+        // table must exist
+        std::string tableName = insertionRoot->components[0]->value;
+        if (!exists(tableName, tables)) {
+            std::cout << "Validator error. Table \"" << tableName << "\" to insert values into does not exist.\n";
+            exit(1);
+        }
+
+        // columns in column-value list must exist in table
+        auto t = find(tableName, tables);
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            if (!exists(columnValuePair->components[0]->value , t->columns)) {
+                std::cout << "Validator error. Column \"" << columnValuePair->components[0]->value << "\" does not exist in table \"" << t->name << "\".\n";
+                exit(1);     
+            }
+        }
+
+        // cannot insert a value of the wrong type into the column
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            auto c = find(columnValuePair->components[0]->value, t->columns);
+            element_type pairType = columnValuePair->components[1]->type;
+            std::string pairValue = columnValuePair->components[1]->value;
+
+            // a null can be inserted into any column
+            if (columnValuePair->components[1]->type != kw_null) {
+                // if the node is an int literal, the column type must also be an int literal
+                if (c->type == tokenTypeToString(kw_int) && pairType != int_literal) {
+                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
+                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
+                    exit(1);
+                }
+                if (c->type == tokenTypeToString(kw_float) && pairType != float_literal) {
+                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
+                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
+                    exit(1);
+                }
+                if (c->type == tokenTypeToString(kw_chars) && pairType != chars_literal) {
+                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
+                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
+                    exit(1);
+                }
+                if (c->type == tokenTypeToString(kw_bool) && !(pairType == kw_true || pairType == kw_false)) {
+                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
+                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
+                    exit(1);
+                }
+            }
+
+        }
+
+        // cannot insert into the same column twice
+
+        // Cannot insert more chars than the max length for that column.
+
+        // @NOTE unmentioned columns assume null insert.
+
+        std::cout << "Insert validated.\n";
+        printTableList(tables);
+        std::cout << '\n';
+    }
 
     // validate join statement
     void validateJoin(std::shared_ptr<node> joinRoot) {
@@ -165,6 +233,14 @@ public:
             }
         }
 
+        // all alias->components[1] must NOT be in table.column form
+        for (auto& aliasRoot : aliasListRoot->components) {
+            if(hasDot(aliasRoot->components[1]->value)) {
+                std::cout << "Validator error. Alias \"" << aliasRoot->components[1]->value << "\" must not be in table.column form.\n";
+                exit(1);
+            }
+        }
+
         // that table must be either table1 or table2
         // cannot alias columns that the tables don't have
         for (auto& aliasRoot : aliasListRoot->components) {
@@ -231,7 +307,7 @@ public:
             }
         }
 
-        // @TODO alias names must not conflict with eachother, columns in table1 or table2, or the on_expr alias
+        // alias names must not conflict with eachother, columns in table1 or table2, or the on_expr alias
         std::vector<std::string> aliases;
         for (auto& aliasRoot : aliasListRoot->components) {
             std::string aliasName = aliasRoot->components[1]->value;
@@ -254,7 +330,6 @@ public:
                           << "\" conflicts with column \"" << aliasName << "\" in table \"" << table2->name << "\".\n";
                 exit(1);
             }
-
 
             // if it exists, handle conflict with on_expr alias
             if (onExprRoot->components[3]->type != nullnode) {
