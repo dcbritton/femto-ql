@@ -43,6 +43,10 @@ public:
                 case insertion:
                     validateInsertion(nodePtr);
                     break;
+
+                case update:
+                    validateUpdate(nodePtr);
+                    break;
                 
                 default:
                     std::cout << "Validator error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
@@ -53,6 +57,83 @@ public:
 
     // a million validation functions
 
+    void validateWhereClause(std::shared_ptr<node> whereClauseRoot, const std::string& tableName) {
+        auto boolExprRoot = whereClauseRoot->components[0];
+
+        
+    }
+
+    // validate update
+    void validateUpdate(std::shared_ptr<node> updateRoot) {
+        auto columnValueListRoot = updateRoot->components[1];
+
+        // table must exist
+        std::string tableName = updateRoot->components[0]->value;
+        if (!exists(tableName, tables)) {
+            std::cout << "Validator error. Table \"" << tableName << "\" mentioned in update statement into does not exist.\n";
+            exit(1);
+        }
+
+        // columns in column-value list must exist in table
+        auto t = find(tableName, tables);
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            if (!exists(columnValuePair->components[0]->value , t->columns)) {
+                std::cout << "Validator error. Column \"" << columnValuePair->components[0]->value << "\" does not exist in table \"" << t->name << "\".\n";
+                exit(1);     
+            }
+        }
+
+        // cannot update a value of the wrong type of the column
+        std::vector<element_type> elementTypes = {int_literal, float_literal, chars_literal, bool_literal};
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            auto c = find(columnValuePair->components[0]->value, t->columns);
+            element_type pairType = columnValuePair->components[1]->type;
+            std::string pairValue = columnValuePair->components[1]->value;
+
+            // a null can be updateed in any column
+            if (pairType == kw_null)
+                continue;
+
+            for (const element_type& literal_type : elementTypes) {
+                // ex: if the node is an int literal, the column type must also be an int literal
+                if (c->type == literal_type && pairType != literal_type) {
+                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) << ", but an update of "
+                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
+                    exit(1);
+                }
+            }
+        }
+
+        // cannot update the same column twice
+        std::vector<std::string> colNames;
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            if (std::find(colNames.begin(), colNames.end(), columnValuePair->components[0]->value) != colNames.end()) {
+                std::cout << "Validation error. There were two updates of column \"" << t->name + '.' + columnValuePair->components[0]->value << "\" within the same statement.\n";
+                exit(1); 
+            }
+            colNames.push_back(columnValuePair->components[0]->value);
+        }
+
+        // cannot update more chars than the max length for that column
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            auto c = find(columnValuePair->components[0]->value, t->columns);
+            if (columnValuePair->components[1]->type == chars_literal && columnValuePair->components[1]->value.length() > c->charsLength) {
+                std::cout << "Validation error. The maximum string length of \"" <<  t->name + '.' + columnValuePair->components[0]->value << "\" is " << c->charsLength << " character(s).\n";
+                exit(1);  
+            }
+        }
+
+        // @NOTE ignore unmentioned columns.
+
+        // WHERE CLAUSE
+        auto whereClauseRoot = updateRoot->components[2];
+        
+
+        std::cout << "Update validated.\n";
+        printTableList(tables);
+        std::cout << '\n';
+    }
+
     // validate insertion
     void validateInsertion(std::shared_ptr<node> insertionRoot) {
         auto columnValueListRoot = insertionRoot->components[1];
@@ -60,7 +141,7 @@ public:
         // table must exist
         std::string tableName = insertionRoot->components[0]->value;
         if (!exists(tableName, tables)) {
-            std::cout << "Validator error. Table \"" << tableName << "\" to insert values into does not exist.\n";
+            std::cout << "Validator error. Table \"" << tableName << "\" mentioned in insert statement does not exist.\n";
             exit(1);
         }
 
