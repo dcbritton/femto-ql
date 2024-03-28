@@ -74,40 +74,24 @@ public:
         }
 
         // cannot insert a value of the wrong type into the column
-        std::vector<element_type> elementTypeList = {int_literal, float_literal, chars_literal, bool_literal};
+        std::vector<element_type> elementTypes = {int_literal, float_literal, chars_literal, bool_literal};
         for (auto& columnValuePair : columnValueListRoot->components) {
             auto c = find(columnValuePair->components[0]->value, t->columns);
             element_type pairType = columnValuePair->components[1]->type;
             std::string pairValue = columnValuePair->components[1]->value;
 
-
-            // @TODO make kw_true and kw_false into bool_literal, then store strings "true" and "false" as value
             // a null can be inserted into any column
-            if (pairType != kw_null) {
-                // if the node is an int literal, the column type must also be an int literal
+            if (pairType != kw_null)
+                continue;
 
-                if (c->type == tokenTypeToString(int_literal) && pairType != int_literal) {
-                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
-                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
-                    exit(1);
-                }
-                if (c->type == tokenTypeToString(float_literal) && pairType != float_literal) {
-                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
-                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
-                    exit(1);
-                }
-                if (c->type == tokenTypeToString(chars_literal) && pairType != chars_literal) {
-                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
-                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
-                    exit(1);
-                }
-                if (c->type == tokenTypeToString(bool_literal) && pairType != bool_literal) {
+            for (const element_type& literal_type : elementTypes) {
+                // ex: if the node is an int literal, the column type must also be an int literal
+                if (c->type == tokenTypeToString(literal_type) && pairType != literal_type) {
                     std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
                             << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                     exit(1);
                 }
             }
-
         }
 
         // cannot insert into the same column twice
