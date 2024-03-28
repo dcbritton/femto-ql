@@ -81,13 +81,13 @@ public:
             std::string pairValue = columnValuePair->components[1]->value;
 
             // a null can be inserted into any column
-            if (pairType != kw_null)
+            if (pairType == kw_null)
                 continue;
 
             for (const element_type& literal_type : elementTypes) {
                 // ex: if the node is an int literal, the column type must also be an int literal
                 if (c->type == literal_type && pairType != literal_type) {
-                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
+                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) << ", but an insert of "
                             << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                     exit(1);
                 }
