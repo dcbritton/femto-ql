@@ -86,7 +86,7 @@ public:
 
             for (const element_type& literal_type : elementTypes) {
                 // ex: if the node is an int literal, the column type must also be an int literal
-                if (c->type == tokenTypeToString(literal_type) && pairType != literal_type) {
+                if (c->type == literal_type && pairType != literal_type) {
                     std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
                             << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                     exit(1);

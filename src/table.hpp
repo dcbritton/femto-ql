@@ -14,10 +14,10 @@
 
 struct column {
     std::string name;
-    std::string type;
+    element_type type;
     int charsLength = 0; // 0 for non-chars
-    column(std::string columnName, std::string columnType) : name(columnName), type(columnType), charsLength(0) {}; // for non-chars columns
-    column(std::string columnName, std::string columnType, int len) : name(columnName), type(columnType), charsLength(len) {}; // for chars columns
+    column(std::string columnName, element_type columnType) : name(columnName), type(columnType), charsLength(0) {}; // for non-chars columns
+    column(std::string columnName, element_type columnType, int len) : name(columnName), type(columnType), charsLength(len) {}; // for chars columns
 };
 
 struct table {
@@ -60,19 +60,19 @@ table nodeToTable(const std::shared_ptr<node>& n) {
         std::string colName = columnTypePair->components[0]->value;
 
         // for kw_chars, kw_int, kw_float, kw_bool, there's no value, so infer by type
-        std::string colType = "";
+        element_type colType;
         switch (columnTypePair->components[1]->type) {
             case kw_int:
-                colType = tokenTypeToString(int_literal);
+                colType = int_literal;
                 break;
             case kw_float:
-                colType = tokenTypeToString(float_literal);
+                colType = float_literal;
                 break;
             case kw_chars:
-                colType = tokenTypeToString(chars_literal);
+                colType = chars_literal;
                 break;
             case kw_bool:
-                colType = tokenTypeToString(bool_literal);
+                colType = bool_literal;
                 break;
             default:
                 std::cout << "Error in nodeToTable(). Somehow, an unknown column type was provided.\n";
@@ -81,7 +81,7 @@ table nodeToTable(const std::shared_ptr<node>& n) {
         
         // if the type is chars, then we need know how many
         int numChars = 0;
-        if (colType == tokenTypeToString(chars_literal)) numChars = std::stoi(columnTypePair->components[2]->value);
+        if (colType == chars_literal) numChars = std::stoi(columnTypePair->components[2]->value);
 
         cols.push_back(column(colName, colType, numChars));
     }
@@ -125,13 +125,13 @@ bool exists(const std::string& tableName, const std::vector<table>& tables) {
     return find(tableName, tables) != tables.end();
 }
 
-std::string byteToColumnType(char signedByte) {
+element_type byteToColumnType(char signedByte) {
     unsigned char byte = static_cast<unsigned char>(signedByte);
-    std::unordered_map<unsigned char, std::string> typeMap;
-    typeMap[0b00000000] = "int";
-    typeMap[0b00000001] = "float";
-    typeMap[0b00000010] = "bool";
-    typeMap[0b00000011] = "chars";
+    std::unordered_map<unsigned char, element_type> typeMap;
+    typeMap[0b00000000] = int_literal;
+    typeMap[0b00000001] = float_literal;
+    typeMap[0b00000010] = bool_literal;
+    typeMap[0b00000011] = chars_literal;
 
     if (typeMap.find(byte) == typeMap.end()) {
         std::cout << "Error while reading a table. Could not recognize column type: \"" << byte << "\"\n";
@@ -161,7 +161,7 @@ void printTableList(std::vector<table> tables) {
     for (table t : tables) {
         std::cout << "\"" << t.name << "\": ";
         for (column c : t.columns)
-            std::cout << c.name << ' ' << c.type << (c.type == "chars" ? std::to_string(c.charsLength) : "") << ", ";
+            std::cout << c.name << ' ' << tokenTypeToString(c.type) << (c.type == chars_literal ? std::to_string(c.charsLength) : "") << ", ";
         std::cout << '\n';
     }
 }
@@ -199,10 +199,10 @@ std::vector<table> buildTableList(const std::string& tableDirectory) {
             // next byte for type
             char columnTypeBuffer[1];
             tableFile.read(columnTypeBuffer, 1);
-            std::string columnType = byteToColumnType(columnTypeBuffer[0]);
+            element_type columnType = byteToColumnType(columnTypeBuffer[0]);
 
             int numChars = 0;
-            if (columnType == "chars") {
+            if (columnType == chars_literal) {
                 char numCharsBuffer[3];
                 tableFile.read(numCharsBuffer, 3);
                 numChars = static_cast<int>(0 |
