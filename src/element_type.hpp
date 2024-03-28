@@ -75,13 +75,14 @@ enum element_type {
     kw_drop = 45,
     
     // identifiers and literals
-    identifier = 50,         // column name, table name, alias       
+    identifier = 50,        // column name, table name, alias       
     int_literal = 51,
-    chars_literal = 52,     // may contain anything but " because it is the delimiter
+    chars_literal = 52,
     float_literal = 53,
-    kw_true = 54,           // kw_true and kw_false are placed here because they are "boolean literals"
+    kw_true = 54,
     kw_false = 55,
     kw_null = 56,
+    bool_literal = 57,      // should only be used column type checking
 
     // punctuation 
     colon = 70,          
@@ -163,20 +164,21 @@ std::string tokenTypeToString(element_type type) {
         case kw_update: return "update";
 
         case kw_temporary: return "temporary";
-        case kw_int: return "int"; 
-        case kw_float: return "float";
-        case kw_bool: return "bool";
-        case kw_chars: return "chars";
+        case kw_int: return "keyword int"; 
+        case kw_float: return "keyword float";
+        case kw_bool: return "keyword bool";
+        case kw_chars: return "keyword chars";
 
         case kw_drop: return "drop";
 
         case identifier: return "identifier";
-        case int_literal: return "int literal";
-        case chars_literal: return "chars literal";
-        case float_literal: return "float literal";
+        case int_literal: return "int";
+        case chars_literal: return "chars";
+        case float_literal: return "float";
         case kw_true: return "true";
         case kw_false: return "false";
         case kw_null: return "null";
+        case bool_literal: return "bool";
 
         case colon: return "colon";
         case open_parenthesis: return "open parenthesis";
@@ -195,7 +197,7 @@ std::string tokenTypeToString(element_type type) {
         case op_or: return "||";
         case op_not: return "!";
 
-        default: return "Unknown type";
+        default: return "unknown type";
     }
 }
 

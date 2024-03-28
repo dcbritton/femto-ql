@@ -80,24 +80,24 @@ public:
             std::string pairValue = columnValuePair->components[1]->value;
 
             // a null can be inserted into any column
-            if (columnValuePair->components[1]->type != kw_null) {
+            if (pairType != kw_null) {
                 // if the node is an int literal, the column type must also be an int literal
-                if (c->type == tokenTypeToString(kw_int) && pairType != int_literal) {
+                if (c->type == tokenTypeToString(int_literal) && pairType != int_literal) {
                     std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
                             << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                     exit(1);
                 }
-                if (c->type == tokenTypeToString(kw_float) && pairType != float_literal) {
+                if (c->type == tokenTypeToString(float_literal) && pairType != float_literal) {
                     std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
                             << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                     exit(1);
                 }
-                if (c->type == tokenTypeToString(kw_chars) && pairType != chars_literal) {
+                if (c->type == tokenTypeToString(chars_literal) && pairType != chars_literal) {
                     std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
                             << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                     exit(1);
                 }
-                if (c->type == tokenTypeToString(kw_bool) && !(pairType == kw_true || pairType == kw_false)) {
+                if (c->type == tokenTypeToString(bool_literal) && !(pairType == kw_true || pairType == kw_false)) {
                     std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << c->type << ", but an insert of "
                             << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                     exit(1);

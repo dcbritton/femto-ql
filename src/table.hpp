@@ -58,11 +58,30 @@ table nodeToTable(const std::shared_ptr<node>& n) {
     for (auto& columnTypePair : n->components[2]->components) {
         // identifier name stored in value
         std::string colName = columnTypePair->components[0]->value;
+
         // for kw_chars, kw_int, kw_float, kw_bool, there's no value, so infer by type
-        std::string colType = tokenTypeToString(columnTypePair->components[1]->type);
+        std::string colType = "";
+        switch (columnTypePair->components[1]->type) {
+            case kw_int:
+                colType = tokenTypeToString(int_literal);
+                break;
+            case kw_float:
+                colType = tokenTypeToString(float_literal);
+                break;
+            case kw_chars:
+                colType = tokenTypeToString(chars_literal);
+                break;
+            case kw_bool:
+                colType = tokenTypeToString(bool_literal);
+                break;
+            default:
+                std::cout << "Error in nodeToTable(). Somehow, an unknown column type was provided.\n";
+                exit(1);
+        }
+        
         // if the type is chars, then we need know how many
         int numChars = 0;
-        if (colType == "chars") numChars = std::stoi(columnTypePair->components[2]->value);
+        if (colType == tokenTypeToString(chars_literal)) numChars = std::stoi(columnTypePair->components[2]->value);
 
         cols.push_back(column(colName, colType, numChars));
     }
