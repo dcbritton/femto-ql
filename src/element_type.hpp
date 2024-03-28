@@ -79,9 +79,9 @@ enum element_type {
     int_literal = 51,
     chars_literal = 52,
     float_literal = 53,
-    kw_true = 54,
-    kw_false = 55,
-    kw_null = 56,
+    kw_null = 54,
+    kw_true = 55,
+    kw_false = 56,          // nodes with type kw_true or kw_false will have value type bool_literal, but value "true" and "false" respectively
     bool_literal = 57,      // should only be used column type checking
 
     // punctuation 
