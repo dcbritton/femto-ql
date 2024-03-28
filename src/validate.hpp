@@ -95,8 +95,23 @@ public:
         }
 
         // cannot insert into the same column twice
+        std::vector<std::string> colNames;
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            if (std::find(colNames.begin(), colNames.end(), columnValuePair->components[0]->value) != colNames.end()) {
+                std::cout << "Validation error. There were two insertions into column \"" << t->name + '.' + columnValuePair->components[0]->value << "\" within the same statement.\n";
+                exit(1); 
+            }
+            colNames.push_back(columnValuePair->components[0]->value);
+        }
 
-        // Cannot insert more chars than the max length for that column.
+        // cannot insert more chars than the max length for that column
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            auto c = find(columnValuePair->components[0]->value, t->columns);
+            if (columnValuePair->components[1]->type == chars_literal && columnValuePair->components[1]->value.length() > c->charsLength) {
+                std::cout << "Validation error. The maximum string length of \"" <<  t->name + '.' + columnValuePair->components[0]->value << "\" is " << c->charsLength << " character(s).\n";
+                exit(1);  
+            }
+        }
 
         // @NOTE unmentioned columns assume null insert.
 
