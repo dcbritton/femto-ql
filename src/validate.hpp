@@ -110,8 +110,23 @@ public:
                 exit(1);
             }
 
-            // @TODO type check
-            // @TODO allow comparisons between ints and floats, disallow all others
+            // @TODO allow cross-type comparisons between ints and floats, disallow all others
+            // type check, rhs literal must match lhs column type
+            auto c = find(columnName, t.columns);
+            element_type rhsType = boolExprRoot->components[2]->type;
+            auto rhsValue = boolExprRoot->components[2]->value;
+
+            for (const element_type& literal_type : {int_literal, float_literal, chars_literal, bool_literal}) {
+                if (rhsType == kw_null)
+                    continue;
+
+                
+                if (c->type == literal_type && rhsType != literal_type) {
+                    std::cout << "Validation error. Type error in boolean expression between " << tokenTypeToString(c->type) << " column \"" 
+                              << t.name + '.' + c->name << "\" and the attempted comparison to " << tokenTypeToString(rhsType) << ' ' << rhsValue << ".\n";
+                    exit(1);
+                }
+            }
         }
 
     }
@@ -142,7 +157,6 @@ public:
         }
 
         // cannot update a value of the wrong type of the column
-        std::vector<element_type> elementTypes = {int_literal, float_literal, chars_literal, bool_literal};
         for (auto& columnValuePair : columnValueListRoot->components) {
             auto c = find(columnValuePair->components[0]->value, t->columns);
             element_type pairType = columnValuePair->components[1]->type;
@@ -151,8 +165,8 @@ public:
             // a null can be updateed in any column
             if (pairType == kw_null)
                 continue;
-
-            for (const element_type& literal_type : elementTypes) {
+            
+            for (const element_type& literal_type : {int_literal, float_literal, chars_literal, bool_literal}) {
                 // ex: if the node is an int literal, the column type must also be an int literal
                 if (c->type == literal_type && pairType != literal_type) {
                     std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) << ", but an update of "
