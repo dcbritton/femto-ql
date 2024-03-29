@@ -60,55 +60,56 @@ public:
     // validate boolean expression
     void validateBoolExpr(std::shared_ptr<node> boolExprRoot, const table& t) {
         
-        // validate by validating sub expressions first, if they exist
-
+        // the following are validated by validating child bool_exprs
         // bool_expr bool_op bool_expr
         if (boolExprRoot->components[1]->type == op_or || boolExprRoot->components[1]->type == op_and) {
             std::cout << "bool op\n";
             validateBoolExpr(boolExprRoot->components[0], t);
             validateBoolExpr(boolExprRoot->components[2], t);
+            return;
         }
-
         // !(bool_expr)
         else if (boolExprRoot->components[0]->type == op_not) {
             std::cout << "op not\n";
             validateBoolExpr(boolExprRoot->components[1], t);
+            return;
         }
-
         // (bool_expr)
-        else if (boolExprRoot->components[0]->type == bool_expr) {
+        else if (boolExprRoot->components.size() == 1 /* or, boolExprRoot->components[0]->type == bool_expr*/) {
             std::cout << "parens\n";
             validateBoolExpr(boolExprRoot->components[0], t);
+            return;
         }
 
-        // otherwise, no bool_expr children to validate
+        // the following are validated based on expression correctness
 
+        // all of the following begin with identifiers and have 2 common checks
+        // column names must not be in table.column form
+        std::string columnName = boolExprRoot->components[0]->value;
+        if (hasDot(columnName)) {
+            std::cout << "Validator error. Column \"" << columnName << "\" should not be in table.column form. Try \"" << split(columnName).second << "\".\n";
+            exit(1);   
+        }
+        // columns must be in table
+        if (!exists(columnName, t.columns)) {
+            std::cout << "Validator error. Column \"" << columnName << "\" doesn't exist in table \"" << t.name << "\".\n";
+            exit(1);
+        }
         // identifier in identifier
-        else if (boolExprRoot->components[1]->type == kw_in) {
+        if (boolExprRoot->components[1]->type == kw_in) {
             std::cout << "in\n";
-        }
 
+            return;
+        }
         // identifier comparison any|all indentifier 
         else if (boolExprRoot->components[2]->type == kw_any || boolExprRoot->components[2]->type == kw_all) {
             std::cout << "any/all\n";
-        }
 
+            return;
+        }
         // identifier comparison literal
         else {
             std::cout << "simple comparison\n";
-
-            // column names must not be in table.column form
-            std::string columnName = boolExprRoot->components[0]->value;
-            if (hasDot(columnName)) {
-                std::cout << "Validator error. Column \"" << columnName << "\" should not be in table.column form. Try \"" << split(columnName).second << "\".\n";
-                exit(1);   
-            }
-
-            // columns must be in table
-            if (!exists(columnName, t.columns)) {
-                std::cout << "Validator error. Column \"" << columnName << "\" doesn't exist in table \"" << t.name << "\".\n";
-                exit(1);
-            }
 
             // @TODO allow cross-type comparisons between ints and floats, disallow all others
             // type check, rhs literal must match lhs column type
@@ -124,6 +125,8 @@ public:
                     exit(1);
                 }
             }
+
+            return;
         }
     }
 
@@ -141,6 +144,14 @@ public:
         if (!exists(tableName, tables)) {
             std::cout << "Validator error. Table \"" << tableName << "\" mentioned in update statement into does not exist.\n";
             exit(1);
+        }
+
+        // columns must not be in table.column form
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            if (hasDot(columnValuePair->components[0]->value)) {
+                std::cout << "Validator error. Column \"" << columnValuePair->components[0]->value << "\" mentioned in update statement should not be in table.column form. Try \"" << split(columnValuePair->components[0]->value).second << "\".\n";
+                exit(1);
+            }
         }
 
         // columns in column-value list must exist in table
@@ -208,6 +219,14 @@ public:
         if (!exists(tableName, tables)) {
             std::cout << "Validator error. Table \"" << tableName << "\" mentioned in insert statement does not exist.\n";
             exit(1);
+        }
+
+        // columns must not be in table.column form
+        for (auto& columnValuePair : columnValueListRoot->components) {
+            if (hasDot(columnValuePair->components[0]->value)) {
+                std::cout << "Validator error. Column \"" << columnValuePair->components[0]->value << "\" mentioned in insert statement should not be in table.column form. Try \"" << split(columnValuePair->components[0]->value).second << "\".\n";
+                exit(1);
+            }
         }
 
         // columns in column-value list must exist in table
