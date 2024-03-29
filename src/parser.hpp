@@ -89,8 +89,15 @@ public:
 
         // required clauses
         std::vector<std::shared_ptr<node>> sln_components;
-        sln_components.push_back(parse_select_clause());
-        sln_components.push_back(parse_from_clause());
+        discard(kw_select);
+        if (it->type == kw_distinct)
+            consume(kw_distinct, sln_components);
+        else 
+            sln_components.push_back(std::make_shared<node>(nullnode));
+        discard(kw_from);
+        consume(identifier, sln_components);
+        discard(colon);
+        sln_components.push_back(parse_column_list());
 
         // optional clauses
         if (it->type == kw_where) sln_components.push_back(parse_where_clause());
@@ -99,21 +106,6 @@ public:
         else sln_components.push_back(std::make_shared<node>(nullnode));
 
         return std::make_shared<node>(selection, sln_components);
-    }
-
-    // select_clause -> kw_select kw_distinct|ε column_list
-    std::shared_ptr<node> parse_select_clause() {
-        current_non_terminal = select_clause;
-
-        std::vector<std::shared_ptr<node>> sc_components;
-        discard(kw_select);
-        if (it->type == kw_distinct)
-            consume(kw_distinct, sc_components);
-        else 
-            sc_components.push_back(std::make_shared<node>(nullnode));
-        sc_components.push_back(parse_column_list());
-
-        return std::make_shared<node>(select_clause, sc_components);
     }
 
     // column_list -> identifier, ... identifier | *
@@ -141,17 +133,6 @@ public:
         }
 
         return std::make_shared<node>(column_list, cl_components);
-    }
-
-    // from_clause -> kw_from identifier
-    std::shared_ptr<node> parse_from_clause() {
-        current_non_terminal = from_clause;
-
-        std::vector<std::shared_ptr<node>> fc_components;
-        discard(kw_from);
-        consume(identifier, fc_components);
-
-        return std::make_shared<node>(from_clause, fc_components);
     }
 
     // where_clause -> kw_where bool_expr
@@ -402,7 +383,9 @@ public:
 
         std::vector<std::shared_ptr<node>> dc_components;
         discard(kw_delete);
-        dc_components.push_back(parse_from_clause());
+        discard(kw_from);
+        consume(identifier, dc_components);
+        discard(colon);
         if (it->type == kw_where) dc_components.push_back(parse_where_clause());
         else dc_components.push_back(std::make_shared<node>(nullnode));
 

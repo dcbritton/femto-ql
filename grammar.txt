@@ -21,7 +21,7 @@ col_val_list    ->      col_val, ... col_val
 
 col_val         ->      identifier(literal)
 
-deletion        ->      kw_delete from_clause where_clause|ε
+deletion        ->      kw_delete kw|from identifier : where_clause|ε
 
 definition      ->      kw_define kw_temporary|ε identifier kw_as selection|join|set_op
                 |       kw_define kw_temporary|ε identifier [colon col_type_list]|ε
@@ -36,16 +36,12 @@ alias           ->      indentifier as identifier
 
 set_op          ->      kw_union|kw_intersect identifier comma identifier
 
-selection       ->      select_clause from_clause where_clause|ε  order_clause|ε
+selection       ->      kw_select kw_distinct|ε identifier : column_list where_clause|ε  order_clause|ε
 
 order_clause    ->      kw_order identifier kw_asc|kw_desc
 
-select_clause   ->      kw_select kw_distinct|ε column_list
-
 column_list     ->      [identifier comma]* identifier
                 |       asterisk
-
-from_clause     ->      kw_from identifier
 
 where_clause    ->      kw_where bool_expr
 

@@ -13,7 +13,6 @@ enum element_type {
     selection = 2,
     select_clause = 3,
     column_list = 4,
-    from_clause = 5,
     where_clause = 6,
     bool_expr = 7,
     order_clause = 8,
@@ -112,7 +111,6 @@ std::string tokenTypeToString(element_type type) {
         case definition: return "definition";
         case selection: return "selection";
         case select_clause: return "select clause";
-        case from_clause: return "from clause";
         case where_clause: return "where clause";
         case bool_expr: return "boolean expression";
         case column_list: return "column list";
