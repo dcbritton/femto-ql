@@ -515,16 +515,17 @@ public:
         }
         
         // cannot union|intersect tables with different column names
-        for (int i = 0; i < first->columns.size(); ++i) {
-            if (first->columns[i].name != second->columns[i].name) {
-                std::cout << "Validator error. Tables \"" << table1Name << "\" and \"" << table2Name << "\" have different column names (or are in different orders).\n";
+        for (const auto& c : first->columns) {
+            if (!exists(c.name, second->columns)) {
+                std::cout << "Validator error. Tables \"" << table1Name << "\" and \"" << table2Name << "\" have different column names.\n";
                 exit(1);
             }
         }
 
         // cannot union|intersect tables with different column types
-        for (int i = 0; i < first->columns.size(); ++i) {
-            if (first->columns[i].type != second->columns[i].type) {
+        for (const auto& c : first->columns) {
+            auto c2 = find(c.name, second->columns);
+            if (c.type != c2->type) {
                 std::cout << "Validator error. Tables \"" << table1Name << "\" and \"" << table2Name << "\" have different column types.\n";
                 exit(1);
             }
