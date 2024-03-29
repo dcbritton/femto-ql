@@ -57,6 +57,7 @@ public:
 
     // a million validation functions
 
+    // @TODO disallow <>= of bool literals ( & nulls to be done in parser?)
     // validate boolean expression
     void validateBoolExpr(std::shared_ptr<node> boolExprRoot, const table& t) {
         
@@ -164,6 +165,17 @@ public:
                           << t.name + '.' + lhsColumnName << "\" to all/any " << tokenTypeToString(rhsColumn->type) << " \"" << rhsIdentifier << "\".\n";
                 exit(1);
             }
+
+            // disallow <>= of bool columns
+            element_type opType = boolExprRoot->components[1]->type;
+            if (lhsColumn->type == bool_literal && (opType >= op_less_than && opType <= op_greater_than_equals)) {
+                std::cout << "Validator error. Tried to use operator " << tokenTypeToString(opType)
+                          << " with bool column \"" << t.name + '.' + lhsColumn->name << "\".\n";
+                if (rhsColumn->type == bool_literal) {
+                    std::cout << "Column \"" << rhsIdentifier << "\" is also of type bool.\n";
+                }                          
+                exit(1);
+            }
             
             return;
         }
@@ -186,7 +198,9 @@ public:
                 }
             }
 
-            // @TODO allow column names (internal to t on rhs)
+            // @TODO allow rhs columns
+            // column must exist in t
+            // lhs and rhs columns must be same type
 
             return;
         }

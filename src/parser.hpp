@@ -197,8 +197,8 @@ public:
                 lhs_components.push_back(std::make_shared<node>(it->type));
                 ++it; // consume comparison
 
-                // literal (incl. null)
-                if (it->type >= int_literal && it->type <= kw_null) {
+                // identifier or literal (incl. null)
+                if (it->type >= identifier && it->type <= kw_null) {
                     // @TODO: unexpected end of input here still results in issue #6
                     consume(it->type, lhs_components);
                 }
