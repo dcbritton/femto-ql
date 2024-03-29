@@ -198,7 +198,7 @@ public:
                 ++it; // consume comparison
 
                 // literal (incl. null)
-                if (it->type >= int_literal && it->type <= kw_null) {
+                if (it->type >= int_literal && it->type <= kw_false) {
                     // @TODO: unexpected end of input here still results in issue #6
                     consume(it->type, lhs_components);
                 }
