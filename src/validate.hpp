@@ -57,10 +57,52 @@ public:
 
     // a million validation functions
 
-    void validateWhereClause(std::shared_ptr<node> whereClauseRoot, const std::string& tableName) {
-        auto boolExprRoot = whereClauseRoot->components[0];
-
+    // validate boolean expression
+    void validateBoolExpr(std::shared_ptr<node> boolExprRoot, const table& t) {
         
+        // validate by validating sub expressions first, if they exist
+
+        // bool_expr bool_op bool_expr
+        if (boolExprRoot->components[1]->type == op_or || boolExprRoot->components[1]->type == op_and) {
+            std::cout << "bool op\n";
+            validateBoolExpr(boolExprRoot->components[0], t);
+            validateBoolExpr(boolExprRoot->components[2], t);
+        }
+
+        // !(bool_expr)
+        else if (boolExprRoot->components[0]->type == op_not) {
+            std::cout << "op not\n";
+            validateBoolExpr(boolExprRoot->components[1], t);
+        }
+
+        // (bool_expr)
+        else if (boolExprRoot->components[0]->type == bool_expr) {
+            std::cout << "parens\n";
+            validateBoolExpr(boolExprRoot->components[0], t);
+        }
+
+        // otherwise, no bool_expr children to validate
+
+        // identifier in identifier
+        else if (boolExprRoot->components[1]->type == kw_in) {
+            std::cout << "in\n";
+        }
+
+        // identifier comparison any|all indentifier 
+        else if (boolExprRoot->components[2]->type == kw_any || boolExprRoot->components[2]->type == kw_all) {
+            std::cout << "any/all\n";
+        }
+
+        // identifier comparison literal
+        else {
+            std::cout << "simple comparison\n";
+        }
+
+    }
+
+    // validate where clause
+    void validateWhereClause(std::shared_ptr<node> whereClauseRoot, const table& t) {
+        validateBoolExpr(whereClauseRoot->components[0], t);
     }
 
     // validate update
@@ -127,11 +169,9 @@ public:
 
         // WHERE CLAUSE
         auto whereClauseRoot = updateRoot->components[2];
+        validateWhereClause(updateRoot->components[2], *t);
         
-
-        std::cout << "Update validated.\n";
-        printTableList(tables);
-        std::cout << '\n';
+        std::cout << "Update validated.\n\n";
     }
 
     // validate insertion
