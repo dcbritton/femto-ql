@@ -116,19 +116,15 @@ public:
             element_type rhsType = boolExprRoot->components[2]->type;
             auto rhsValue = boolExprRoot->components[2]->value;
 
-            for (const element_type& literal_type : {int_literal, float_literal, chars_literal, bool_literal}) {
-                if (rhsType == kw_null)
-                    continue;
-
-                
-                if (c->type == literal_type && rhsType != literal_type) {
+            if (rhsType != kw_null) {  
+                // @TODO can we guarantee that c->type is int, float chars, or bool literal?
+                if (c->type != rhsType) {
                     std::cout << "Validation error. Type error in boolean expression between " << tokenTypeToString(c->type) << " column \"" 
-                              << t.name + '.' + c->name << "\" and the attempted comparison to " << tokenTypeToString(rhsType) << ' ' << rhsValue << ".\n";
+                                << t.name + '.' + c->name << "\" and the attempted comparison to " << tokenTypeToString(rhsType) << ' ' << rhsValue << ".\n";
                     exit(1);
                 }
             }
         }
-
     }
 
     // validate where clause
@@ -166,13 +162,12 @@ public:
             if (pairType == kw_null)
                 continue;
             
-            for (const element_type& literal_type : {int_literal, float_literal, chars_literal, bool_literal}) {
-                // ex: if the node is an int literal, the column type must also be an int literal
-                if (c->type == literal_type && pairType != literal_type) {
-                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) << ", but an update of "
-                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
-                    exit(1);
-                }
+            // @TODO can we guarantee that c->type is int, float chars, or bool literal?
+            // ex: if the node is an int literal, the column type must also be an int literal
+            if (c->type != pairType) {
+                std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) << ", but an update of "
+                        << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
+                exit(1);
             }
         }
 
@@ -225,23 +220,21 @@ public:
         }
 
         // cannot insert a value of the wrong type into the column
-        std::vector<element_type> elementTypes = {int_literal, float_literal, chars_literal, bool_literal};
         for (auto& columnValuePair : columnValueListRoot->components) {
             auto c = find(columnValuePair->components[0]->value, t->columns);
             element_type pairType = columnValuePair->components[1]->type;
             std::string pairValue = columnValuePair->components[1]->value;
 
-            // a null can be inserted into any column
+            // a null can be updateed in any column
             if (pairType == kw_null)
                 continue;
-
-            for (const element_type& literal_type : elementTypes) {
-                // ex: if the node is an int literal, the column type must also be an int literal
-                if (c->type == literal_type && pairType != literal_type) {
-                    std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) << ", but an insert of "
-                            << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
-                    exit(1);
-                }
+            
+            // @TODO can we guarantee that c->type is int, float chars, or bool literal?
+            // ex: if the node is an int literal, the column type must also be an int literal
+            if (c->type != pairType) {
+                std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) 
+                          << ", but an insert of " << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
+                exit(1);
             }
         }
 
@@ -266,9 +259,7 @@ public:
 
         // @NOTE unmentioned columns assume null insert.
 
-        std::cout << "Insert validated.\n";
-        printTableList(tables);
-        std::cout << '\n';
+        std::cout << "Insert validated.\n\n";
     }
 
     // validate join statement
@@ -497,9 +488,7 @@ public:
 
         }
 
-        std::cout << "Join validated.\n";
-        printTableList(tables);
-        std::cout << '\n';
+        std::cout << "Join validated.\n\n";
     }
 
     // validate set operation
@@ -543,9 +532,7 @@ public:
 
         // @TODO default to larger chars on resultant table
 
-        std::cout << "Set operation validated.\n";
-        printTableList(tables);
-        std::cout << '\n';
+        std::cout << "Set operation validated.\n\n";
     }
 
     // validate create (original)
