@@ -1,55 +1,57 @@
-This file contains the current grammar of the query language.
+This file contains the current grammar of the query language in a "not-really-Backus-Naur" form.
 
 For reference:
 LHS is always a non-terminal symbol.
 RHS contains the sequence of terminal (tokens) and/or non-terminal symbols that make up the non-terminal on the left.
 The | symbol indicates that a non-terminal may be composed of either one sequence or the other.
 
+** Some keyword have the 'kw_' prefix dropped
+** identifiers (table names, column , or table.column) are expressed as id
+
 script          ->      [definition|selection|join|set_op|creation|drop|insertion|update|deletion]*
 
-drop            ->      kw_drop identifier
+drop            ->      drop id
 
 col_type_list   ->      col_type, ... col_type
 
-col_type        ->      identifier(int|float|bool|[chars int_literal])
+col_type        ->      id(int|float|bool|[chars int_literal])
 
-update          ->      kw_update identifier colon col_val_list where_clause
+update          ->      update id: col_val_list where_clause
 
-insertion       ->      kw_insert kw_into identifier colon col_val_list
+insertion       ->      insert into id: col_val_list
 
 col_val_list    ->      col_val, ... col_val
 
-col_val         ->      identifier(literal)
+col_val         ->      id(literal)
 
-deletion        ->      kw_delete kw|from identifier : where_clause|ε
+deletion        ->      delete from id: where_clause|ε
 
-definition      ->      kw_define kw_temporary|ε identifier kw_as selection|join|set_op
-                |       kw_define kw_temporary|ε identifier [colon col_type_list]|ε
+definition      ->      define temporary|ε id: selection|join|set_op|col_type_list
 
-join            ->      kw_join identifier comma identifier on_expr alias_list|ε
+join            ->      kw_join id , id on_expr alias_list|ε
 
-on_expr         ->      identifier comparison identifier [as identifier]|ε
+on_expr         ->      id comparison id [as id]|ε
 
-alias_list      ->      kw_with [alias , ]* alias
+alias_list      ->      with alias, ... alias
 
-alias           ->      indentifier as identifier
+alias           ->      indentifier as id
 
-set_op          ->      kw_union|kw_intersect identifier comma identifier
+set_op          ->      union|intersect id: id
 
-selection       ->      kw_select kw_distinct|ε identifier : column_list where_clause|ε  order_clause|ε
+selection       ->      select distinct|ε id: column_list where_clause|ε  order_clause|ε
 
-order_clause    ->      kw_order identifier kw_asc|kw_desc
+order_clause    ->      order id asc|desc
 
-column_list     ->      [identifier comma]* identifier
-                |       asterisk
+column_list     ->      id, ... id
+                |       *
 
-where_clause    ->      kw_where bool_expr
+where_clause    ->      where bool_expr
 
 bool_expr       ->      (bool_expr)
                 |       !(bool_expr)
-                |       identifier comparison int_literal|float_literal|chars_literal|kw_true|kw_false
-                |       identifier in identifier            << will need to be table,column pair
-                |       identifier comparison any|all indentifier      << will need to be table,column pair
+                |       id comparison literal
+                |       id in id
+                |       id comparison any|all indentifier
                 |       bool_expr bool_op bool_expr
 
 comparison      ->      ==
