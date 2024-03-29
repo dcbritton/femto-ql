@@ -198,9 +198,18 @@ public:
                 ++it; // consume comparison
 
                 // literal (incl. null)
-                if (it->type >= int_literal && it->type <= kw_false) {
+                if (it->type >= int_literal && it->type <= kw_null) {
                     // @TODO: unexpected end of input here still results in issue #6
                     consume(it->type, lhs_components);
+                }
+                // @NOTE if it's kw_true or kw_false, the type should be bool_literal with value "true" or "false" respectively
+                else if (it->type == kw_true) {
+                    lhs_components.push_back(std::make_shared<node>(bool_literal, "true"));
+                    ++it;
+                }
+                else if (it->type == kw_false) {
+                    lhs_components.push_back(std::make_shared<node>(bool_literal, "false"));
+                    ++it;
                 }
 
                 // any|all
