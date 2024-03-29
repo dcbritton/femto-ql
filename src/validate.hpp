@@ -85,20 +85,51 @@ public:
 
         // all of the following begin with identifiers and have 2 common checks
         // column names must not be in table.column form
-        std::string columnName = boolExprRoot->components[0]->value;
-        if (hasDot(columnName)) {
-            std::cout << "Validator error. Column \"" << columnName << "\" should not be in table.column form. Try \"" << split(columnName).second << "\".\n";
+        std::string lhsColumnName = boolExprRoot->components[0]->value;
+        if (hasDot(lhsColumnName)) {
+            std::cout << "Validator error. Column \"" << lhsColumnName << "\" should not be in table.column form. Try \"" << split(lhsColumnName).second << "\".\n";
             exit(1);   
         }
-        // columns must be in table
-        if (!exists(columnName, t.columns)) {
-            std::cout << "Validator error. Column \"" << columnName << "\" doesn't exist in table \"" << t.name << "\".\n";
+        // column must be in table
+        if (!exists(lhsColumnName, t.columns)) {
+            std::cout << "Validator error. Column \"" << lhsColumnName << "\" doesn't exist in table \"" << t.name << "\".\n";
             exit(1);
         }
+        auto lhsColumn = find(lhsColumnName, t.columns);
+
         // identifier in identifier
         if (boolExprRoot->components[1]->type == kw_in) {
             std::cout << "in\n";
 
+            std::string rhsIdentifier = boolExprRoot->components[2]->value;
+            if (!hasDot(rhsIdentifier)) {
+                std::cout << "Validator error. Column \"" << rhsIdentifier << "\" in boolean expression must be in table.column form.\n";
+                exit(1);   
+            }
+
+            // rhs table must exist
+            std::string rhsColumnName = split(rhsIdentifier).second;
+            std::string rhsTableName = split(rhsIdentifier).first;
+            if (!exists(rhsTableName, tables)) {
+                std::cout << "Validator error. Table \"" << rhsTableName << "\" mentioned in \"" << rhsIdentifier << "\" in boolean expression does not exist!\n";
+                exit(1);   
+            }
+            auto rhsTable = find(rhsTableName, tables);
+
+            // column must be in table
+            if (!exists(rhsColumnName, rhsTable->columns)) {
+                std::cout << "Validator error. Column \"" << rhsColumnName << "\" mentioned in boolean expression doesn't exist in table \"" << rhsTable->name << "\".\n";
+                exit(1);
+            }
+            auto rhsColumn = find(rhsColumnName, rhsTable->columns);
+            
+            // @TODO check that lhs column and rhs column are the same type
+            if (lhsColumn->type != rhsColumn->type) {
+                std::cout << "Validator error. Types conflict in boolean expression when checking if " << tokenTypeToString(lhsColumn->type) << " \""
+                          << t.name + '.' + lhsColumnName << "\" is in " << tokenTypeToString(rhsColumn->type) << " \"" << rhsIdentifier << "\".\n";
+                exit(1);
+            }
+            
             return;
         }
         // identifier comparison any|all indentifier 
@@ -113,7 +144,7 @@ public:
 
             // @TODO allow cross-type comparisons between ints and floats, disallow all others
             // type check, rhs literal must match lhs column type
-            auto c = find(columnName, t.columns);
+            auto c = find(lhsColumnName, t.columns);
             element_type rhsType = boolExprRoot->components[2]->type;
             auto rhsValue = boolExprRoot->components[2]->value;
 
