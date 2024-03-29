@@ -123,7 +123,7 @@ public:
             }
             auto rhsColumn = find(rhsColumnName, rhsTable->columns);
             
-            // @TODO check that lhs column and rhs column are the same type
+            // check that lhs column and rhs column are the same type
             if (lhsColumn->type != rhsColumn->type) {
                 std::cout << "Validator error. Types conflict in boolean expression when checking if " << tokenTypeToString(lhsColumn->type) << " \""
                           << t.name + '.' + lhsColumnName << "\" is in " << tokenTypeToString(rhsColumn->type) << " \"" << rhsIdentifier << "\".\n";
@@ -136,6 +136,35 @@ public:
         else if (boolExprRoot->components[2]->type == kw_any || boolExprRoot->components[2]->type == kw_all) {
             std::cout << "any/all\n";
 
+            std::string rhsIdentifier = boolExprRoot->components[3]->value;
+            if (!hasDot(rhsIdentifier)) {
+                std::cout << "Validator error. Column \"" << rhsIdentifier << "\" in boolean expression must be in table.column form.\n";
+                exit(1);   
+            }
+
+            // rhs table must exist
+            std::string rhsColumnName = split(rhsIdentifier).second;
+            std::string rhsTableName = split(rhsIdentifier).first;
+            if (!exists(rhsTableName, tables)) {
+                std::cout << "Validator error. Table \"" << rhsTableName << "\" mentioned in \"" << rhsIdentifier << "\" in boolean expression does not exist!\n";
+                exit(1);   
+            }
+            auto rhsTable = find(rhsTableName, tables);
+
+            // column must be in table
+            if (!exists(rhsColumnName, rhsTable->columns)) {
+                std::cout << "Validator error. Column \"" << rhsColumnName << "\" mentioned in boolean expression doesn't exist in table \"" << rhsTable->name << "\".\n";
+                exit(1);
+            }
+            auto rhsColumn = find(rhsColumnName, rhsTable->columns);
+            
+            // check that lhs column and rhs column are the same type
+            if (lhsColumn->type != rhsColumn->type) {
+                std::cout << "Validator error. Types conflict in boolean expression when comparing " << tokenTypeToString(lhsColumn->type) << " \""
+                          << t.name + '.' + lhsColumnName << "\" to all/any " << tokenTypeToString(rhsColumn->type) << " \"" << rhsIdentifier << "\".\n";
+                exit(1);
+            }
+            
             return;
         }
         // identifier comparison literal
@@ -156,6 +185,8 @@ public:
                     exit(1);
                 }
             }
+
+            // @TODO allow column names (internal to t on rhs)
 
             return;
         }
