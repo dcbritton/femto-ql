@@ -179,7 +179,7 @@ public:
             
             return;
         }
-        // identifier comparison literal
+        // identifier comparison literal/identifier
         else {
             std::cout << "simple comparison\n";
 
@@ -189,18 +189,48 @@ public:
             element_type rhsType = boolExprRoot->components[2]->type;
             auto rhsValue = boolExprRoot->components[2]->value;
 
-            if (rhsType != kw_null) {  
+            if (rhsType != kw_null && rhsType != identifier) {  
                 // @TODO can we guarantee that c->type is int, float chars, or bool literal?
                 if (c->type != rhsType) {
-                    std::cout << "Validation error. Type error in boolean expression between " << tokenTypeToString(c->type) << " column \"" 
+                    std::cout << "Validator error. Type error in boolean expression between " << tokenTypeToString(c->type) << " column \"" 
                                 << t.name + '.' + c->name << "\" and the attempted comparison to " << tokenTypeToString(rhsType) << ' ' << rhsValue << ".\n";
                     exit(1);
                 }
             }
+            
+            // for rhs identifier
+            if (rhsType == identifier) {
+                // must not be in table.column form
+                if (hasDot(rhsValue)) {
+                    std::cout << "Validator error. Column \"" << rhsValue << "\" mentioned in a boolean expression should not be in table.column form.\n";
+                    exit(1);
+                }
 
-            // @TODO allow rhs columns
-            // column must exist in t
-            // lhs and rhs columns must be same type
+                // column must exist in t
+                if (!exists(rhsValue, t.columns)) {
+                    std::cout << "Validator error. Column \"" << rhsValue << "\" does not exist in table \"" << t.name << "\".\n";
+                    exit(1);    
+                }
+                auto rhsC = find(rhsValue, t.columns);
+
+                // lhs and rhs columns must be same type
+                if (c->type != rhsC->type) {
+                    std::cout << "Validator error. Type conflict in boolean expression when comparing " << tokenTypeToString(c->type) << " \"" << c->name
+                              << "\" to " << tokenTypeToString(rhsC->type) << " \"" << rhsValue << "\".\n.";
+                    exit(1);
+                }
+
+                // disallow <>= on bool columns
+                element_type opType = boolExprRoot->components[1]->type;
+                if (lhsColumn->type == bool_literal && (opType >= op_less_than && opType <= op_greater_than_equals)) {
+                    std::cout << "Validator error. Tried to use operator " << tokenTypeToString(opType)
+                            << " with bool column \"" << t.name + '.' + lhsColumn->name << "\".\n";
+                    if (rhsC->type == bool_literal) {
+                        std::cout << "Column \"" << rhsValue << "\" is also of type bool.\n";
+                    }                          
+                    exit(1);
+                }
+            }
 
             return;
         }
@@ -252,7 +282,7 @@ public:
             // @TODO can we guarantee that c->type is int, float chars, or bool literal?
             // ex: if the node is an int literal, the column type must also be an int literal
             if (c->type != pairType) {
-                std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) << ", but an update of "
+                std::cout << "Validator error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) << ", but an update of "
                         << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                 exit(1);
             }
@@ -262,7 +292,7 @@ public:
         std::vector<std::string> colNames;
         for (auto& columnValuePair : columnValueListRoot->components) {
             if (std::find(colNames.begin(), colNames.end(), columnValuePair->components[0]->value) != colNames.end()) {
-                std::cout << "Validation error. There were two updates of column \"" << t->name + '.' + columnValuePair->components[0]->value << "\" within the same statement.\n";
+                std::cout << "Validator error. There were two updates of column \"" << t->name + '.' + columnValuePair->components[0]->value << "\" within the same statement.\n";
                 exit(1); 
             }
             colNames.push_back(columnValuePair->components[0]->value);
@@ -272,7 +302,7 @@ public:
         for (auto& columnValuePair : columnValueListRoot->components) {
             auto c = find(columnValuePair->components[0]->value, t->columns);
             if (columnValuePair->components[1]->type == chars_literal && columnValuePair->components[1]->value.length() > c->charsLength) {
-                std::cout << "Validation error. The maximum string length of \"" <<  t->name + '.' + columnValuePair->components[0]->value << "\" is " << c->charsLength << " character(s).\n";
+                std::cout << "Validator error. The maximum string length of \"" <<  t->name + '.' + columnValuePair->components[0]->value << "\" is " << c->charsLength << " character(s).\n";
                 exit(1);  
             }
         }
@@ -327,7 +357,7 @@ public:
             // @TODO can we guarantee that c->type is int, float chars, or bool literal?
             // ex: if the node is an int literal, the column type must also be an int literal
             if (c->type != pairType) {
-                std::cout << "Validation error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) 
+                std::cout << "Validator error. Column \"" << t->name + '.' + c->name << "\" is of type " << tokenTypeToString(c->type) 
                           << ", but an insert of " << tokenTypeToString(pairType) << " " << pairValue << " was attempted.\n";
                 exit(1);
             }
@@ -337,7 +367,7 @@ public:
         std::vector<std::string> colNames;
         for (auto& columnValuePair : columnValueListRoot->components) {
             if (std::find(colNames.begin(), colNames.end(), columnValuePair->components[0]->value) != colNames.end()) {
-                std::cout << "Validation error. There were two insertions into column \"" << t->name + '.' + columnValuePair->components[0]->value << "\" within the same statement.\n";
+                std::cout << "Validator error. There were two insertions into column \"" << t->name + '.' + columnValuePair->components[0]->value << "\" within the same statement.\n";
                 exit(1); 
             }
             colNames.push_back(columnValuePair->components[0]->value);
@@ -347,7 +377,7 @@ public:
         for (auto& columnValuePair : columnValueListRoot->components) {
             auto c = find(columnValuePair->components[0]->value, t->columns);
             if (columnValuePair->components[1]->type == chars_literal && columnValuePair->components[1]->value.length() > c->charsLength) {
-                std::cout << "Validation error. The maximum string length of \"" <<  t->name + '.' + columnValuePair->components[0]->value << "\" is " << c->charsLength << " character(s).\n";
+                std::cout << "Validator error. The maximum string length of \"" <<  t->name + '.' + columnValuePair->components[0]->value << "\" is " << c->charsLength << " character(s).\n";
                 exit(1);  
             }
         }
@@ -643,7 +673,7 @@ public:
 
         // if table already exists
         if (exists(tableName, tables)) {
-            std::cout << "Validation error. Table \"" << tableName << "\" already exists. Cannot define a table with the same name.\n";
+            std::cout << "Validator error. Table \"" << tableName << "\" already exists. Cannot define a table with the same name.\n";
             exit(1);
         }
 
@@ -652,7 +682,7 @@ public:
             if (columnTypePair->components[1]->type == kw_chars) {
                 // check that -> type >= 1
                 if (stoi(columnTypePair->components[2]->value) <= 0) {
-                    std::cout << "Validation error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[1]->value << "\" may not have a non-positive number of columns.\n";
+                    std::cout << "Validator error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[1]->value << "\" may not have a non-positive number of columns.\n";
                     exit(1);
                 }
             }
@@ -680,7 +710,7 @@ public:
 
         // if table is in neither, error
         else {
-            std::cout << "Validation error. Table \"" << tableName << "\" doesn't exist.\n";
+            std::cout << "Validator error. Table \"" << tableName << "\" doesn't exist.\n";
             exit(1);
         }
 
