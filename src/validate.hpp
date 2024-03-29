@@ -96,6 +96,22 @@ public:
         // identifier comparison literal
         else {
             std::cout << "simple comparison\n";
+
+            // column names must not be in table.column form
+            std::string columnName = boolExprRoot->components[0]->value;
+            if (hasDot(columnName)) {
+                std::cout << "Validator error. Column \"" << columnName << "\" should not be in table.column form. Try \"" << split(columnName).second << "\".\n";
+                exit(1);   
+            }
+
+            // columns must be in table
+            if (!exists(columnName, t.columns)) {
+                std::cout << "Validator error. Column \"" << columnName << "\" doesn't exist in table \"" << t.name << "\".\n";
+                exit(1);
+            }
+
+            // @TODO type check
+            // @TODO allow comparisons between ints and floats, disallow all others
         }
 
     }
@@ -546,6 +562,7 @@ public:
         }
 
         // @TODO
+        // column names must NOT be in table.column form
         // Cannot create a table with two columns of the same name
 
         // add table
