@@ -63,22 +63,24 @@ public:
         
         // the following are validated by validating child bool_exprs
         // bool_expr bool_op bool_expr
-        if (boolExprRoot->components[1]->type == op_or || boolExprRoot->components[1]->type == op_and) {
-            std::cout << "bool op\n";
+
+        // (bool_expr)
+        if (boolExprRoot->components.size() == 1 /*only child: boolExprRoot->components[0]->type == bool_expr*/) {
+            // std::cout << "parens\n";
             validateBoolExpr(boolExprRoot->components[0], t);
-            validateBoolExpr(boolExprRoot->components[2], t);
             return;
         }
         // !(bool_expr)
         else if (boolExprRoot->components[0]->type == op_not) {
-            std::cout << "op not\n";
+            // std::cout << "op not\n";
             validateBoolExpr(boolExprRoot->components[1], t);
             return;
         }
-        // (bool_expr)
-        else if (boolExprRoot->components.size() == 1 /* or, boolExprRoot->components[0]->type == bool_expr*/) {
-            std::cout << "parens\n";
+        // bool_expr bool_op bool_expr
+        else if (boolExprRoot->components[1]->type == op_or || boolExprRoot->components[1]->type == op_and) {
+            // std::cout << "bool op\n";
             validateBoolExpr(boolExprRoot->components[0], t);
+            validateBoolExpr(boolExprRoot->components[2], t);
             return;
         }
 
@@ -100,7 +102,7 @@ public:
 
         // identifier in identifier
         if (boolExprRoot->components[1]->type == kw_in) {
-            std::cout << "in\n";
+            // std::cout << "in\n";
 
             std::string rhsIdentifier = boolExprRoot->components[2]->value;
             if (!hasDot(rhsIdentifier)) {
@@ -135,7 +137,7 @@ public:
         }
         // identifier comparison any|all indentifier 
         else if (boolExprRoot->components[2]->type == kw_any || boolExprRoot->components[2]->type == kw_all) {
-            std::cout << "any/all\n";
+            // std::cout << "any/all\n";
 
             std::string rhsIdentifier = boolExprRoot->components[3]->value;
             if (!hasDot(rhsIdentifier)) {
@@ -181,7 +183,7 @@ public:
         }
         // identifier comparison literal/identifier
         else {
-            std::cout << "simple comparison\n";
+            // std::cout << "simple comparison\n";
 
             // @TODO allow cross-type comparisons between ints and floats, disallow all others
             // type check, rhs literal must match lhs column type
