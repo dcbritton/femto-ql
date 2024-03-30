@@ -197,6 +197,19 @@ public:
                 lhs_components.push_back(std::make_shared<node>(it->type));
                 ++it; // consume comparison
 
+                // @TODO clean up this logic
+                // disallow <>(=) on true, false, and null
+                // @NOTE peeking back on this check
+                if ((it-1)->type != op_equals && (it-1)->type != op_not_equals) {
+                    if (it->type >= kw_null && it->type <= kw_false ) {
+                        std::cout << "Parser error on line " << it->line_number 
+                                  << ". You tried to compare >, <, <=, or >= on "
+                                  << tokenTypeToString(it->type)
+                                  << " in boolean expression.\n";
+                        exit(1);
+                    }
+                } 
+
                 // identifier or literal (incl. null)
                 if (it->type >= identifier && it->type <= kw_null) {
                     // @TODO: unexpected end of input here still results in issue #6
