@@ -52,6 +52,10 @@ public:
                     validateSelection(nodePtr);
                     break;
                 
+                case deletion:
+                    validateDeletion(nodePtr);
+                    break;
+
                 default:
                     std::cout << "Validator error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
                     break;
@@ -60,6 +64,22 @@ public:
     }
 
     // a million validation functions
+
+    // validate deletion
+    void validateDeletion(std::shared_ptr<node> deletionRoot) {
+        
+        // table must exist
+        std::string tableName = deletionRoot->components[0]->value;
+        if (!exists(tableName, tables)) {
+            std::cout << "Validator error. Attempted deletion of table \"" << tableName << "\", which does not exist.\n";
+            exit(1);
+        }
+        auto t = find(tableName, tables);
+
+        validateWhereClause(deletionRoot->components[1], *t);
+
+        std::cout << "Deletion validated.\n\n";
+    }
 
     // validate order clause
     void validateOrderClause(std::shared_ptr<node> orderRoot, const table& t) {
