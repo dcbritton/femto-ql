@@ -63,6 +63,9 @@ public:
 
     // validate order clause
     void validateOrderClause(std::shared_ptr<node> orderRoot, const table& t) {
+
+        if (orderRoot->type == nullnode)
+            return;
         
         if (orderRoot->components[1]->type != kw_asc && orderRoot->components[1]->type != kw_desc) {
             std::cout << "Validator error. Somehow, ordering neither asc or desc.\n";
@@ -306,6 +309,10 @@ public:
 
     // validate where clause
     void validateWhereClause(std::shared_ptr<node> whereClauseRoot, const table& t) {
+
+        if (whereClauseRoot->type == nullnode)
+            return;
+
         validateBoolExpr(whereClauseRoot->components[0], t);
     }
 
