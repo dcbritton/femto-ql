@@ -47,6 +47,10 @@ public:
                 case update:
                     validateUpdate(nodePtr);
                     break;
+
+                case selection:
+                    validateSelection(nodePtr);
+                    break;
                 
                 default:
                     std::cout << "Validator error. Tried to validate an unknown statement type: " << tokenTypeToString(nodePtr->type) << ".\n";
@@ -57,7 +61,69 @@ public:
 
     // a million validation functions
 
-    // @TODO disallow <>= of bool literals ( & nulls to be done in parser?)
+    // validate order clause
+    void validateOrderClause(std::shared_ptr<node> orderRoot, const table& t) {
+        
+        if (orderRoot->components[1]->type != kw_asc && orderRoot->components[1]->type != kw_desc) {
+            std::cout << "Validator error. Somehow, ordering neither asc or desc.\n";
+            exit(1);
+        }
+
+        // column name must not be in table.column form
+        std::string columnName = orderRoot->components[0]->value;
+        if (hasDot(columnName)) {
+            std::cout << "Validator error. Ordered column \"" << t.name + '.' + columnName << "\" should not be in table.column form. Try \"" << split(columnName).second << "\".\n";
+            exit(1);
+        }
+
+        // column must exist in the table
+        if (!exists(columnName, t.columns)) {
+            std::cout << "Validator error. Ordered column \"" << columnName << "\" does not exist in table \"" << t.name << "\".\n";
+            exit(1);
+        }
+        auto c = find(columnName, t.columns);
+        
+        // column must not be a bool
+        if (c->type == bool_literal) {
+            std::cout << "Validator error. Cannot order by a boolean column \"" << columnName << "\".\n";
+            exit(1);
+        }
+    }
+
+    // validate selection
+    void validateSelection(std::shared_ptr<node> selectionRoot) {
+
+        // table must exist
+        std::string tableName = selectionRoot->components[1]->value;
+        if (!exists(tableName, tables)) {
+            std::cout << "Validator error. Table \"" << tableName << "\" mentioned in update statement into does not exist.\n";
+            exit(1);
+        }
+        auto t = find(tableName, tables);
+
+        // columns must not be in table.column form
+        std::shared_ptr<node> columnListRoot = selectionRoot->components[2];
+        for (auto& col : columnListRoot->components) {
+            if (hasDot(col->value)) {
+                std::cout << "Validator error. Column \"" << col->value << "\" mentioned in selection should not be in table.column form. Try \"" << split(col->value).second << "\".\n";
+                exit(1);
+            }
+        }
+
+        // column must exist in table
+        for (auto& c : columnListRoot->components) {
+            if (!exists(c->value, t->columns)) {
+                std::cout << "Validator error. Selected column \"" << c->value << "\" does not exist in table \"" << t->name << "\".\n";
+                exit(1);
+            }
+        }
+
+        validateWhereClause(selectionRoot->components[3], *t);
+        validateOrderClause(selectionRoot->components[4], *t);
+
+        std::cout << "Selection validated.\n\n";
+    }
+
     // validate boolean expression
     void validateBoolExpr(std::shared_ptr<node> boolExprRoot, const table& t) {
         
