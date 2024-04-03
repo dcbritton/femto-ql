@@ -71,7 +71,7 @@ public:
         // table must exist
         std::string tableName = deletionRoot->components[0]->value;
         if (!exists(tableName, tables)) {
-            std::cout << "Validator error. Attempted deletion of table \"" << tableName << "\", which does not exist.\n";
+            std::cout << "Validator error. Attempted deletion within table \"" << tableName << "\", which does not exist.\n";
             exit(1);
         }
         auto t = find(tableName, tables);
@@ -132,6 +132,18 @@ public:
                 exit(1);
             }
         }
+
+        // @TODO add repeated with alias
+        // cannot select the same column twice
+        std::vector<std::string> colNames;
+        for (auto& col : columnListRoot->components) {
+            if (std::find(colNames.begin(), colNames.end(), col->value) != colNames.end()) {
+                std::cout << "Validator error. Attempted to select column \"" << col->value << "\" twice from table \"" << t->name << "\".\n";
+                exit(1); 
+            }
+            colNames.push_back(col->value);
+        }
+        
 
         // column must exist in table
         for (auto& c : columnListRoot->components) {
