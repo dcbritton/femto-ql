@@ -541,32 +541,32 @@ public:
         auto table1 = find(table1Name, tables);
         auto table2 = find(table2Name, tables);
         // verify that the column exists in the table
-        auto col1 = std::find_if(table1->columns.begin(), table1->columns.end(), [&split1](const auto& c){return c.name == split1.second;});
-        if (col1 == table1->columns.end()) {
+        auto joinedColumn1 = std::find_if(table1->columns.begin(), table1->columns.end(), [&split1](const auto& c){return c.name == split1.second;});
+        if (joinedColumn1 == table1->columns.end()) {
             std::cout << "Validator error. Column \"" << split1.second << "\" isn't a column in table \"" << table1->name << "\".\n";
             exit(1);
         }
-        auto col2 = std::find_if(table2->columns.begin(), table2->columns.end(), [&split2](const auto& c){return c.name == split2.second;});
-        if (col2 == table2->columns.end()) {
+        auto joinedColumn2 = std::find_if(table2->columns.begin(), table2->columns.end(), [&split2](const auto& c){return c.name == split2.second;});
+        if (joinedColumn2 == table2->columns.end()) {
             std::cout << "Validator error. Column \"" << split2.second << "\" isn't a column in table \"" << table2->name << "\".\n";
             exit(1);
         }
 
         // joined columns must be of the same type
-        if (col1->type != col2->type) {
-            std::cout << "Validator error. Column \"" << col1Name << "\" is type " << col1->type << ", and \"" << col2Name << "\" is type " << col2->type << ".\n";
+        if (joinedColumn1->type != joinedColumn2->type) {
+            std::cout << "Validator error. Column \"" << col1Name << "\" is type " << joinedColumn1->type << ", and \"" << col2Name << "\" is type " << joinedColumn2->type << ".\n";
             exit(1);
         }
 
         // disallow <>= on bool columns in on expr
         element_type opType = onExprRoot->components[1]->type;
-        if (col1->type == bool_literal && (opType >= op_less_than && opType <= op_greater_than_equals)) {
+        if (joinedColumn1->type == bool_literal && (opType >= op_less_than && opType <= op_greater_than_equals)) {
             std::cout << "Validator error. Attempted to join on two bool columns \"" << col1Name << "\" and \"" << col2Name << "\", but the comparison is neither '==' nor '!='.\n";                     
             exit(1);
         }
 
         // require aliasing on joined column name conflict
-        if (col1->name != col2->name && onExprRoot->components[3]->type == nullnode) {
+        if (joinedColumn1->name != joinedColumn2->name && onExprRoot->components[3]->type == nullnode) {
             std::cout << "Validator error. Joined columns \"" << col1Name << "\" and \"" << col2Name << "\" do not have the same name and must be aliased.\n";
             exit(1);  
         }
@@ -586,7 +586,7 @@ public:
         std::vector<std::string> conflictingColumnNames;
         // identify all conflicting names non-joined column
         for (auto& col : table1->columns) {
-            if (exists(col.name, table2->columns) && col.name != col1->name) 
+            if (exists(col.name, table2->columns) && col.name != joinedColumn1->name) 
                 conflictingColumnNames.push_back(col.name);
         }
         // if there is at least one name conflict, make sure alias list is not nullnode
@@ -647,7 +647,6 @@ public:
                 std::cout << "Validator error. Aliased column \"" << aliasRoot->components[0]->value << "\" doesn't exist.\n";
                 exit(1);
             }
-
         }
 
         // not more than one alias for the same column
@@ -665,7 +664,7 @@ public:
         for (auto& aliasRoot : aliasListRoot->components) {
             std::string aliasedName = split(aliasRoot->components[0]->value).second;
             std::string aliasName = aliasRoot->components[1]->value;
-            if (aliasedName == col1->name || aliasedName == col2->name) {
+            if (aliasedName == joinedColumn1->name || aliasedName == joinedColumn2->name) {
                 std::cout << "Validator error. Cannot apply the alias \"" << aliasName << "\" to \"" << aliasRoot->components[0]->value << "\" because it is one of the joined columns.\n";
                 exit(1);
             }
@@ -678,7 +677,7 @@ public:
         // if it exists, make sure the on_expr alias does not conflict with ANY columns in table1 and table2 other than the joined columns
         if (onExprRoot->components[3]->type != nullnode) {
             std::string onExprAlias = onExprRoot->components[3]->value;
-            if (!(onExprAlias == col1->name || onExprAlias == col2->name)) {
+            if (!(onExprAlias == joinedColumn1->name || onExprAlias == joinedColumn2->name)) {
                 if (exists(onExprAlias, table1->columns)) {
                     std::cout << "Validator error. Alias \"" << onExprAlias << "\" conflicts with a column in table \"" << table1->name << "\".\n";
                     exit(1);
@@ -725,7 +724,49 @@ public:
             }
         }
 
-        
+        // resultant columns to workingTable
+        std::vector<column> workingColumns;
+
+        // for the joined column, if an alias is used, use it
+        std::string joinedColumnName;
+        if (onExprRoot->components[3]->type != nullnode)
+            joinedColumnName = onExprRoot->components[3]->value;
+        // else, the joined columns have the same name. use either, in this case, first column's name
+        else
+            joinedColumnName = joinedColumn1->name;
+
+        // if joined column is chars, take the bigger number
+        int numChars = (joinedColumn1->charsLength > joinedColumn2->charsLength ? joinedColumn1->charsLength : joinedColumn2->charsLength);
+
+        workingColumns.push_back(column(joinedColumnName, joinedColumn1->type, numChars));
+
+        // go through columns of each table
+        for (const auto& t : {table1, table2}) {
+            for (const column& c : t->columns) {
+                // skip either joined column
+                if (&c == &*joinedColumn1 || &c == &*joinedColumn2)
+                    continue;
+
+                // @TODO clean this up
+                // if no alias, add original name
+                std::string aliasName;
+                auto f = [c,t,aliasName](){};
+                if (std::find_if(aliasListRoot->components.begin(), aliasListRoot->components.end(), 
+                        [&c, &t, &aliasName](std::shared_ptr<node> aliasRoot) {
+                            if (split(aliasRoot->components[0]->value) == std::pair<std::string, std::string>{t->name, c.name}) {
+                                aliasName = aliasRoot->components[1]->value;
+                                return true;
+                            }
+                            return false;
+                    }) == aliasListRoot->components.end())
+                    workingColumns.push_back(column(c));
+
+                else
+                    workingColumns.push_back(column(aliasName, c.type, c.charsLength));
+            }
+        }
+        workingTable.columns = workingColumns;
+
 
         std::cout << "Join validated.\n\n";
     }
@@ -807,8 +848,10 @@ public:
             tables.push_back(workingTable);
         }
 
-        else if (definitionRoot->components[2]->type == join) 
-            validateSetOp(definitionRoot->components[2]);
+        else if (definitionRoot->components[2]->type == join) {
+            validateJoin(definitionRoot->components[2]);
+            tables.push_back(workingTable);
+        }
 
         else if (definitionRoot->components[2]->type == col_type_list) {
             // no <= 0 length chars
