@@ -558,6 +558,13 @@ public:
             exit(1);
         }
 
+        // disallow <>= on bool columns in on expr
+        element_type opType = onExprRoot->components[1]->type;
+        if (col1->type == bool_literal && (opType >= op_less_than && opType <= op_greater_than_equals)) {
+            std::cout << "Validator error. Attempted to join on two bool columns \"" << col1Name << "\" and \"" << col2Name << "\", but the comparison is neither '==' nor '!='.\n";                     
+            exit(1);
+        }
+
         // require aliasing on joined column name conflict
         if (col1->name != col2->name && onExprRoot->components[3]->type == nullnode) {
             std::cout << "Validator error. Joined columns \"" << col1Name << "\" and \"" << col2Name << "\" do not have the same name and must be aliased.\n";
@@ -716,8 +723,9 @@ public:
                     exit(1);
                 }
             }
-
         }
+
+        
 
         std::cout << "Join validated.\n\n";
     }
