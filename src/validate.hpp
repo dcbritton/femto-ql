@@ -13,6 +13,7 @@
 class Validator {
 private:
     std::vector<table> tables;
+    table workingTable = table();
 
 public:
 
@@ -62,8 +63,6 @@ public:
             }
         }
     }
-
-    // a million validation functions
 
     // validate deletion
     void validateDeletion(std::shared_ptr<node> deletionRoot) {
@@ -764,43 +763,64 @@ public:
         }
 
         // @TODO default to larger chars on resultant table
+        std::vector<column> workingColumns = first->columns;
+        // for each chars column, make sure that the larger one is put into workingColumns  
+        for (auto& workingColumn : workingColumns) {
+            if (workingColumn.type == chars_literal) {
+                auto c2 = find(workingColumn.name, second->columns);
+                workingColumn.charsLength  = ( c2->charsLength > workingColumn.charsLength ? c2->charsLength : workingColumn.charsLength );
+            }
+        }
+
+        workingTable.columns = workingColumns;
 
         std::cout << "Set operation validated.\n\n";
     }
 
-    // validate create (original)
+    // validate definition
     void validateDefinition(std::shared_ptr<node> definitionRoot) {
-        // @TODO validation for definitions other than those of column, type list
-        if (definitionRoot->components[2]->type != col_type_list) {
-            std::cout << "Validation of a definition other than from a column, type list";
-            return;
-        }
-
-        std::string tableName = definitionRoot->components[1]->value;
 
         // if table already exists
+        std::string tableName = definitionRoot->components[1]->value;
         if (exists(tableName, tables)) {
             std::cout << "Validator error. Table \"" << tableName << "\" already exists. Cannot define a table with the same name.\n";
             exit(1);
         }
 
-        // no <= 0 length chars
-        for (auto columnTypePair : definitionRoot->components[2]->components) {
-            if (columnTypePair->components[1]->type == kw_chars) {
-                // check that -> type >= 1
-                if (stoi(columnTypePair->components[2]->value) <= 0) {
-                    std::cout << "Validator error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[1]->value << "\" may not have a non-positive number of columns.\n";
-                    exit(1);
-                }
-            }
+        // set the working table name to the new table's name
+        workingTable.name = tableName;
+
+        // @TODO validation for definitions other than those of column, type list
+        if (definitionRoot->components[2]->type == selection)
+            validateSelection(definitionRoot->components[2]);
+
+        else if (definitionRoot->components[2]->type == set_op) {
+            validateSetOp(definitionRoot->components[2]);
+            tables.push_back(workingTable);
         }
 
-        // @TODO
-        // column names must NOT be in table.column form
-        // Cannot create a table with two columns of the same name
+        else if (definitionRoot->components[2]->type == join) 
+            validateSetOp(definitionRoot->components[2]);
 
-        // add table
-        tables.push_back(nodeToTable(definitionRoot));
+        else if (definitionRoot->components[2]->type == col_type_list) {
+            // no <= 0 length chars
+            for (auto columnTypePair : definitionRoot->components[2]->components) {
+                if (columnTypePair->components[1]->type == kw_chars) {
+                    // check that -> type >= 1
+                    if (stoi(columnTypePair->components[2]->value) <= 0) {
+                        std::cout << "Validator error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[1]->value << "\" may not have a non-positive number of columns.\n";
+                        exit(1);
+                    }
+                }
+            }
+
+            // @TODO
+            // column names must NOT be in table.column form
+            // Cannot create a table with two columns of the same name
+
+            // add table
+            tables.push_back(nodeToTable(definitionRoot));
+        }
 
         std::cout << "Definition validated.\n";
         printTableList(tables);

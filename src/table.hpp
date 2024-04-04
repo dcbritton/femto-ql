@@ -23,6 +23,7 @@ struct column {
 struct table {
     std::string name;
     std::vector<column> columns;
+    table() : name(""), columns({}) {};
     table(std::string tableName, std::vector<column> tableColumns) : name(tableName), columns(tableColumns) {};
 };
 
