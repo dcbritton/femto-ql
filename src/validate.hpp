@@ -123,42 +123,56 @@ public:
         }
         auto t = find(tableName, tables);
 
-        // columns must not be in table.column form
+        // asterisk column list
         std::shared_ptr<node> columnListRoot = selectionRoot->components[2];
-        for (auto& col : columnListRoot->components) {
-            if (hasDot(col->value)) {
-                std::cout << "Validator error. Column \"" << col->value << "\" mentioned in selection should not be in table.column form. Try \"" << split(col->value).second << "\".\n";
-                exit(1);
-            }
+        if (columnListRoot->components[0]->type == asterisk) {
+
         }
 
-        // @TODO add repeated with alias
-        // cannot select the same column twice
-        std::vector<std::string> colNames;
-        for (auto& col : columnListRoot->components) {
-            if (std::find(colNames.begin(), colNames.end(), col->value) != colNames.end()) {
-                std::cout << "Validator error. Attempted to select column \"" << col->value << "\" twice from table \"" << t->name << "\".\n";
-                exit(1); 
+        // normal column list
+        else {
+            // columns must not be in table.column form
+            for (auto& col : columnListRoot->components) {
+                if (hasDot(col->value)) {
+                    std::cout << "Validator error. Column \"" << col->value << "\" mentioned in selection should not be in table.column form. Try \"" << split(col->value).second << "\".\n";
+                    exit(1);
+                }
             }
-            colNames.push_back(col->value);
-        }
-        
-        // column must exist in table
-        for (auto& c : columnListRoot->components) {
-            if (!exists(c->value, t->columns)) {
-                std::cout << "Validator error. Selected column \"" << c->value << "\" does not exist in table \"" << t->name << "\".\n";
-                exit(1);
+
+            // @TODO add repeated with alias
+            // cannot select the same column twice
+            std::vector<std::string> colNames;
+            for (auto& col : columnListRoot->components) {
+                if (std::find(colNames.begin(), colNames.end(), col->value) != colNames.end()) {
+                    std::cout << "Validator error. Attempted to select column \"" << col->value << "\" twice from table \"" << t->name << "\".\n";
+                    exit(1); 
+                }
+                colNames.push_back(col->value);
+            }
+            
+            // column must exist in table
+            for (auto& c : columnListRoot->components) {
+                if (!exists(c->value, t->columns)) {
+                    std::cout << "Validator error. Selected column \"" << c->value << "\" does not exist in table \"" << t->name << "\".\n";
+                    exit(1);
+                }
             }
         }
 
         validateWhereClause(selectionRoot->components[3], *t);
         validateOrderClause(selectionRoot->components[4], *t);
 
-        // add columns to working table
         std::vector<column> workingColumns;
-        for (const auto& selected : columnListRoot->components) {
-            auto columnToAdd = std::find_if(t->columns.begin(), t->columns.end(), [&selected](auto& tc){return tc.name == selected->value;});
-            workingColumns.push_back(column(*columnToAdd));
+        // asterisk
+        if (columnListRoot->components[0]->type == asterisk)
+            workingColumns = t->columns;
+
+        // else, add mentioned columns to working table
+        else {
+            for (const auto& selected : columnListRoot->components) {
+                auto columnToAdd = std::find_if(t->columns.begin(), t->columns.end(), [&selected](auto& tc){return tc.name == selected->value;});
+                workingColumns.push_back(column(*columnToAdd));
+            }
         }
 
         workingTable.columns = workingColumns;
