@@ -860,22 +860,25 @@ public:
         // set the working table name to the new table's name
         workingTable.name = tableName;
 
-        // @TODO validation for definitions other than those of column, type list
+        // defined selection
         if (definitionRoot->components[2]->type == selection) {
             validateSelection(definitionRoot->components[2]);
             tables.push_back(workingTable);
         }
 
+        // defined set_op
         else if (definitionRoot->components[2]->type == set_op) {
             validateSetOp(definitionRoot->components[2]);
             tables.push_back(workingTable);
         }
 
+        // defined join
         else if (definitionRoot->components[2]->type == join) {
             validateJoin(definitionRoot->components[2]);
             tables.push_back(workingTable);
         }
 
+        // defined column, type list
         else if (definitionRoot->components[2]->type == col_type_list) {
             // no <= 0 length chars
             for (auto columnTypePair : definitionRoot->components[2]->components) {
@@ -888,11 +891,25 @@ public:
                 }
             }
 
-            // @TODO
             // column names must NOT be in table.column form
-            // Cannot create a table with two columns of the same name
+            for (auto columnTypePair : definitionRoot->components[2]->components) {
+                std::string colName = columnTypePair->components[0]->value;
+                if (hasDot(colName)) {
+                    std::cout << "Validator error. Attempted to define table \"" << tableName << "\", but column \"" << colName << "\" has a dot. Try \"" << split(colName).second << "\".\n";
+                    exit(1);
+                }
+            }
 
-            // add table
+            // cannot create a table with two columns of the same name
+            std::vector<std::string> names;
+            for (auto columnTypePair : definitionRoot->components[2]->components) {
+                if (std::find(names.begin(), names.end(), columnTypePair->components[0]->value) != names.end()) {
+                    std::cout << "Validator error. More than one definition of column \"" << columnTypePair->components[0]->value << "\" in definition of table \"" << tableName << "\".\n";
+                    exit(1);
+                }
+                names.push_back(columnTypePair->components[0]->value);
+            }
+            
             tables.push_back(nodeToTable(definitionRoot));
         }
 
