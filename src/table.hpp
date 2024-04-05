@@ -142,13 +142,13 @@ element_type byteToColumnType(char signedByte) {
     return typeMap[byte];
 }
 
-unsigned char columnTypeToByte(const std::string& columnType) {
+unsigned char columnTypeToByte(element_type columnType) {
     unsigned char byte = '\0';
-    std::unordered_map<std::string, unsigned char> typeMap;
-    typeMap["int"] = 0b00000000;
-    typeMap["float"] = 0b00000001;
-    typeMap["bool"] = 0b00000010;
-    typeMap["chars"] = 0b00000011;
+    std::unordered_map<element_type, unsigned char> typeMap;
+    typeMap[int_literal] = 0b00000000;
+    typeMap[float_literal] = 0b00000001;
+    typeMap[bool_literal] = 0b00000010;
+    typeMap[chars_literal] = 0b00000011;
 
     if (typeMap.find(columnType) == typeMap.end()) {
         std::cout << "Error while reading a table. Unknown datatype: \"" << columnType << "\"\n";

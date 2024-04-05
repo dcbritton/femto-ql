@@ -10,7 +10,7 @@
 #include "table.hpp"
 #include "node.hpp"
 
-void create(const table& table) {
+void define(const table& table) {
 
     std::ofstream header;
     header.open("../tables/" + table.name + ".ftbl");
@@ -53,7 +53,7 @@ void create(const table& table) {
         header << columnTypeToByte(col.type);
 
         // type is chars
-        if (col.type == "chars") {
+        if (col.type == chars_literal) {
             // last 3 bytes indicate # of chars
             unsigned int numChars = col.charsLength;
             unsigned char charsLengthBuffer[3];
