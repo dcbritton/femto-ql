@@ -143,7 +143,6 @@ public:
             colNames.push_back(col->value);
         }
         
-
         // column must exist in table
         for (auto& c : columnListRoot->components) {
             if (!exists(c->value, t->columns)) {
@@ -154,6 +153,15 @@ public:
 
         validateWhereClause(selectionRoot->components[3], *t);
         validateOrderClause(selectionRoot->components[4], *t);
+
+        // add columns to working table
+        std::vector<column> workingColumns;
+        for (const auto& selected : columnListRoot->components) {
+            auto columnToAdd = std::find_if(t->columns.begin(), t->columns.end(), [&selected](auto& tc){return tc.name == selected->value;});
+            workingColumns.push_back(column(*columnToAdd));
+        }
+
+        workingTable.columns = workingColumns;
 
         std::cout << "Selection validated.\n\n";
     }
@@ -740,6 +748,7 @@ public:
 
         workingColumns.push_back(column(joinedColumnName, joinedColumn1->type, numChars));
 
+        // @TODO clean this
         // go through columns of each table
         for (const auto& t : {table1, table2}) {
             for (const column& c : t->columns) {
@@ -747,10 +756,8 @@ public:
                 if (&c == &*joinedColumn1 || &c == &*joinedColumn2)
                     continue;
 
-                // @TODO clean this up
                 // if no alias, add original name
                 std::string aliasName;
-                auto f = [c,t,aliasName](){};
                 if (std::find_if(aliasListRoot->components.begin(), aliasListRoot->components.end(), 
                         [&c, &t, &aliasName](std::shared_ptr<node> aliasRoot) {
                             if (split(aliasRoot->components[0]->value) == std::pair<std::string, std::string>{t->name, c.name}) {
@@ -760,7 +767,7 @@ public:
                             return false;
                     }) == aliasListRoot->components.end())
                     workingColumns.push_back(column(c));
-
+                // otherwise, add the alias as the name instead
                 else
                     workingColumns.push_back(column(aliasName, c.type, c.charsLength));
             }
@@ -840,8 +847,10 @@ public:
         workingTable.name = tableName;
 
         // @TODO validation for definitions other than those of column, type list
-        if (definitionRoot->components[2]->type == selection)
+        if (definitionRoot->components[2]->type == selection) {
             validateSelection(definitionRoot->components[2]);
+            tables.push_back(workingTable);
+        }
 
         else if (definitionRoot->components[2]->type == set_op) {
             validateSetOp(definitionRoot->components[2]);
