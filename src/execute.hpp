@@ -18,6 +18,10 @@ void insert(std::shared_ptr<node> insertRoot) {
     // auto t = find();
 }
 
+void executeDrop(std::shared_ptr<node> dropRoot)  {
+    std::filesystem::remove("/tables/" + dropRoot->components[0]->value + ".ftbl");
+}
+
 void define(std::shared_ptr<node> definitionRoot) {
     
     auto table = nodeToTable(definitionRoot);
@@ -95,6 +99,10 @@ void execute(std::shared_ptr<node> scriptRoot) {
 
             case insertion:
                 insert(statementRoot);
+                break;
+            
+            case drop:
+                executeDrop(statementRoot);
                 break;
 
             default:
