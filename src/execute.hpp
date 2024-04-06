@@ -7,10 +7,20 @@
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
+#include <string>
 #include "table.hpp"
 #include "node.hpp"
 
-void define(const table& table) {
+void insert(std::shared_ptr<node> insertRoot) {
+    std::string tableName = insertRoot->components[0]->value;
+    auto columnValueListRoot = insertRoot->components[1];
+
+    // auto t = find();
+}
+
+void define(std::shared_ptr<node> definitionRoot) {
+    
+    auto table = nodeToTable(definitionRoot);
 
     std::ofstream header;
     header.open("../tables/" + table.name + ".ftbl");
@@ -73,6 +83,24 @@ void define(const table& table) {
     }
 
     header.close();
+}
+
+void execute(std::shared_ptr<node> scriptRoot) {
+    for (auto& statementRoot: scriptRoot->components) {
+        switch (statementRoot->type) {
+
+            case definition:
+                define(statementRoot);
+                break;
+
+            case insertion:
+                insert(statementRoot);
+                break;
+
+            default:
+                std::cout << "Unknown statement type to execute.\n";
+        }
+    }
 }
 
 #endif

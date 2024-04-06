@@ -7,6 +7,7 @@
 #include "parser.hpp"
 #include "graph_viz.hpp"
 #include "validate.hpp"
+#include "execute.hpp"
 
 int main() {
     
@@ -45,6 +46,8 @@ int main() {
     // validate
     Validator v(initialTables);
     v.validate(ast);
+
+    execute(ast);
 
     std::cout << "\nProgram has ended properly.\n";
     return 0;
