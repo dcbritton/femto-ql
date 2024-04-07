@@ -182,8 +182,9 @@ std::vector<table> buildTableList(const std::string& tableDirectory) {
         std::ifstream tableFile(file.path());
 
         // read first 64 bytes into table name
-        char tableNameBuffer[64];
+        char tableNameBuffer[65];
         tableFile.read(tableNameBuffer, 64);
+        tableNameBuffer[64] = '\0';
 
         // read next 4 bytes into numColumns 
         char numColumnBuffer[4];
@@ -199,8 +200,9 @@ std::vector<table> buildTableList(const std::string& tableDirectory) {
         for (int i = 0; i < numColumns; ++i) {
             // read 64 bytes for name
             tableFile.seekg(currentPos);
-            char columnNameBuffer[64];
+            char columnNameBuffer[65];
             tableFile.read(columnNameBuffer, 64);
+            columnNameBuffer[64] = '\0';
 
             // next byte for type
             char columnTypeBuffer[1];
@@ -217,7 +219,7 @@ std::vector<table> buildTableList(const std::string& tableDirectory) {
                                             static_cast<unsigned char>(numCharsBuffer[2]));
             }
             
-            columns.push_back(column(columnNameBuffer, columnType, numChars));
+            columns.push_back(column(std::string(columnNameBuffer), columnType, numChars));
             currentPos += 68;
         }
 
