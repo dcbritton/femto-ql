@@ -213,10 +213,8 @@ std::vector<table> buildTableList(const std::string& tableDirectory) {
             if (columnType == chars_literal) {
                 char numCharsBuffer[3];
                 tableFile.read(numCharsBuffer, 3);
-                numChars = static_cast<int>(0 |
-                                            static_cast<unsigned char>(numCharsBuffer[0]) << 16 |
-                                            static_cast<unsigned char>(numCharsBuffer[1]) << 8 | 
-                                            static_cast<unsigned char>(numCharsBuffer[2]));
+                // read only the final byte to get number of chars, this means there are 2 bytes of NUL padding 
+                numChars = static_cast<int>(numCharsBuffer[2]);
             }
             
             columns.push_back(column(std::string(columnNameBuffer), columnType, numChars));

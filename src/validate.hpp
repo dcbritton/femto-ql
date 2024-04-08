@@ -880,12 +880,15 @@ public:
 
         // defined column, type list
         else if (definitionRoot->components[2]->type == col_type_list) {
-            // no <= 0 length chars
+            // chars must have length > 0, length < 256
             for (auto columnTypePair : definitionRoot->components[2]->components) {
                 if (columnTypePair->components[1]->type == kw_chars) {
-                    // check that -> type >= 1
                     if (stoi(columnTypePair->components[2]->value) <= 0) {
-                        std::cout << "Validator error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[1]->value << "\" may not have a non-positive number of columns.\n";
+                        std::cout << "Validator error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[1]->value << "\" may not have a non-positive number of characters.\n";
+                        exit(1);
+                    }
+                    if (stoi(columnTypePair->components[2]->value) > 255) {
+                        std::cout << "Validator error. Column \"" << columnTypePair->components[0]->value << "\" in defined table \"" << definitionRoot->components[1]->value << "\" may not have more than 255 characters.\n";
                         exit(1);
                     }
                 }
