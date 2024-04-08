@@ -48,18 +48,20 @@ void insert(std::shared_ptr<node> insertRoot) {
     auto tables = buildTableList(DIRECTORY);
     auto t = find(tableName, tables);
     for (auto& c : t->columns) {
+        bool mentioned = false;
         for (auto& columnValuePair : columnValueListRoot->components) {
-            // @TODO simplify logic
+            // @TODO denest
             int numBytesToWrite = 4;
             // column mentioned
             if (columnValuePair->components[0]->value == c.name) {
+                mentioned = true;
                 // null insert, write null byte as 1, fill rest as 0
                 if (columnValuePair->components[1]->type == kw_null) {
-                    //     file << static_cast<unsigned char>(0b1);
-                    // if (c.type == chars_literal)
-                    //     numBytesToWrite = c.charsLength;
-                    // for (int i = 0; i < numBytesToWrite; ++i)
-                    //     file << static_cast<unsigned char>(0b0);
+                        file << static_cast<unsigned char>(0b1);
+                    if (c.type == chars_literal)
+                        numBytesToWrite = c.charsLength;
+                    for (int i = 0; i < numBytesToWrite; ++i)
+                        file << static_cast<unsigned char>(0b0);
                 }
                 // value to insert
                 else {
@@ -67,14 +69,16 @@ void insert(std::shared_ptr<node> insertRoot) {
                     writeValue(columnValuePair->components[1]->value, c.type, file);
                 }
             }
-            // otherwise, write null byte as 1, fill rest as 0
-            else {
-                // file << static_cast<unsigned char>(0b1);
-                // if (c.type == chars_literal)
-                //     numBytesToWrite = c.charsLength;
-                // for (int i = 0; i < numBytesToWrite; ++i)
-                //     file << static_cast<unsigned char>(0b0);
-            }
+        }
+        // otherwise, write null byte as 1, fill rest as 0
+        if (!mentioned) {
+            std::cout << "Unmentioned: " << c.name;
+            file << static_cast<unsigned char>(0b1);
+            int numBytesToWrite = 4;
+            if (c.type == chars_literal)
+                numBytesToWrite = c.charsLength;
+            for (int i = 0; i < numBytesToWrite; ++i)
+                file << static_cast<unsigned char>(0b0);
         }
     }
 }
