@@ -189,10 +189,7 @@ std::vector<table> buildTableList(const std::string& tableDirectory) {
         // read next 4 bytes into numColumns 
         char numColumnBuffer[4];
         tableFile.read(numColumnBuffer, 4);
-        int numColumns = static_cast<int>(static_cast<unsigned char>(numColumnBuffer[0]) << 24 |
-                                          static_cast<unsigned char>(numColumnBuffer[1]) << 16 | 
-                                          static_cast<unsigned char>(numColumnBuffer[2]) << 8 | 
-                                          static_cast<unsigned char>(numColumnBuffer[3]));
+        int numColumns = *(int*)(numColumnBuffer);
 
         // for each column, get the name and type
         std::vector<column> columns;
@@ -209,12 +206,12 @@ std::vector<table> buildTableList(const std::string& tableDirectory) {
             tableFile.read(columnTypeBuffer, 1);
             element_type columnType = byteToColumnType(columnTypeBuffer[0]);
 
-            int numChars = 0;
+            unsigned int numChars = 0;
             if (columnType == chars_literal) {
                 char numCharsBuffer[3];
                 tableFile.read(numCharsBuffer, 3);
                 // read only the final byte to get number of chars, this means there are 2 bytes of NUL padding 
-                numChars = static_cast<int>(numCharsBuffer[2]);
+                numChars = static_cast<uint8_t>(numCharsBuffer[2]);
             }
             
             columns.push_back(column(std::string(columnNameBuffer), columnType, numChars));
