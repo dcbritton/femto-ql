@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <memory>
+#include <cassert>
 #include "token.hpp"
 #include "tokenize.hpp"
 #include "parser.hpp"
@@ -10,6 +11,11 @@
 #include "execute.hpp"
 
 int main() {
+    
+    // ints and floats must both be 32 bits for this program to work
+    assert(sizeof(float) == 4);
+    assert(sizeof(int) == 4);
+    assert(sizeof(char) == 1);
     
     // get input
     std::ifstream input;
