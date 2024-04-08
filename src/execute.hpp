@@ -14,8 +14,8 @@
 std::string DIRECTORY = "../tables/";
 std::string FILE_EXTENSION = ".ftbl";
 
-void writeValue(const std::string& value, element_type type, std::ofstream& file) {
-    switch (type) {
+void writeValue(const std::string& value, const column& c, std::ofstream& file) {
+    switch (c.type) {
         case int_literal: {
             int inum = stoi(value);
             file.write(reinterpret_cast<const char*>(&inum), sizeof(inum));
@@ -27,9 +27,14 @@ void writeValue(const std::string& value, element_type type, std::ofstream& file
             break;
         }
         case chars_literal: {
+            file.write(value.c_str(), value.length());
+            for (int i = 0; i < c.charsLength-value.length(); ++i) {
+                file << '\0';
+            }
             break;
         }
         case bool_literal: {
+            file << static_cast<unsigned char>(value == "true" ? 0b1 : 0b0 );
             break;
         }
     }
@@ -50,7 +55,7 @@ void insert(std::shared_ptr<node> insertRoot) {
     for (auto& c : t->columns) {
         bool mentioned = false;
         for (auto& columnValuePair : columnValueListRoot->components) {
-            // @TODO denest
+            // @TODO mentioned & null insert have the same logic. find a way to simplify & denest
             int numBytesToWrite = 4;
             // column mentioned
             if (columnValuePair->components[0]->value == c.name) {
@@ -66,7 +71,7 @@ void insert(std::shared_ptr<node> insertRoot) {
                 // value to insert
                 else {
                     file << static_cast<unsigned char>(0b0);
-                    writeValue(columnValuePair->components[1]->value, c.type, file);
+                    writeValue(columnValuePair->components[1]->value, c, file);
                 }
             }
         }
