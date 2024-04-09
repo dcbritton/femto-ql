@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <map>
 #include <memory>
 #include <optional>
 #include "node.hpp"
@@ -26,10 +25,6 @@ struct table {
     std::vector<column> columns;
     table() : name(""), columns({}) {};
     table(std::string tableName, std::vector<column> tableColumns) : name(tableName), columns(tableColumns) {};
-
-    std::map<column, int> getColumnOffsets() {
-
-    }
 };
 
 // identifier has '.'
