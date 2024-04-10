@@ -23,20 +23,25 @@ void select(std::shared_ptr<node> selectionRoot) {
     auto tables = buildTableList(DIRECTORY);
     auto t = find(tableName, tables);
 
-    // @TODO implement * column list
-    auto columnList = selectionRoot->components[2];
-    if (columnList->components[0]->type == asterisk) {
-        
-    }
-
     // @TODO formatting!
-    
+
     // get a list of all column names to select
     std::vector<std::string> mentionedColumns;
-    for (auto& mentionedColumn : columnList->components)
-        mentionedColumns.push_back(mentionedColumn->value);
+    auto columnList = selectionRoot->components[2];
 
-    // @TODO output table header
+    // * column list
+    if (columnList->components[0]->type == asterisk)
+        for (auto& c : t->columns)
+            mentionedColumns.push_back(c.name);
+    // column list with names
+    else 
+        for (auto& mentionedColumn : columnList->components)
+            mentionedColumns.push_back(mentionedColumn->value);
+
+    // output table header
+    for (auto& name : mentionedColumns)
+        std::cout << name << ' ';
+    std::cout << '\n';
 
     // use an entry iterator to get outputs
     EntryIterator eIt(file, t->columns);
