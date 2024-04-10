@@ -7,7 +7,6 @@
 #include <vector>
 #include <fstream>
 #include <unordered_map>
-#include <tuple>
 
 int columnBytesNeeded(const column& c) {
     switch (c.type) {
