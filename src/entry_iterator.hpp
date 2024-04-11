@@ -105,6 +105,10 @@ struct EntryIterator {
     // get value as a string
     std::string getValueString(std::string& columnName) {
         ColumnInfo info = nameToInfo[columnName];
+
+        if (isNull(columnName))
+            return "**null**";
+
         switch (info.type) {
 
             case int_literal:
