@@ -87,7 +87,9 @@ struct EntryIterator {
     // get chars value by column name
     std::string getChars(std::string& columnName) {
         ColumnInfo info = nameToInfo[columnName];
-        return std::string((currentEntry + info.offset + 1), info.bytesToRead);    
+        std::string str(currentEntry + info.offset + 1, info.bytesToRead);
+        str.erase(std::find(str.begin(), str.end(), '\0'), str.end()); // Remove all null characters
+        return str;  
     }
 
     // get bool value by column name
