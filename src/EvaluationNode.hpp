@@ -156,6 +156,25 @@ struct BoolLiteralComparisonNode : EvaluationNode {
 
             case op_not_equals:
                 return entry.getBool(lhsColumnName) != literalValue;
+
+        }
+    }
+};
+
+struct TypeAgnosticNullComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    element_type op;
+    EntryIterator& entry;
+
+    TypeAgnosticNullComparisonNode(const std::string& lhsColumnName, element_type op, EntryIterator& entry)
+        : lhsColumnName(lhsColumnName), op(op), entry(entry) {}
+
+    bool evaluate() override {
+        switch(op) {
+            case op_equals:
+                return entry.isNull(lhsColumnName);
+            case op_not_equals:
+                return !entry.isNull(lhsColumnName);
         }
     }
 };

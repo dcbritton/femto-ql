@@ -57,30 +57,30 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
 
         }
 
-        // rhs literal
+        // rhs int literal
         else if (boolExprRoot->components[2]->type == int_literal) {
             return std::make_shared<IntLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, stoi(boolExprRoot->components[2]->value), entry);
         }
 
-        // rhs literal
+        // rhs float literal
         else if (boolExprRoot->components[2]->type == float_literal) {
             return std::make_shared<FloatLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, stof(boolExprRoot->components[2]->value), entry);
         }
 
-        // rhs literal
+        // rhs chars literal
         else if (boolExprRoot->components[2]->type == chars_literal) {
             return std::make_shared<CharsLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, boolExprRoot->components[2]->value, entry);
         }
 
-        // rhs literal
+        // rhs bool literal
         else if (boolExprRoot->components[2]->type == bool_literal) {
             bool value = boolExprRoot->components[2]->value == "true";
             return std::make_shared<BoolLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, value, entry);
         }
 
-        // @TODO null comparison, with type independent null comparison node?
+        // null comparison
         else if (boolExprRoot->components[2]->type == kw_null) {
-
+            return std::make_shared<TypeAgnosticNullComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, entry);
         }
     }
 }

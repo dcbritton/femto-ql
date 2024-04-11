@@ -74,6 +74,11 @@ struct EntryIterator {
         delete [] currentEntry;
     }
 
+    // check if an entry is null (type agnostic)
+    bool isNull(std::string& columnName) {
+        return *(uint8_t*)(currentEntry + nameToInfo[columnName].offset);
+    }
+
     // get int value by column name
     int getInt(std::string& columnName) {
         return *(int*)(currentEntry + nameToInfo[columnName].offset + 1);
