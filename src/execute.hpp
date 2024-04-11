@@ -47,7 +47,7 @@ void select(std::shared_ptr<node> selectionRoot) {
     // @TODO deal with nulls
 
     EntryIterator eIt(file, t->columns);
-    std::shared_ptr<BoolNode> boolRoot = convert(selectionRoot->components[3]->components[0], eIt);\
+    std::shared_ptr<EvaluationNode> boolRoot = convert(selectionRoot->components[3]->components[0], eIt);\
     while (eIt.next()) {
         if (boolRoot->evaluate()) {
             for (std::string& name : mentionedColumns) {
