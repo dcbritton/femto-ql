@@ -74,11 +74,26 @@ struct EntryIterator {
         delete [] currentEntry;
     }
 
-    // // subscript, returns value
-    // template <class T>
-    // T operator[](std::string& columnName) {
+    // get int value by column name
+    int getInt(std::string& columnName) {
+        return *(int*)(currentEntry + nameToInfo[columnName].offset + 1);
+    }
 
-    // }
+    // get float value by column name
+    float getFloat(std::string& columnName) {
+        return *(float*)(currentEntry + nameToInfo[columnName].offset + 1);      
+    }
+
+    // get chars value by column name
+    std::string getChars(std::string& columnName) {
+        ColumnInfo info = nameToInfo[columnName];
+        return std::string((currentEntry + info.offset + 1), info.bytesToRead);    
+    }
+
+    // get bool value by column name
+    bool getBool(std::string& columnName) {
+        return *(uint8_t*)(currentEntry + nameToInfo[columnName].offset + 1);
+    }
 
     // get value as a string
     std::string getValueString(std::string& columnName) {
