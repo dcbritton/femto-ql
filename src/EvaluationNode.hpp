@@ -54,6 +54,10 @@ struct IntLiteralComparisonNode : EvaluationNode {
         : lhsColumnName(lhsColumnName), op(op), literalValue(literalValue), entry(entry) {}
 
     bool evaluate() override {
+
+        if (entry.isNull(lhsColumnName))
+            return false;
+
         switch (op) {
             case op_equals:
                 return entry.getInt(lhsColumnName) == literalValue;
@@ -86,6 +90,10 @@ struct FloatLiteralComparisonNode : EvaluationNode {
         : lhsColumnName(lhsColumnName), op(op), literalValue(literalValue), entry(entry) {}
 
     bool evaluate() override {
+
+        if (entry.isNull(lhsColumnName))
+            return false;
+
         switch (op) {
             case op_equals:
                 return entry.getFloat(lhsColumnName) == literalValue;
@@ -118,6 +126,10 @@ struct CharsLiteralComparisonNode : EvaluationNode {
         : lhsColumnName(lhsColumnName), op(op), literalValue(literalValue), entry(entry) {}
 
     bool evaluate() override {
+
+        if (entry.isNull(lhsColumnName))
+            return false;
+
         switch (op) {
             case op_equals:
                 return entry.getChars(lhsColumnName) == literalValue;
@@ -150,6 +162,10 @@ struct BoolLiteralComparisonNode : EvaluationNode {
         : lhsColumnName(lhsColumnName), op(op), literalValue(literalValue), entry(entry) {}
 
     bool evaluate() override {
+
+        if (entry.isNull(lhsColumnName))
+            return false;
+
         switch (op) {
             case op_equals:
                 return entry.getBool(lhsColumnName) == literalValue;
