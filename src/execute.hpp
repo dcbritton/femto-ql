@@ -8,10 +8,10 @@
 #include <filesystem>
 #include <algorithm>
 #include <string>
-#include <tuple>
 #include "table.hpp"
 #include "node.hpp"
 #include "entry_iterator.hpp"
+#include "convert.hpp"
 
 std::string DIRECTORY = "../tables/";
 std::string FILE_EXTENSION = ".ftbl";
@@ -43,13 +43,18 @@ void select(std::shared_ptr<node> selectionRoot) {
         std::cout << name << ' ';
     std::cout << '\n';
 
-    // use an entry iterator to get outputs
+    // @TODO deal with deleted
+    // @TODO deal with nulls
+
     EntryIterator eIt(file, t->columns);
+    std::shared_ptr<BoolNode> boolRoot = convert(selectionRoot->components[3]->components[0], eIt);\
     while (eIt.next()) {
-        for (std::string& name : mentionedColumns) {
-            std::cout << eIt.getValueString(name) << ' ';
+        if (boolRoot->evaluate()) {
+            for (std::string& name : mentionedColumns) {
+                    std::cout << eIt.getValueString(name) << ' ';
+            }
+            std::cout << '\n';
         }
-        std::cout << '\n';
     }
 
     file.close();
