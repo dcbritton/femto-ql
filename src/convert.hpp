@@ -51,7 +51,13 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
 
         switch (lhsColumn->type) {
             case int_literal:
-                return std::make_shared<InIntColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+                return std::make_shared<IntInColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+            case float_literal:
+                return std::make_shared<FloatInColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+            case chars_literal:
+                return std::make_shared<CharsInColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+            case bool_literal:
+                return std::make_shared<BoolInColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
         }
     }
 

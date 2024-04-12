@@ -44,20 +44,111 @@ struct OrNode : EvaluationNode {
     }
 };
 
-struct InIntColumnNode : EvaluationNode {
+struct IntInColumnNode : EvaluationNode {
     std::string lhsColumnName;
     EntryIterator& lhsIt;
     std::string rhsColumnName;
     EntryIterator rhsIt;
     table rhsTableData;
 
-    InIntColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
+    IntInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
         : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
 
     bool evaluate() override {
         rhsIt.reset();
+
+        if (lhsIt.isNull(lhsColumnName))
+            return false;
+
         while (rhsIt.next()) {
+            if (rhsIt.isNull(rhsColumnName))
+                return false;
+
             if (lhsIt.getInt(lhsColumnName) == rhsIt.getInt(rhsColumnName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+struct FloatInColumnNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsIt;
+    std::string rhsColumnName;
+    EntryIterator rhsIt;
+    table rhsTableData;
+
+    FloatInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsIt.reset();
+
+        if (lhsIt.isNull(lhsColumnName))
+            return false;
+
+        while (rhsIt.next()) {
+            if (rhsIt.isNull(rhsColumnName))
+                return false;
+
+            if (lhsIt.getFloat(lhsColumnName) == rhsIt.getFloat(rhsColumnName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+struct CharsInColumnNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsIt;
+    std::string rhsColumnName;
+    EntryIterator rhsIt;
+    table rhsTableData;
+
+    CharsInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsIt.reset();
+
+        if (lhsIt.isNull(lhsColumnName))
+            return false;
+
+        while (rhsIt.next()) {
+            if (rhsIt.isNull(rhsColumnName))
+                return false;
+                
+            if (lhsIt.getChars(lhsColumnName) == rhsIt.getChars(rhsColumnName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+struct BoolInColumnNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsIt;
+    std::string rhsColumnName;
+    EntryIterator rhsIt;
+    table rhsTableData;
+
+    BoolInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsIt.reset();
+
+        if (lhsIt.isNull(lhsColumnName))
+            return false;
+
+        while (rhsIt.next()) {
+            if (rhsIt.isNull(rhsColumnName))
+                return false;
+
+            if (lhsIt.getBool(lhsColumnName) == rhsIt.getBool(rhsColumnName)) {
                 return true;
             }
         }
