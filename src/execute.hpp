@@ -16,7 +16,7 @@
 // execute selection
 void select(std::shared_ptr<node> selectionRoot) {
     std::string tableName = selectionRoot->components[1]->value;
-    table t = tableDataFromFileHeader(DIRECTORY + tableName + FILE_EXTENSION);
+    table t(DIRECTORY + tableName + FILE_EXTENSION);
 
     // get a list of all column names to select
     std::vector<std::string> mentionedColumns;
@@ -101,9 +101,8 @@ void insert(std::shared_ptr<node> insertRoot) {
 
     auto columnValueListRoot = insertRoot->components[1];
 
-    auto tables = buildTableList(DIRECTORY);
-    auto t = find(tableName, tables);
-    for (auto& c : t->columns) {
+    table t(DIRECTORY + tableName + FILE_EXTENSION);
+    for (auto& c : t.columns) {
         bool mentioned = false;
         for (auto& columnValuePair : columnValueListRoot->components) {
             // @TODO mentioned & null insert have the same logic. find a way to simplify & denest
