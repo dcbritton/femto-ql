@@ -13,51 +13,43 @@
 #include "entry_iterator.hpp"
 #include "convert.hpp"
 
-std::string DIRECTORY = "../tables/";
-std::string FILE_EXTENSION = ".ftbl";
-
 // execute selection
 void select(std::shared_ptr<node> selectionRoot) {
     std::string tableName = selectionRoot->components[1]->value;
-    std::ifstream file(DIRECTORY + tableName + FILE_EXTENSION);
-    auto tables = buildTableList(DIRECTORY);
-    auto t = find(tableName, tables);
-
-    // @TODO formatting!
+    table t = tableDataFromFileHeader(DIRECTORY + tableName + FILE_EXTENSION);
 
     // get a list of all column names to select
     std::vector<std::string> mentionedColumns;
     auto columnList = selectionRoot->components[2];
-
     // * column list
     if (columnList->components[0]->type == asterisk)
-        for (auto& c : t->columns)
+        for (auto& c : t.columns)
             mentionedColumns.push_back(c.name);
     // column list with names
-    else 
+    else
         for (auto& mentionedColumn : columnList->components)
             mentionedColumns.push_back(mentionedColumn->value);
+
+    // @TODO output formatting
 
     // output table header
     for (auto& name : mentionedColumns)
         std::cout << name << ' ';
     std::cout << '\n';
 
-    // @TODO deal with deleted
-    // @TODO deal with nulls
-
-    EntryIterator eIt(file, t->columns);
-    std::shared_ptr<EvaluationNode> boolRoot = convert(selectionRoot->components[3]->components[0], eIt);\
+    // output selection
+    auto boolExprRoot = selectionRoot->components[3]->components[0];
+    EntryIterator eIt(t);
+    std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, eIt);
+    // @TODO evaluationRoot->bind(eIt);
     while (eIt.next()) {
-        if (boolRoot->evaluate()) {
+        if (evaluationRoot->evaluate()) {
             for (std::string& name : mentionedColumns) {
                     std::cout << eIt.getValueString(name) << ' ';
             }
             std::cout << '\n';
         }
     }
-
-    file.close();
 }
 
 void writeValue(const std::string& value, const column& c, std::ofstream& file) {

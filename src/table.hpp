@@ -167,55 +167,57 @@ void printTableList(std::vector<table> tables) {
     }
 }
 
+// get table data from a file header, given a path
+table tableDataFromFileHeader(const std::string& filePath) {
+    // access the file
+    std::ifstream tableFile(filePath);
+
+    // read first 64 bytes into table name
+    char tableNameBuffer[65];
+    tableFile.read(tableNameBuffer, 64);
+    tableNameBuffer[64] = '\0';
+
+    // read next 4 bytes into numColumns 
+    char numColumnBuffer[4];
+    tableFile.read(numColumnBuffer, 4);
+    int numColumns = *(int*)(numColumnBuffer);
+
+    // for each column, get the name and type
+    std::vector<column> columns;
+    int currentPos = 68;
+    for (int i = 0; i < numColumns; ++i) {
+        // read 64 bytes for name
+        tableFile.seekg(currentPos);
+        char columnNameBuffer[65];
+        tableFile.read(columnNameBuffer, 64);
+        columnNameBuffer[64] = '\0';
+
+        // next byte for type
+        char columnTypeBuffer[1];
+        tableFile.read(columnTypeBuffer, 1);
+        element_type columnType = byteToColumnType(columnTypeBuffer[0]);
+
+        unsigned int numChars = 0;
+        if (columnType == chars_literal) {
+            char numCharsBuffer[3];
+            tableFile.read(numCharsBuffer, 3);
+            // read only the final byte to get number of chars, this means there are 2 bytes of NUL padding 
+            numChars = static_cast<uint8_t>(numCharsBuffer[2]);
+        }
+        
+        columns.push_back(column(std::string(columnNameBuffer), columnType, numChars));
+        currentPos += 68;
+    }
+
+    return table(tableNameBuffer, columns);
+}
+
 // a symbol table is constructed and used during validation to ensure that all referenced tables and columns indeed exist
 std::vector<table> buildTableList(const std::string& tableDirectory) {
     std::vector<table> tables;
-    // for each table
     for (const auto& file : std::filesystem::directory_iterator(tableDirectory)) {
-
-        // access the file
-        std::ifstream tableFile(file.path());
-
-        // read first 64 bytes into table name
-        char tableNameBuffer[65];
-        tableFile.read(tableNameBuffer, 64);
-        tableNameBuffer[64] = '\0';
-
-        // read next 4 bytes into numColumns 
-        char numColumnBuffer[4];
-        tableFile.read(numColumnBuffer, 4);
-        int numColumns = *(int*)(numColumnBuffer);
-
-        // for each column, get the name and type
-        std::vector<column> columns;
-        int currentPos = 68;
-        for (int i = 0; i < numColumns; ++i) {
-            // read 64 bytes for name
-            tableFile.seekg(currentPos);
-            char columnNameBuffer[65];
-            tableFile.read(columnNameBuffer, 64);
-            columnNameBuffer[64] = '\0';
-
-            // next byte for type
-            char columnTypeBuffer[1];
-            tableFile.read(columnTypeBuffer, 1);
-            element_type columnType = byteToColumnType(columnTypeBuffer[0]);
-
-            unsigned int numChars = 0;
-            if (columnType == chars_literal) {
-                char numCharsBuffer[3];
-                tableFile.read(numCharsBuffer, 3);
-                // read only the final byte to get number of chars, this means there are 2 bytes of NUL padding 
-                numChars = static_cast<uint8_t>(numCharsBuffer[2]);
-            }
-            
-            columns.push_back(column(std::string(columnNameBuffer), columnType, numChars));
-            currentPos += 68;
-        }
-
-        tables.push_back(table(tableNameBuffer, columns));
+        tables.push_back(tableDataFromFileHeader(file.path().generic_string()));
     }
-
     return tables;
 }
 
