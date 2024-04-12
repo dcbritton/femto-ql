@@ -32,22 +32,35 @@ void select(std::shared_ptr<node> selectionRoot) {
 
     // @TODO output formatting
 
-    // output table header
+    // output
     for (auto& name : mentionedColumns)
         std::cout << name << ' ';
     std::cout << '\n';
 
-    // output selection
-    auto boolExprRoot = selectionRoot->components[3]->components[0];
     EntryIterator eIt(t);
-    std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, eIt, t);
-    // @TODO evaluationRoot->bind(eIt);
-    while (eIt.next()) {
-        if (evaluationRoot->evaluate()) {
+
+    // no where clause
+    auto whereClauseRoot = selectionRoot->components[3];
+    if (whereClauseRoot->type == nullnode) {
+        while (eIt.next()) {
             for (std::string& name : mentionedColumns) {
                     std::cout << eIt.getValueString(name) << ' ';
             }
             std::cout << '\n';
+        }
+    }
+    // where clause
+    else {
+        auto boolExprRoot = whereClauseRoot->components[0];
+        std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, eIt, t);
+        // @TODO evaluationRoot->bind(eIt);
+        while (eIt.next()) {
+            if (evaluationRoot->evaluate()) {
+                for (std::string& name : mentionedColumns) {
+                        std::cout << eIt.getValueString(name) << ' ';
+                }
+                std::cout << '\n';
+            }
         }
     }
 }
