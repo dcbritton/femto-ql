@@ -197,11 +197,37 @@ struct TypeAgnosticNullComparisonNode : EvaluationNode {
 
 struct IntColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
+    element_type op;
     std::string rhsColumnName;
     EntryIterator& entry;
 
+    IntColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
+        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
+
     bool evaluate() override {
-        return entry.getInt(lhsColumnName) == entry.getInt(rhsColumnName);
+
+        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
+            return false;
+
+        switch (op) {
+            case op_equals:
+                return entry.getInt(lhsColumnName) == entry.getInt(rhsColumnName);
+
+            case op_not_equals:
+                return entry.getInt(lhsColumnName) != entry.getInt(rhsColumnName);
+
+            case op_less_than:
+                return entry.getInt(lhsColumnName) < entry.getInt(rhsColumnName);
+
+            case op_less_than_equals:
+                return entry.getInt(lhsColumnName) <= entry.getInt(rhsColumnName);
+            
+            case op_greater_than:
+                return entry.getInt(lhsColumnName) > entry.getInt(rhsColumnName);
+
+            case op_greater_than_equals:
+                return entry.getInt(lhsColumnName) >= entry.getInt(rhsColumnName);
+        }
     }
 };
 

@@ -40,7 +40,7 @@ void select(std::shared_ptr<node> selectionRoot) {
     // output selection
     auto boolExprRoot = selectionRoot->components[3]->components[0];
     EntryIterator eIt(t);
-    std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, eIt);
+    std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, eIt, t);
     // @TODO evaluationRoot->bind(eIt);
     while (eIt.next()) {
         if (evaluationRoot->evaluate()) {
