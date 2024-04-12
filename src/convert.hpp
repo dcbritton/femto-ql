@@ -54,13 +54,19 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
     else {
         // rhs identifier
         if (boolExprRoot->components[2]->type == identifier) {
-            // @TODO NEED TO KNOW TYPE, PASS TABLE INTO CONVERT!
+
             auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
             auto rhsColumn = find(boolExprRoot->components[2]->value, t.columns);
 
             switch (lhsColumn->type) {
                 case int_literal:
                     return std::make_shared<IntColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, entryIteratorReference);
+                case float_literal:
+                    return std::make_shared<FloatColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, entryIteratorReference);
+                case chars_literal:
+                    return std::make_shared<CharsColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, entryIteratorReference);
+                case bool_literal:
+                    return std::make_shared<BoolColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, entryIteratorReference);
             }
         }
 
