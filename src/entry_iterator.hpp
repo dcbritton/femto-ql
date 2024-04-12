@@ -8,6 +8,9 @@
 #include <fstream>
 #include <unordered_map>
 
+std::string DIRECTORY = "../tables/";
+std::string FILE_EXTENSION = ".ftbl";
+
 int columnBytesNeeded(const column& c) {
     switch (c.type) {
         case int_literal:
@@ -23,7 +26,7 @@ int columnBytesNeeded(const column& c) {
             return 2;
     
         default:
-            std::cout << "Error during executor. Somehow, a column is not one of the literal types.\n";
+            std::cout << "Error during execution. Somehow, a column is not one of the literal types.\n";
             exit(1);
     }
 }
@@ -41,15 +44,16 @@ struct ColumnInfo {
 
 struct EntryIterator {
     
-    std::ifstream& file;
+    table& t;
+    std::ifstream file;
     char* currentEntry;
     int entrySize;
-    const std::vector<column>& columns;
     std::unordered_map<std::string, ColumnInfo> nameToInfo;
 
     // constructor
-    EntryIterator(std::ifstream& file, const std::vector<column>& columns) : file(file), columns(columns) {
-        
+    EntryIterator(table& t) : t(t) {
+        file = std::ifstream(DIRECTORY + t.name + FILE_EXTENSION);
+
         // seek to first entry
         file.seekg(64);
         char numColumnBuffer[4];
@@ -59,7 +63,7 @@ struct EntryIterator {
 
         int offset = 1;
         entrySize = 1;
-        for (auto& c : columns) {
+        for (auto& c : t.columns) {
             int bytes = columnBytesNeeded(c);
             // get entry size
             entrySize += bytes;
