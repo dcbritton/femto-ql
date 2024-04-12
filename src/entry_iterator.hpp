@@ -44,14 +44,16 @@ struct ColumnInfo {
 
 struct EntryIterator {
     
-    table& t;
+    table t;
     std::ifstream file;
     char* currentEntry;
-    int entrySize;
+    unsigned int entrySize;
+    unsigned int dataStartPosition;
     std::unordered_map<std::string, ColumnInfo> nameToInfo;
 
     // constructor
     EntryIterator(table& t) : t(t) {
+
         file = std::ifstream(DIRECTORY + t.name + FILE_EXTENSION);
 
         // seek to first entry
@@ -59,7 +61,8 @@ struct EntryIterator {
         char numColumnBuffer[4];
         file.read(numColumnBuffer, 4);
         int numColumns = *(int*)(numColumnBuffer);
-        file.seekg(68 + 68 * numColumns, std::ios_base::beg);
+        dataStartPosition = 68 + 68 * numColumns;
+        file.seekg(dataStartPosition, std::ios_base::beg);
 
         int offset = 1;
         entrySize = 1;
@@ -135,13 +138,20 @@ struct EntryIterator {
         }
     }
 
+    // return to before first item
+    bool reset() {
+        file.seekg(dataStartPosition, std::ios_base::beg);
+    }
+
     // advance to next item
     bool next() {
         file.read(currentEntry, entrySize);
-        if (file.eof())
-            return false;
+        if (file.eof()) {
+            file.clear();  
+            return false;  
+        }
         return true;
     }
 };
 
-#endif 
+#endif

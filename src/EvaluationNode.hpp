@@ -44,6 +44,159 @@ struct OrNode : EvaluationNode {
     }
 };
 
+struct InIntColumnNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsIt;
+    std::string rhsColumnName;
+    EntryIterator rhsIt;
+    table rhsTableData;
+
+    InIntColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsIt.reset();
+        while (rhsIt.next()) {
+            if (lhsIt.getInt(lhsColumnName) == rhsIt.getInt(rhsColumnName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+struct IntColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator& entry;
+
+    IntColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
+        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
+
+    bool evaluate() override {
+
+        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
+            return false;
+
+        switch (op) {
+            case op_equals:
+                return entry.getInt(lhsColumnName) == entry.getInt(rhsColumnName);
+
+            case op_not_equals:
+                return entry.getInt(lhsColumnName) != entry.getInt(rhsColumnName);
+
+            case op_less_than:
+                return entry.getInt(lhsColumnName) < entry.getInt(rhsColumnName);
+
+            case op_less_than_equals:
+                return entry.getInt(lhsColumnName) <= entry.getInt(rhsColumnName);
+            
+            case op_greater_than:
+                return entry.getInt(lhsColumnName) > entry.getInt(rhsColumnName);
+
+            case op_greater_than_equals:
+                return entry.getInt(lhsColumnName) >= entry.getInt(rhsColumnName);
+        }
+    }
+};
+
+struct FloatColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator& entry;
+
+    FloatColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
+        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
+
+    bool evaluate() override {
+
+        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
+            return false;
+
+        switch (op) {
+            case op_equals:
+                return entry.getFloat(lhsColumnName) == entry.getFloat(rhsColumnName);
+
+            case op_not_equals:
+                return entry.getFloat(lhsColumnName) != entry.getFloat(rhsColumnName);
+
+            case op_less_than:
+                return entry.getFloat(lhsColumnName) < entry.getFloat(rhsColumnName);
+
+            case op_less_than_equals:
+                return entry.getFloat(lhsColumnName) <= entry.getFloat(rhsColumnName);
+            
+            case op_greater_than:
+                return entry.getFloat(lhsColumnName) > entry.getFloat(rhsColumnName);
+
+            case op_greater_than_equals:
+                return entry.getFloat(lhsColumnName) >= entry.getFloat(rhsColumnName);
+        }
+    }
+};
+
+struct CharsColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator& entry;
+
+    CharsColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
+        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
+
+    bool evaluate() override {
+
+        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
+            return false;
+
+        switch (op) {
+            case op_equals:
+                return entry.getChars(lhsColumnName) == entry.getChars(rhsColumnName);
+
+            case op_not_equals:
+                return entry.getChars(lhsColumnName) != entry.getChars(rhsColumnName);
+
+            case op_less_than:
+                return entry.getChars(lhsColumnName) < entry.getChars(rhsColumnName);
+
+            case op_less_than_equals:
+                return entry.getChars(lhsColumnName) <= entry.getChars(rhsColumnName);
+            
+            case op_greater_than:
+                return entry.getChars(lhsColumnName) > entry.getChars(rhsColumnName);
+
+            case op_greater_than_equals:
+                return entry.getChars(lhsColumnName) >= entry.getChars(rhsColumnName);
+        }
+    }
+};
+
+struct BoolColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator& entry;
+
+    BoolColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
+        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
+
+    bool evaluate() override {
+
+        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
+            return false;
+
+        switch (op) {
+            case op_equals:
+                return entry.getBool(lhsColumnName) == entry.getBool(rhsColumnName);
+
+            case op_not_equals:
+                return entry.getBool(lhsColumnName) != entry.getBool(rhsColumnName);
+        }
+    }
+};
+
 struct IntLiteralComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
@@ -191,138 +344,6 @@ struct TypeAgnosticNullComparisonNode : EvaluationNode {
                 return entry.isNull(lhsColumnName);
             case op_not_equals:
                 return !entry.isNull(lhsColumnName);
-        }
-    }
-};
-
-struct IntColumnComparisonNode : EvaluationNode {
-    std::string lhsColumnName;
-    element_type op;
-    std::string rhsColumnName;
-    EntryIterator& entry;
-
-    IntColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
-        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
-
-    bool evaluate() override {
-
-        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
-            return false;
-
-        switch (op) {
-            case op_equals:
-                return entry.getInt(lhsColumnName) == entry.getInt(rhsColumnName);
-
-            case op_not_equals:
-                return entry.getInt(lhsColumnName) != entry.getInt(rhsColumnName);
-
-            case op_less_than:
-                return entry.getInt(lhsColumnName) < entry.getInt(rhsColumnName);
-
-            case op_less_than_equals:
-                return entry.getInt(lhsColumnName) <= entry.getInt(rhsColumnName);
-            
-            case op_greater_than:
-                return entry.getInt(lhsColumnName) > entry.getInt(rhsColumnName);
-
-            case op_greater_than_equals:
-                return entry.getInt(lhsColumnName) >= entry.getInt(rhsColumnName);
-        }
-    }
-};
-
-struct FloatColumnComparisonNode : EvaluationNode {
-    std::string lhsColumnName;
-    element_type op;
-    std::string rhsColumnName;
-    EntryIterator& entry;
-
-    FloatColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
-        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
-
-    bool evaluate() override {
-
-        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
-            return false;
-
-        switch (op) {
-            case op_equals:
-                return entry.getFloat(lhsColumnName) == entry.getFloat(rhsColumnName);
-
-            case op_not_equals:
-                return entry.getFloat(lhsColumnName) != entry.getFloat(rhsColumnName);
-
-            case op_less_than:
-                return entry.getFloat(lhsColumnName) < entry.getFloat(rhsColumnName);
-
-            case op_less_than_equals:
-                return entry.getFloat(lhsColumnName) <= entry.getFloat(rhsColumnName);
-            
-            case op_greater_than:
-                return entry.getFloat(lhsColumnName) > entry.getFloat(rhsColumnName);
-
-            case op_greater_than_equals:
-                return entry.getFloat(lhsColumnName) >= entry.getFloat(rhsColumnName);
-        }
-    }
-};
-
-struct CharsColumnComparisonNode : EvaluationNode {
-    std::string lhsColumnName;
-    element_type op;
-    std::string rhsColumnName;
-    EntryIterator& entry;
-
-    CharsColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
-        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
-
-    bool evaluate() override {
-
-        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
-            return false;
-
-        switch (op) {
-            case op_equals:
-                return entry.getChars(lhsColumnName) == entry.getChars(rhsColumnName);
-
-            case op_not_equals:
-                return entry.getChars(lhsColumnName) != entry.getChars(rhsColumnName);
-
-            case op_less_than:
-                return entry.getChars(lhsColumnName) < entry.getChars(rhsColumnName);
-
-            case op_less_than_equals:
-                return entry.getChars(lhsColumnName) <= entry.getChars(rhsColumnName);
-            
-            case op_greater_than:
-                return entry.getChars(lhsColumnName) > entry.getChars(rhsColumnName);
-
-            case op_greater_than_equals:
-                return entry.getChars(lhsColumnName) >= entry.getChars(rhsColumnName);
-        }
-    }
-};
-
-struct BoolColumnComparisonNode : EvaluationNode {
-    std::string lhsColumnName;
-    element_type op;
-    std::string rhsColumnName;
-    EntryIterator& entry;
-
-    BoolColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, EntryIterator& entry)
-        : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), entry(entry) {}
-
-    bool evaluate() override {
-
-        if (entry.isNull(lhsColumnName) || entry.isNull(rhsColumnName))
-            return false;
-
-        switch (op) {
-            case op_equals:
-                return entry.getBool(lhsColumnName) == entry.getBool(rhsColumnName);
-
-            case op_not_equals:
-                return entry.getBool(lhsColumnName) != entry.getBool(rhsColumnName);
         }
     }
 };

@@ -40,12 +40,22 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
         return std::make_shared<AndNode>(an);
     }
 
-    // identifier in identifier
+    // @TODO identifier in identifier
     if (boolExprRoot->components[1]->type == kw_in) {
-        
+
+        auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
+
+        auto rhsIdentifier = split(boolExprRoot->components[2]->value);
+        table rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
+
+        switch (lhsColumn->type) {
+            case int_literal:
+                return std::make_shared<InIntColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+        }
     }
 
-    // identifier comparison any|all indentifier 
+    // @TODO identifier comparison any|all indentifier 
     else if (boolExprRoot->components[2]->type == kw_any || boolExprRoot->components[2]->type == kw_all) {
 
     }
