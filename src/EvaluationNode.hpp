@@ -366,26 +366,6 @@ struct BoolAnyColumnComparisonNode : EvaluationNode {
                     if (lhsRow.getBool(lhsColumnName) != rhsRow.getBool(rhsColumnName))
                         return true;
                     break;
-
-                case op_less_than:
-                    if (lhsRow.getBool(lhsColumnName) < rhsRow.getBool(rhsColumnName))
-                        return true;
-                    break;
-
-                case op_less_than_equals:
-                    if (lhsRow.getBool(lhsColumnName) <= rhsRow.getBool(rhsColumnName))
-                        return true;
-                    break;
-                
-                case op_greater_than:
-                    if (lhsRow.getBool(lhsColumnName) > rhsRow.getBool(rhsColumnName))
-                        return true;
-                    break;
-
-                case op_greater_than_equals:
-                    if (lhsRow.getBool(lhsColumnName) >= rhsRow.getBool(rhsColumnName))
-                        return true;
-                    break;
             }
         }
         return false;
@@ -443,6 +423,163 @@ struct IntAllColumnComparisonNode : EvaluationNode {
 
                 case op_greater_than_equals:
                     if ( !(lhsRow.getInt(lhsColumnName) >= rhsRow.getInt(rhsColumnName)) )
+                        return false;
+                    break;
+            }
+        }
+        return true;
+    }
+};
+
+struct FloatAllColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsRow;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator rhsRow;
+
+    FloatAllColumnComparisonNode(const std::string& lhsColumnName, EntryIterator& lhsRow, element_type op, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsRow.reset();
+
+        if (lhsRow.isNull(lhsColumnName))
+            return false;
+
+        // on evaluation of each lhs entry, scan the whole rhs column
+        // if ever the condition is not true return false
+        // on nulls in the rhs, return false. this is mysql behavior, too
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
+                return false;
+
+            switch (op) {
+                case op_equals:
+                    if ( !(lhsRow.getFloat(lhsColumnName) == rhsRow.getFloat(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_not_equals:
+                    if ( !(lhsRow.getFloat(lhsColumnName) != rhsRow.getFloat(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_less_than:
+                    if ( !(lhsRow.getFloat(lhsColumnName) < rhsRow.getFloat(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_less_than_equals:
+                    if ( !(lhsRow.getFloat(lhsColumnName) <= rhsRow.getFloat(rhsColumnName)) )
+                        return false;
+                    break;
+                
+                case op_greater_than:
+                    if ( !(lhsRow.getFloat(lhsColumnName) > rhsRow.getFloat(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_greater_than_equals:
+                    if ( !(lhsRow.getFloat(lhsColumnName) >= rhsRow.getFloat(rhsColumnName)) )
+                        return false;
+                    break;
+            }
+        }
+        return true;
+    }
+};
+
+struct CharsAllColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsRow;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator rhsRow;
+
+    CharsAllColumnComparisonNode(const std::string& lhsColumnName, EntryIterator& lhsRow, element_type op, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsRow.reset();
+
+        if (lhsRow.isNull(lhsColumnName))
+            return false;
+
+        // on evaluation of each lhs entry, scan the whole rhs column
+        // if ever the condition is not true return false
+        // on nulls in the rhs, return false. this is mysql behavior, too
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
+                return false;
+
+            switch (op) {
+                case op_equals:
+                    if ( !(lhsRow.getChars(lhsColumnName) == rhsRow.getChars(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_not_equals:
+                    if ( !(lhsRow.getChars(lhsColumnName) != rhsRow.getChars(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_less_than:
+                    if ( !(lhsRow.getChars(lhsColumnName) < rhsRow.getChars(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_less_than_equals:
+                    if ( !(lhsRow.getChars(lhsColumnName) <= rhsRow.getChars(rhsColumnName)) )
+                        return false;
+                    break;
+                
+                case op_greater_than:
+                    if ( !(lhsRow.getChars(lhsColumnName) > rhsRow.getChars(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_greater_than_equals:
+                    if ( !(lhsRow.getChars(lhsColumnName) >= rhsRow.getChars(rhsColumnName)) )
+                        return false;
+                    break;
+            }
+        }
+        return true;
+    }
+};
+
+struct BoolAllColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsRow;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator rhsRow;
+
+    BoolAllColumnComparisonNode(const std::string& lhsColumnName, EntryIterator& lhsRow, element_type op, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsRow.reset();
+
+        if (lhsRow.isNull(lhsColumnName))
+            return false;
+
+        // on evaluation of each lhs entry, scan the whole rhs column
+        // if ever the condition is not true return false
+        // on nulls in the rhs, return false. this is mysql behavior, too
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
+                return false;
+
+            switch (op) {
+                case op_equals:
+                    if ( !(lhsRow.getBool(lhsColumnName) == rhsRow.getBool(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_not_equals:
+                    if ( !(lhsRow.getBool(lhsColumnName) != rhsRow.getBool(rhsColumnName)) )
                         return false;
                     break;
             }
