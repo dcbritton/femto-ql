@@ -3,7 +3,7 @@
 #ifndef ROWITERATOR
 #define ROWITERATOR
 
-#include "table.hpp"
+#include "TableInfo.hpp"
 #include <vector>
 #include <fstream>
 #include <unordered_map>
@@ -44,7 +44,7 @@ struct ColumnInfo {
 
 struct RowIterator {
     
-    table t;
+    TableInfo t;
     std::fstream file;
     char* currentRow;
     unsigned int rowSize;
@@ -52,7 +52,7 @@ struct RowIterator {
     std::unordered_map<std::string, ColumnInfo> nameToInfo;
 
     // constructor
-    RowIterator(table& t) : t(t) {
+    RowIterator(TableInfo& t) : t(t) {
 
         file = std::fstream(DIRECTORY + t.name + FILE_EXTENSION);
 

@@ -7,17 +7,17 @@
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
-#include "table.hpp"
+#include "TableInfo.hpp"
 #include "node.hpp"
 
 class Validator {
 private:
-    std::vector<table> tables;
-    table workingTable = table();
+    std::vector<TableInfo> tables;
+    TableInfo workingTable = TableInfo();
 
 public:
 
-    Validator(std::vector<table> initials) : tables(initials) {}
+    Validator(std::vector<TableInfo> initials) : tables(initials) {}
     
     // validate the AST
     void validate(std::shared_ptr<node> astRoot) {
@@ -81,7 +81,7 @@ public:
     }
 
     // validate order clause
-    void validateOrderClause(std::shared_ptr<node> orderRoot, const table& t) {
+    void validateOrderClause(std::shared_ptr<node> orderRoot, const TableInfo& t) {
 
         if (orderRoot->type == nullnode)
             return;
@@ -181,7 +181,7 @@ public:
     }
 
     // validate boolean expression
-    void validateBoolExpr(std::shared_ptr<node> boolExprRoot, const table& t) {
+    void validateBoolExpr(std::shared_ptr<node> boolExprRoot, const TableInfo& t) {
         
         // the following are validated by validating child bool_exprs
         // bool_expr bool_op bool_expr
@@ -361,7 +361,7 @@ public:
     }
 
     // validate where clause
-    void validateWhereClause(std::shared_ptr<node> whereClauseRoot, const table& t) {
+    void validateWhereClause(std::shared_ptr<node> whereClauseRoot, const TableInfo& t) {
 
         if (whereClauseRoot->type == nullnode)
             return;

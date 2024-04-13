@@ -45,7 +45,7 @@ int main() {
     make_dotfile(ast, "../dotfile.txt");
 
     // get and print current state of tables
-    std::vector<table> initialTables = buildTableList("../tables");
+    std::vector<TableInfo> initialTables = buildTableList("../tables");
     std::cout << "\nCurrent tables:\n---------------\n";
     printTableList(initialTables);
     

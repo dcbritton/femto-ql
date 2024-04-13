@@ -1,7 +1,7 @@
-// table.hpp
+// TableInfo.hpp
 
-#ifndef TABLE
-#define TABLE
+#ifndef TABLEINFO
+#define TABLEINFO
 
 #include <fstream>
 #include <iostream>
@@ -31,15 +31,15 @@ struct column {
 element_type byteToColumnType(char signedByte);
 
 // data about a table
-struct table {
+struct TableInfo {
     std::string name;
     std::vector<column> columns;
 
-    table() : name(""), columns({}) {};
+    TableInfo() : name(""), columns({}) {};
 
-    table(std::string tableName, std::vector<column> tableColumns) : name(tableName), columns(tableColumns) {};
+    TableInfo(std::string tableName, std::vector<column> tableColumns) : name(tableName), columns(tableColumns) {};
 
-    table(const std::string& filePath) {
+    TableInfo(const std::string& filePath) {
         // access the file
         std::ifstream tableFile(filePath);
 
@@ -104,7 +104,7 @@ std::pair<std::string, std::string> split(const std::string& name) {
 } 
 
 // create a table struct from a node
-table nodeToTable(const std::shared_ptr<node>& n) {
+TableInfo nodeToTable(const std::shared_ptr<node>& n) {
     // node must be a definition
     if (n->type != definition) {
         std::cout << "Error converting node to table: Node is not a definition!\n";
@@ -143,7 +143,7 @@ table nodeToTable(const std::shared_ptr<node>& n) {
         cols.push_back(column(colName, colType, numChars));
     }
 
-    return (table(n->components[1]->value, cols));
+    return (TableInfo(n->components[1]->value, cols));
 }
 
 // free function to find a table by name in a vector of tables
@@ -161,7 +161,7 @@ std::vector<column>::const_iterator find(const std::string& columnName, const st
 
 // free function to find a table by name in a vector of tables
 // iterator may be used to remove a table?
-std::vector<table>::const_iterator find(const std::string& tableName, const std::vector<table>& tables) {
+std::vector<TableInfo>::const_iterator find(const std::string& tableName, const std::vector<TableInfo>& tables) {
     auto it = tables.begin();
     while (it != tables.end()) {
         if (it->name == tableName)
@@ -178,7 +178,7 @@ bool exists(const std::string& columnName, const std::vector<column>& columns) {
 }
 
 // table exists in a vector of tables
-bool exists(const std::string& tableName, const std::vector<table>& tables) {
+bool exists(const std::string& tableName, const std::vector<TableInfo>& tables) {
     return find(tableName, tables) != tables.end();
 }
 
@@ -214,8 +214,8 @@ unsigned char columnTypeToByte(element_type columnType) {
     return typeMap[columnType];
 }
 
-void printTableList(std::vector<table> tables) {
-    for (table t : tables) {
+void printTableList(std::vector<TableInfo> tables) {
+    for (TableInfo t : tables) {
         std::cout << "\"" << t.name << "\": ";
         for (column c : t.columns)
             std::cout << c.name << ' ' << tokenTypeToString(c.type) << (c.type == chars_literal ? std::to_string(c.charsLength) : "") << ", ";
@@ -224,10 +224,10 @@ void printTableList(std::vector<table> tables) {
 }
 
 // a symbol table is constructed and used during validation to ensure that all referenced tables and columns indeed exist
-std::vector<table> buildTableList(const std::string& tableDirectory) {
-    std::vector<table> tables;
+std::vector<TableInfo> buildTableList(const std::string& tableDirectory) {
+    std::vector<TableInfo> tables;
     for (const auto& file : std::filesystem::directory_iterator(tableDirectory)) {
-        tables.push_back(table(file.path().generic_string()));
+        tables.push_back(TableInfo(file.path().generic_string()));
     }
     return tables;
 }

@@ -4,11 +4,11 @@
 #define PREPROCESSOR
 
 #include "node.hpp"
-#include "table.hpp"
+#include "TableInfo.hpp"
 #include "RowIterator.hpp"
 #include "EvaluationNode.hpp"
 
-std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, RowIterator& rowItReference, const table& t) {
+std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, RowIterator& rowItReference, const TableInfo& t) {
 
     // (bool_expr)
     if (boolExprRoot->components.size() == 1 /*only child: boolExprRoot->components[0]->type == bool_expr*/) {
@@ -46,7 +46,7 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, RowI
         auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
 
         auto rhsIdentifier = split(boolExprRoot->components[2]->value);
-        table rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        TableInfo rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
         auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
 
         switch (lhsColumn->type) {
@@ -68,7 +68,7 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, RowI
         auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
 
         auto rhsIdentifier = split(boolExprRoot->components[3]->value);
-        table rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        TableInfo rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
         auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
 
         switch (lhsColumn->type) {
@@ -90,7 +90,7 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, RowI
         auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
 
         auto rhsIdentifier = split(boolExprRoot->components[3]->value);
-        table rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        TableInfo rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
         auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
 
         switch (lhsColumn->type) {

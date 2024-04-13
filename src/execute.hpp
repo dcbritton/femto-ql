@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <string>
 #include <map>
-#include "table.hpp"
+#include "TableInfo.hpp"
 #include "node.hpp"
 #include "RowIterator.hpp"
 #include "convert.hpp"
@@ -18,8 +18,8 @@
 void executeSetOp(std::shared_ptr<node> selectionRoot) {
     std::string table1Name = selectionRoot->components[1]->value;
     std::string table2Name = selectionRoot->components[2]->value;
-    table t1(DIRECTORY + table1Name + FILE_EXTENSION);
-    table t2(DIRECTORY + table2Name + FILE_EXTENSION);
+    TableInfo t1(DIRECTORY + table1Name + FILE_EXTENSION);
+    TableInfo t2(DIRECTORY + table2Name + FILE_EXTENSION);
 
     for (column& c : t1.columns)
         std::cout << c.name << ' ';
@@ -59,7 +59,7 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
 // execute selection
 void select(std::shared_ptr<node> selectionRoot) {
     std::string tableName = selectionRoot->components[1]->value;
-    table t(DIRECTORY + tableName + FILE_EXTENSION);
+    TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
 
     // get a list of all column names to select
     std::vector<std::string> mentionedColumns;
@@ -100,7 +100,7 @@ void select(std::shared_ptr<node> selectionRoot) {
     while (rowIt.next()) {
         if (!evaluationRoot->evaluate())
             continue;
-            
+
         for (std::string& name : mentionedColumns) {
             std::cout << rowIt.getValueString(name) << ' ';
         }
@@ -117,7 +117,7 @@ struct WriteData {
 
 void executeUpdate(std::shared_ptr<node> updateRoot) {
     std::string tableName = updateRoot->components[0]->value;
-    table t(DIRECTORY + tableName + FILE_EXTENSION);
+    TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
     auto ColumnValueList = updateRoot->components[1];
 
     // build list of columns and values to write
@@ -195,7 +195,7 @@ void insert(std::shared_ptr<node> insertRoot) {
 
     auto columnValueListRoot = insertRoot->components[1];
 
-    table t(DIRECTORY + tableName + FILE_EXTENSION);
+    TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
     for (auto& c : t.columns) {
         bool mentioned = false;
         for (auto& columnValuePair : columnValueListRoot->components) {
@@ -242,7 +242,7 @@ void executeDrop(std::shared_ptr<node> dropRoot)  {
 
 void define(std::shared_ptr<node> definitionRoot) {
     
-    table table = nodeToTable(definitionRoot);
+    TableInfo table = nodeToTable(definitionRoot);
     std::ofstream header(DIRECTORY + table.name + FILE_EXTENSION);
 
     // bytes 0-63 for tableName
