@@ -61,7 +61,7 @@ struct IntInColumnNode : EvaluationNode {
 
         while (rhsRow.next()) {
             if (rhsRow.isNull(rhsColumnName))
-                return false;
+                continue;
 
             if (lhsRow.getInt(lhsColumnName) == rhsRow.getInt(rhsColumnName)) {
                 return true;
@@ -88,7 +88,7 @@ struct FloatInColumnNode : EvaluationNode {
 
         while (rhsRow.next()) {
             if (rhsRow.isNull(rhsColumnName))
-                return false;
+                continue;
 
             if (lhsRow.getFloat(lhsColumnName) == rhsRow.getFloat(rhsColumnName)) {
                 return true;
@@ -115,7 +115,7 @@ struct CharsInColumnNode : EvaluationNode {
 
         while (rhsRow.next()) {
             if (rhsRow.isNull(rhsColumnName))
-                return false;
+                continue;
                 
             if (lhsRow.getChars(lhsColumnName) == rhsRow.getChars(rhsColumnName)) {
                 return true;
@@ -142,7 +142,7 @@ struct BoolInColumnNode : EvaluationNode {
 
         while (rhsRow.next()) {
             if (rhsRow.isNull(rhsColumnName))
-                return false;
+                continue;
 
             if (lhsRow.getBool(lhsColumnName) == rhsRow.getBool(rhsColumnName)) {
                 return true;
@@ -204,6 +204,186 @@ struct IntAnyColumnComparisonNode : EvaluationNode {
 
                 case op_greater_than_equals:
                     if (lhsRow.getInt(lhsColumnName) >= rhsRow.getInt(rhsColumnName))
+                        return true;
+                    break;
+            }
+        }
+        return false;
+    }
+};
+
+struct FloatAnyColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsRow;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator rhsRow;
+
+    FloatAnyColumnComparisonNode(const std::string& lhsColumnName, EntryIterator& lhsRow, element_type op, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsRow.reset();
+
+        if (lhsRow.isNull(lhsColumnName))
+            return false;
+
+        // on evaluation of each lhs entry, scan the whole rhs column
+        // if ever the condition is satisfied, return true
+        // the condition cannot be satisfied on a null in the rhs 
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
+                continue;
+
+            switch (op) {
+                case op_equals:
+                    
+                    if (lhsRow.getFloat(lhsColumnName) == rhsRow.getFloat(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_not_equals:
+                    if (lhsRow.getFloat(lhsColumnName) != rhsRow.getFloat(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_less_than:
+                    if (lhsRow.getFloat(lhsColumnName) < rhsRow.getFloat(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_less_than_equals:
+                    if (lhsRow.getFloat(lhsColumnName) <= rhsRow.getFloat(rhsColumnName))
+                        return true;
+                    break;
+                
+                case op_greater_than:
+                    if (lhsRow.getFloat(lhsColumnName) > rhsRow.getFloat(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_greater_than_equals:
+                    if (lhsRow.getFloat(lhsColumnName) >= rhsRow.getFloat(rhsColumnName))
+                        return true;
+                    break;
+            }
+        }
+        return false;
+    }
+};
+
+struct CharsAnyColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsRow;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator rhsRow;
+
+    CharsAnyColumnComparisonNode(const std::string& lhsColumnName, EntryIterator& lhsRow, element_type op, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsRow.reset();
+
+        if (lhsRow.isNull(lhsColumnName))
+            return false;
+
+        // on evaluation of each lhs entry, scan the whole rhs column
+        // if ever the condition is satisfied, return true
+        // the condition cannot be satisfied on a null in the rhs 
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
+                continue;
+
+            switch (op) {
+                case op_equals:
+                    
+                    if (lhsRow.getChars(lhsColumnName) == rhsRow.getChars(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_not_equals:
+                    if (lhsRow.getChars(lhsColumnName) != rhsRow.getChars(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_less_than:
+                    if (lhsRow.getChars(lhsColumnName) < rhsRow.getChars(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_less_than_equals:
+                    if (lhsRow.getChars(lhsColumnName) <= rhsRow.getChars(rhsColumnName))
+                        return true;
+                    break;
+                
+                case op_greater_than:
+                    if (lhsRow.getChars(lhsColumnName) > rhsRow.getChars(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_greater_than_equals:
+                    if (lhsRow.getChars(lhsColumnName) >= rhsRow.getChars(rhsColumnName))
+                        return true;
+                    break;
+            }
+        }
+        return false;
+    }
+};
+
+struct BoolAnyColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsRow;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator rhsRow;
+
+    BoolAnyColumnComparisonNode(const std::string& lhsColumnName, EntryIterator& lhsRow, element_type op, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsRow.reset();
+
+        if (lhsRow.isNull(lhsColumnName))
+            return false;
+
+        // on evaluation of each lhs entry, scan the whole rhs column
+        // if ever the condition is satisfied, return true
+        // the condition cannot be satisfied on a null in the rhs 
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
+                continue;
+
+            switch (op) {
+                case op_equals:
+                    
+                    if (lhsRow.getBool(lhsColumnName) == rhsRow.getBool(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_not_equals:
+                    if (lhsRow.getBool(lhsColumnName) != rhsRow.getBool(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_less_than:
+                    if (lhsRow.getBool(lhsColumnName) < rhsRow.getBool(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_less_than_equals:
+                    if (lhsRow.getBool(lhsColumnName) <= rhsRow.getBool(rhsColumnName))
+                        return true;
+                    break;
+                
+                case op_greater_than:
+                    if (lhsRow.getBool(lhsColumnName) > rhsRow.getBool(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_greater_than_equals:
+                    if (lhsRow.getBool(lhsColumnName) >= rhsRow.getBool(rhsColumnName))
                         return true;
                     break;
             }
