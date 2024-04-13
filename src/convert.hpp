@@ -61,7 +61,7 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
         }
     }
 
-    // @TODO identifier comparison any indentifier 
+    // identifier comparison any indentifier 
     else if (boolExprRoot->components[2]->type == kw_any) {
         
         element_type op = boolExprRoot->components[1]->type;
@@ -86,6 +86,17 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
     // @TODO identifier comparison all indentifier 
     else if (boolExprRoot->components[2]->type == kw_all) {
 
+        element_type op = boolExprRoot->components[1]->type;
+        auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
+
+        auto rhsIdentifier = split(boolExprRoot->components[3]->value);
+        table rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
+
+        switch (lhsColumn->type) {
+            case int_literal:
+                return std::make_shared<IntAllColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+        }
     }
 
     // identifier comparison literal/identifier

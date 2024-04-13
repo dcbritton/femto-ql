@@ -392,6 +392,65 @@ struct BoolAnyColumnComparisonNode : EvaluationNode {
     }
 };
 
+struct IntAllColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsRow;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator rhsRow;
+
+    IntAllColumnComparisonNode(const std::string& lhsColumnName, EntryIterator& lhsRow, element_type op, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsRow.reset();
+
+        if (lhsRow.isNull(lhsColumnName))
+            return false;
+
+        // on evaluation of each lhs entry, scan the whole rhs column
+        // if ever the condition is not true return false
+        // on nulls in the rhs, return false. this is mysql behavior, too
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
+                return false;
+
+            switch (op) {
+                case op_equals:
+                    if ( !(lhsRow.getInt(lhsColumnName) == rhsRow.getInt(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_not_equals:
+                    if ( !(lhsRow.getInt(lhsColumnName) != rhsRow.getInt(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_less_than:
+                    if ( !(lhsRow.getInt(lhsColumnName) < rhsRow.getInt(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_less_than_equals:
+                    if ( !(lhsRow.getInt(lhsColumnName) <= rhsRow.getInt(rhsColumnName)) )
+                        return false;
+                    break;
+                
+                case op_greater_than:
+                    if ( !(lhsRow.getInt(lhsColumnName) > rhsRow.getInt(rhsColumnName)) )
+                        return false;
+                    break;
+
+                case op_greater_than_equals:
+                    if ( !(lhsRow.getInt(lhsColumnName) >= rhsRow.getInt(rhsColumnName)) )
+                        return false;
+                    break;
+            }
+        }
+        return true;
+    }
+};
+
 struct IntColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
