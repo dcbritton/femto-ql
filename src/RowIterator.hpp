@@ -45,7 +45,7 @@ struct ColumnInfo {
 struct RowIterator {
     
     table t;
-    std::ifstream file;
+    std::fstream file;
     char* currentRow;
     unsigned int rowSize;
     unsigned int dataStartPosition;
@@ -54,7 +54,7 @@ struct RowIterator {
     // constructor
     RowIterator(table& t) : t(t) {
 
-        file = std::ifstream(DIRECTORY + t.name + FILE_EXTENSION);
+        file = std::fstream(DIRECTORY + t.name + FILE_EXTENSION);
 
         // seek to first row
         file.seekg(64);
@@ -82,22 +82,22 @@ struct RowIterator {
     }
 
     // check if an row is null (type agnostic)
-    bool isNull(std::string& columnName) {
+    bool isNull(const std::string& columnName) {
         return *(uint8_t*)(currentRow + nameToInfo[columnName].offset);
     }
 
     // get int value by column name
-    int getInt(std::string& columnName) {
+    int getInt(const std::string& columnName) {
         return *(int*)(currentRow + nameToInfo[columnName].offset + 1);
     }
 
     // get float value by column name
-    float getFloat(std::string& columnName) {
+    float getFloat(const std::string& columnName) {
         return *(float*)(currentRow + nameToInfo[columnName].offset + 1);      
     }
 
     // get chars value by column name
-    std::string getChars(std::string& columnName) {
+    std::string getChars(const std::string& columnName) {
         ColumnInfo info = nameToInfo[columnName];
         std::string str(currentRow + info.offset + 1, info.bytesToRead);
         str.erase(std::find(str.begin(), str.end(), '\0'), str.end()); // Remove all null characters
@@ -105,12 +105,12 @@ struct RowIterator {
     }
 
     // get bool value by column name
-    bool getBool(std::string& columnName) {
+    bool getBool(const std::string& columnName) {
         return *(uint8_t*)(currentRow + nameToInfo[columnName].offset + 1);
     }
 
     // get value as a string
-    std::string getValueString(std::string& columnName) {
+    std::string getValueString(const std::string& columnName) {
         ColumnInfo info = nameToInfo[columnName];
 
         if (isNull(columnName))
@@ -136,6 +136,21 @@ struct RowIterator {
             default:
                 return "Bad column type in EowIterator.";
         }
+    }
+
+    void setInt(const std::string& columnName, int value) {
+
+        std::streampos current = file.tellg();
+        std::streampos rowStartPos = file.tellg() - std::streamoff(rowSize);
+
+        ColumnInfo info = nameToInfo[columnName];
+        char nullByte = '\0';
+
+        file.seekp(rowStartPos + std::streamoff(info.offset), std::ios_base::beg);
+        file.write(&nullByte, 1);
+        file.write((char*)&value, sizeof(int));
+
+        file.seekg(current);
     }
 
     // return to before first item
