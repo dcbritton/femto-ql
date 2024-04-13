@@ -138,6 +138,7 @@ struct RowIterator {
         }
     }
 
+    // write an int
     void setInt(const std::string& columnName, int value) {
         std::streampos current = file.tellg();
        
@@ -151,6 +152,7 @@ struct RowIterator {
         file.seekg(current);
     }
 
+    // write a float
     void setFloat(const std::string& columnName, float value) {
         std::streampos current = file.tellg();
        
@@ -164,6 +166,7 @@ struct RowIterator {
         file.seekg(current);
     }
 
+    // write chars
     void setChars(const std::string& columnName, const std::string& value) {
         std::streampos current = file.tellg();
        
@@ -180,6 +183,7 @@ struct RowIterator {
         file.seekg(current);
     }
 
+    // write a bool
     void setBool(const std::string& columnName, bool value) {
         std::streampos current = file.tellg();
        
@@ -194,6 +198,19 @@ struct RowIterator {
         // use nullByte for false
         else
             file.write((char*)&nullByte, 1);
+
+        file.seekg(current);
+    }
+
+    // set a cell's null byte
+    void setNull(const std::string& columnName) {
+        std::streampos current = file.tellg();
+       
+        ColumnInfo info = nameToInfo[columnName];
+        char nullByte = 1;
+
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg); 
+        file.write(&nullByte, 1);
 
         file.seekg(current);
     }

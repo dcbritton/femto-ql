@@ -144,15 +144,13 @@ struct WriteData {
 void executeUpdate(std::shared_ptr<node> updateRoot) {
     std::string tableName = updateRoot->components[0]->value;
     table t(DIRECTORY + tableName + FILE_EXTENSION);
+    auto ColumnValueList = updateRoot->components[1];
 
     // build list of columns and values to write
     std::map<std::string, WriteData> mentionedNameToWriteData;
-    auto ColumnValueList = updateRoot->components[1];
-
-    for (auto& columnValuePair : ColumnValueList->components ) {
-        auto c = find(columnValuePair->components[0]->value, t.columns);
-        mentionedNameToWriteData.insert({c->name, WriteData{columnValuePair->components[1]->value, c->type}});   
-    }
+    for (auto& columnValuePair : ColumnValueList->components )
+        // insert(name, WriteData{value, type})                                          
+        mentionedNameToWriteData.insert({columnValuePair->components[0]->value, WriteData{columnValuePair->components[1]->value, columnValuePair->components[1]->type}});   
 
     RowIterator rowIt(t);
     auto boolExprRoot = updateRoot->components[2];
@@ -174,6 +172,9 @@ void executeUpdate(std::shared_ptr<node> updateRoot) {
                     break;
                 case bool_literal:
                     rowIt.setBool(entry.first, entry.second.value == "true");
+                    break;
+                case kw_null:
+                    rowIt.setNull(entry.first);
                     break;
                 default:
                     std::cout << "Error while executing an update. Column cannot be a type other than a literal.\n";
