@@ -115,6 +115,8 @@ void insert(std::shared_ptr<node> insertRoot) {
                         file << static_cast<unsigned char>(0b1);
                     if (c.type == chars_literal)
                         numBytesToWrite = c.charsLength;
+                    if (c.type == bool_literal)
+                        numBytesToWrite = 1;
                     for (int i = 0; i < numBytesToWrite; ++i)
                         file << static_cast<unsigned char>(0b0);
                 }
@@ -132,6 +134,8 @@ void insert(std::shared_ptr<node> insertRoot) {
             int numBytesToWrite = 4;
             if (c.type == chars_literal)
                 numBytesToWrite = c.charsLength;
+            if (c.type == bool_literal)
+                numBytesToWrite = 1;
             for (int i = 0; i < numBytesToWrite; ++i)
                 file << static_cast<unsigned char>(0b0);
         }
