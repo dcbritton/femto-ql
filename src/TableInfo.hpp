@@ -17,6 +17,8 @@ struct column {
     std::string name;
     element_type type;
     int charsLength = 0; // 0 for non-chars
+    int offset = 0;
+    int bytesNeeded = 0; // number of bytes needed for this column, including null byte
 
     // constructor for non-chars columns
     column(std::string columnName, element_type columnType)
@@ -25,6 +27,10 @@ struct column {
     // constructor for chars columns
     column(std::string columnName, element_type columnType, int len)
         : name(columnName), type(columnType), charsLength(len) {};
+
+    // constructor for when offset and size are needed
+    column(std::string columnName, element_type columnType, int len, int bytesNeeded, int offset)
+        : name(columnName), type(columnType), charsLength(len), bytesNeeded(bytesNeeded), offset(offset) {};
 };
 
 // forward declaration needed for table
@@ -34,6 +40,7 @@ element_type byteToColumnType(char signedByte);
 struct TableInfo {
     std::string name;
     std::vector<column> columns;
+    std::unordered_map<std::string, column*> nameToColumnInfo;
 
     TableInfo() : name(""), columns({}) {};
 
@@ -55,7 +62,8 @@ struct TableInfo {
         tableFile.read(numColumnBuffer, 4);
         int numColumns = *(int*)(numColumnBuffer);
 
-        // for each column, get the name and type
+        // for each column, get the name, type, bytes needed, and offset
+        int offset = 1;
         int currentPos = 68;
         for (int i = 0; i < numColumns; ++i) {
             // read 64 bytes for name
@@ -76,10 +84,30 @@ struct TableInfo {
                 // read only the final byte to get number of chars, this means there are 2 bytes of NUL padding 
                 numChars = static_cast<uint8_t>(numCharsBuffer[2]);
             }
-            
-            columns.push_back(column(std::string(columnNameBuffer), columnType, numChars));
+
+            int bytesNeeded = 0;
+            if (columnType == int_literal) bytesNeeded = 5;
+            else if (columnType == float_literal) bytesNeeded = 5;
+            else if (columnType == chars_literal) bytesNeeded = 1 + numChars;
+            else if (columnType == bool_literal) bytesNeeded = 2;
+            else {
+                std::cout << "Error constructing columnInfo for \"" << std::string(columnNameBuffer)
+                          << "\". Somehow, a column is not one of the literal types.\n";
+                exit(1);
+            }
+
+            columns.push_back(column(std::string(columnNameBuffer), columnType, numChars, bytesNeeded, offset));
+            offset += bytesNeeded;
             currentPos += 68;
         }
+
+        for (column& c : columns) {
+            nameToColumnInfo.insert({c.name, &c});
+        }
+    }
+
+    column* operator[](const std::string& columnName) {
+        return nameToColumnInfo[columnName];
     }
 };
 
@@ -104,7 +132,7 @@ std::pair<std::string, std::string> split(const std::string& name) {
 } 
 
 // create a table struct from a node
-TableInfo nodeToTable(const std::shared_ptr<node>& n) {
+TableInfo nodeToTableInfo(const std::shared_ptr<node>& n) {
     // node must be a definition
     if (n->type != definition) {
         std::cout << "Error converting node to table: Node is not a definition!\n";

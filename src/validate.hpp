@@ -913,7 +913,7 @@ public:
                 names.push_back(columnTypePair->components[0]->value);
             }
             
-            tables.push_back(nodeToTable(definitionRoot));
+            tables.push_back(nodeToTableInfo(definitionRoot));
         }
 
         std::cout << "Definition validated.\n";

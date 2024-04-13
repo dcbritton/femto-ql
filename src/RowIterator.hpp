@@ -11,37 +11,6 @@
 std::string DIRECTORY = "../tables/";
 std::string FILE_EXTENSION = ".ftbl";
 
-int columnBytesNeeded(const column& c) {
-    switch (c.type) {
-        case int_literal:
-            return 5;
-
-        case float_literal:
-            return 5;
-
-        case chars_literal:
-            return 1 + c.charsLength;
-
-        case bool_literal:
-            return 2;
-    
-        default:
-            std::cout << "Error during execution. Somehow, a column is not one of the literal types.\n";
-            exit(1);
-    }
-}
-
-struct ColumnInfo {
-    int offset;
-    element_type type;
-    int bytesToRead;
-
-    ColumnInfo() : offset(0), type(nullnode), bytesToRead(0) {}
-
-    ColumnInfo(int offset, element_type type, int bytesToRead) 
-        : offset(offset), type(type), bytesToRead(bytesToRead) {}
-};
-
 struct RowIterator {
     
     TableInfo t;
@@ -49,7 +18,6 @@ struct RowIterator {
     char* currentRow;
     unsigned int rowSize;
     unsigned int dataStartPosition;
-    std::unordered_map<std::string, ColumnInfo> nameToInfo;
 
     // constructor
     RowIterator(TableInfo& t) : t(t) {
@@ -64,15 +32,10 @@ struct RowIterator {
         dataStartPosition = 68 + 68 * numColumns;
         file.seekg(dataStartPosition, std::ios_base::beg);
 
-        int offset = 1;
+        // get the row size and allocate space
         rowSize = 1;
         for (auto& c : t.columns) {
-            int bytes = columnBytesNeeded(c);
-            // get row size
-            rowSize += bytes;
-            // construct name to info map
-            nameToInfo[c.name] = ColumnInfo(offset, c.type, bytes);
-            offset += bytes;
+            rowSize += c.bytesNeeded;
         }
         currentRow = new char[rowSize];
     }
@@ -83,52 +46,52 @@ struct RowIterator {
 
     // check if an row is null (type agnostic)
     bool isNull(const std::string& columnName) {
-        return *(uint8_t*)(currentRow + nameToInfo[columnName].offset);
+        return *(uint8_t*)(currentRow + t[columnName]->offset);
     }
 
     // get int value by column name
     int getInt(const std::string& columnName) {
-        return *(int*)(currentRow + nameToInfo[columnName].offset + 1);
+        return *(int*)(currentRow + t[columnName]->offset + 1);
     }
 
     // get float value by column name
     float getFloat(const std::string& columnName) {
-        return *(float*)(currentRow + nameToInfo[columnName].offset + 1);      
+        return *(float*)(currentRow + t[columnName]->offset + 1);      
     }
 
     // get chars value by column name
     std::string getChars(const std::string& columnName) {
-        ColumnInfo info = nameToInfo[columnName];
-        std::string str(currentRow + info.offset + 1, info.bytesToRead);
+        column* c = t[columnName];
+        std::string str(currentRow + c->offset + 1, c->bytesNeeded);
         str.erase(std::find(str.begin(), str.end(), '\0'), str.end()); // Remove all null characters
         return str;  
     }
 
     // get bool value by column name
     bool getBool(const std::string& columnName) {
-        return *(uint8_t*)(currentRow + nameToInfo[columnName].offset + 1);
+        return *(uint8_t*)(currentRow + t[columnName]->offset + 1);
     }
 
     // get value as a string
     std::string getValueString(const std::string& columnName) {
-        ColumnInfo info = nameToInfo[columnName];
+        column* c = t[columnName];
 
         if (isNull(columnName))
             return "**null**";
 
-        switch (info.type) {
+        switch (c->type) {
 
             case int_literal:
-                return std::to_string(*(int*)(currentRow + info.offset + 1));
+                return std::to_string(*(int*)(currentRow + c->offset + 1));
 
             case float_literal:
-                return std::to_string(*(float*)(currentRow + info.offset + 1));
+                return std::to_string(*(float*)(currentRow + c->offset + 1));
 
             case chars_literal:
-                return std::string((currentRow + info.offset + 1), info.bytesToRead);
+                return std::string((currentRow + c->offset + 1), c->bytesNeeded);
 
             case bool_literal:
-                if (*(uint8_t*)(currentRow + info.offset + 1) == 0)
+                if (*(uint8_t*)(currentRow + c->offset + 1) == 0)
                     return "false";
                 else
                     return "true";
@@ -141,11 +104,9 @@ struct RowIterator {
     // write an int
     void setInt(const std::string& columnName, int value) {
         std::streampos current = file.tellg();
-       
-        ColumnInfo info = nameToInfo[columnName];
         char nullByte = '\0';
 
-        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg);
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(t[columnName]->offset), std::ios_base::beg);
         file.write(&nullByte, 1);
         file.write((char*)&value, sizeof(int));
 
@@ -155,11 +116,9 @@ struct RowIterator {
     // write a float
     void setFloat(const std::string& columnName, float value) {
         std::streampos current = file.tellg();
-       
-        ColumnInfo info = nameToInfo[columnName];
         char nullByte = '\0';
 
-        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg);
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(t[columnName]->offset), std::ios_base::beg);
         file.write(&nullByte, 1);
         file.write((char*)&value, sizeof(float));
 
@@ -169,15 +128,14 @@ struct RowIterator {
     // write chars
     void setChars(const std::string& columnName, const std::string& value) {
         std::streampos current = file.tellg();
-       
-        ColumnInfo info = nameToInfo[columnName];
+        column* c = t[columnName];
         char nullByte = '\0';
 
-        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg);
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(c->offset), std::ios_base::beg);
         file.write(&nullByte, 1);
         file.write(value.c_str(), value.length());
         // pad rest with nulls
-        for (int i = 0; i < info.bytesToRead-value.length(); ++i) 
+        for (int i = 0; i < c->bytesNeeded-value.length(); ++i) 
             file.write(&nullByte, 1);
 
         file.seekg(current);
@@ -186,12 +144,10 @@ struct RowIterator {
     // write a bool
     void setBool(const std::string& columnName, bool value) {
         std::streampos current = file.tellg();
-       
-        ColumnInfo info = nameToInfo[columnName];
         char nullByte = '\0';
         char trueByte = 1;
 
-        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg); 
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(t[columnName]->offset), std::ios_base::beg); 
         file.write(&nullByte, 1);
         if(value)
             file.write((char*)&trueByte, 1);
@@ -206,10 +162,9 @@ struct RowIterator {
     void setNull(const std::string& columnName) {
         std::streampos current = file.tellg();
        
-        ColumnInfo info = nameToInfo[columnName];
         char nullByte = 1;
 
-        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg); 
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(t[columnName]->offset), std::ios_base::beg); 
         file.write(&nullByte, 1);
 
         file.seekg(current);

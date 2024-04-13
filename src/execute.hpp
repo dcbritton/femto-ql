@@ -242,7 +242,7 @@ void executeDrop(std::shared_ptr<node> dropRoot)  {
 
 void define(std::shared_ptr<node> definitionRoot) {
     
-    TableInfo table = nodeToTable(definitionRoot);
+    TableInfo table = nodeToTableInfo(definitionRoot);
     std::ofstream header(DIRECTORY + table.name + FILE_EXTENSION);
 
     // bytes 0-63 for tableName
