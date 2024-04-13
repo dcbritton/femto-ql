@@ -46,7 +46,7 @@ struct RowIterator {
     
     table t;
     std::ifstream file;
-    char* currentEow;
+    char* currentRow;
     unsigned int rowSize;
     unsigned int dataStartPosition;
     std::unordered_map<std::string, ColumnInfo> nameToInfo;
@@ -74,39 +74,39 @@ struct RowIterator {
             nameToInfo[c.name] = ColumnInfo(offset, c.type, bytes);
             offset += bytes;
         }
-        currentEow = new char[rowSize];
+        currentRow = new char[rowSize];
     }
 
     ~RowIterator() {
-        delete [] currentEow;
+        delete [] currentRow;
     }
 
     // check if an row is null (type agnostic)
     bool isNull(std::string& columnName) {
-        return *(uint8_t*)(currentEow + nameToInfo[columnName].offset);
+        return *(uint8_t*)(currentRow + nameToInfo[columnName].offset);
     }
 
     // get int value by column name
     int getInt(std::string& columnName) {
-        return *(int*)(currentEow + nameToInfo[columnName].offset + 1);
+        return *(int*)(currentRow + nameToInfo[columnName].offset + 1);
     }
 
     // get float value by column name
     float getFloat(std::string& columnName) {
-        return *(float*)(currentEow + nameToInfo[columnName].offset + 1);      
+        return *(float*)(currentRow + nameToInfo[columnName].offset + 1);      
     }
 
     // get chars value by column name
     std::string getChars(std::string& columnName) {
         ColumnInfo info = nameToInfo[columnName];
-        std::string str(currentEow + info.offset + 1, info.bytesToRead);
+        std::string str(currentRow + info.offset + 1, info.bytesToRead);
         str.erase(std::find(str.begin(), str.end(), '\0'), str.end()); // Remove all null characters
         return str;  
     }
 
     // get bool value by column name
     bool getBool(std::string& columnName) {
-        return *(uint8_t*)(currentEow + nameToInfo[columnName].offset + 1);
+        return *(uint8_t*)(currentRow + nameToInfo[columnName].offset + 1);
     }
 
     // get value as a string
@@ -119,16 +119,16 @@ struct RowIterator {
         switch (info.type) {
 
             case int_literal:
-                return std::to_string(*(int*)(currentEow + info.offset + 1));
+                return std::to_string(*(int*)(currentRow + info.offset + 1));
 
             case float_literal:
-                return std::to_string(*(float*)(currentEow + info.offset + 1));
+                return std::to_string(*(float*)(currentRow + info.offset + 1));
 
             case chars_literal:
-                return std::string((currentEow + info.offset + 1), info.bytesToRead);
+                return std::string((currentRow + info.offset + 1), info.bytesToRead);
 
             case bool_literal:
-                if (*(uint8_t*)(currentEow + info.offset + 1) == 0)
+                if (*(uint8_t*)(currentRow + info.offset + 1) == 0)
                     return "false";
                 else
                     return "true";
@@ -145,7 +145,7 @@ struct RowIterator {
 
     // advance to next item
     bool next() {
-        file.read(currentEow, rowSize);
+        file.read(currentRow, rowSize);
         if (file.eof()) {
             file.clear();  
             return false;  
