@@ -61,7 +61,7 @@ struct RowIterator {
 
     // get chars value by column name
     std::string getChars(const std::string& columnName) {
-        column* c = t[columnName];
+        ColumnInfo* c = t[columnName];
         std::string str(currentRow + c->offset + 1, c->bytesNeeded);
         str.erase(std::find(str.begin(), str.end(), '\0'), str.end()); // Remove all null characters
         return str;  
@@ -74,7 +74,7 @@ struct RowIterator {
 
     // get value as a string
     std::string getValueString(const std::string& columnName) {
-        column* c = t[columnName];
+        ColumnInfo* c = t[columnName];
 
         if (isNull(columnName))
             return "**null**";
@@ -128,7 +128,7 @@ struct RowIterator {
     // write chars
     void setChars(const std::string& columnName, const std::string& value) {
         std::streampos current = file.tellg();
-        column* c = t[columnName];
+        ColumnInfo* c = t[columnName];
         char nullByte = '\0';
 
         file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(c->offset), std::ios_base::beg);

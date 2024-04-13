@@ -13,7 +13,7 @@
 #include "node.hpp"
 
 // data about a column
-struct column {
+struct ColumnInfo {
     std::string name;
     element_type type;
     int charsLength = 0; // 0 for non-chars
@@ -21,15 +21,15 @@ struct column {
     int bytesNeeded = 0; // number of bytes needed for this column, including null byte
 
     // constructor for non-chars columns
-    column(std::string columnName, element_type columnType)
+    ColumnInfo(std::string columnName, element_type columnType)
         : name(columnName), type(columnType), charsLength(0) {};
 
     // constructor for chars columns
-    column(std::string columnName, element_type columnType, int len)
+    ColumnInfo(std::string columnName, element_type columnType, int len)
         : name(columnName), type(columnType), charsLength(len) {};
 
     // constructor for when offset and size are needed
-    column(std::string columnName, element_type columnType, int len, int bytesNeeded, int offset)
+    ColumnInfo(std::string columnName, element_type columnType, int len, int bytesNeeded, int offset)
         : name(columnName), type(columnType), charsLength(len), bytesNeeded(bytesNeeded), offset(offset) {};
 };
 
@@ -39,12 +39,12 @@ element_type byteToColumnType(char signedByte);
 // data about a table
 struct TableInfo {
     std::string name;
-    std::vector<column> columns;
-    std::unordered_map<std::string, column*> nameToColumnInfo;
+    std::vector<ColumnInfo> columns;
+    std::unordered_map<std::string, ColumnInfo*> nameToColumnInfo;
 
     TableInfo() : name(""), columns({}) {};
 
-    TableInfo(std::string tableName, std::vector<column> tableColumns) : name(tableName), columns(tableColumns) {};
+    TableInfo(std::string tableName, std::vector<ColumnInfo> tableColumns) : name(tableName), columns(tableColumns) {};
 
     TableInfo(const std::string& filePath) {
         // access the file
@@ -96,17 +96,17 @@ struct TableInfo {
                 exit(1);
             }
 
-            columns.push_back(column(std::string(columnNameBuffer), columnType, numChars, bytesNeeded, offset));
+            columns.push_back(ColumnInfo(std::string(columnNameBuffer), columnType, numChars, bytesNeeded, offset));
             offset += bytesNeeded;
             currentPos += 68;
         }
 
-        for (column& c : columns) {
+        for (ColumnInfo& c : columns) {
             nameToColumnInfo.insert({c.name, &c});
         }
     }
 
-    column* operator[](const std::string& columnName) {
+    ColumnInfo* operator[](const std::string& columnName) {
         return nameToColumnInfo[columnName];
     }
 };
@@ -139,7 +139,7 @@ TableInfo nodeToTableInfo(const std::shared_ptr<node>& n) {
         exit(1);        
     }
 
-    std::vector<column> cols;
+    std::vector<ColumnInfo> cols;
     for (auto& columnTypePair : n->components[2]->components) {
         // identifier name stored in value
         std::string colName = columnTypePair->components[0]->value;
@@ -168,7 +168,7 @@ TableInfo nodeToTableInfo(const std::shared_ptr<node>& n) {
         int numChars = 0;
         if (colType == chars_literal) numChars = std::stoi(columnTypePair->components[2]->value);
 
-        cols.push_back(column(colName, colType, numChars));
+        cols.push_back(ColumnInfo(colName, colType, numChars));
     }
 
     return (TableInfo(n->components[1]->value, cols));
@@ -176,7 +176,7 @@ TableInfo nodeToTableInfo(const std::shared_ptr<node>& n) {
 
 // free function to find a table by name in a vector of tables
 // iterator may be used to remove a table?
-std::vector<column>::const_iterator find(const std::string& columnName, const std::vector<column>& columns) {
+std::vector<ColumnInfo>::const_iterator find(const std::string& columnName, const std::vector<ColumnInfo>& columns) {
     auto it = columns.begin();
     while (it != columns.end()) {
         if (it->name == columnName)
@@ -201,7 +201,7 @@ std::vector<TableInfo>::const_iterator find(const std::string& tableName, const 
 }
 
 // column exists in a vector of columns
-bool exists(const std::string& columnName, const std::vector<column>& columns) {
+bool exists(const std::string& columnName, const std::vector<ColumnInfo>& columns) {
     return std::find_if(columns.begin(), columns.end(), [&columnName](const auto& c){return c.name == columnName;}) != columns.end();
 }
 
@@ -245,7 +245,7 @@ unsigned char columnTypeToByte(element_type columnType) {
 void printTableList(std::vector<TableInfo> tables) {
     for (TableInfo t : tables) {
         std::cout << "\"" << t.name << "\": ";
-        for (column c : t.columns)
+        for (ColumnInfo c : t.columns)
             std::cout << c.name << ' ' << tokenTypeToString(c.type) << (c.type == chars_literal ? std::to_string(c.charsLength) : "") << ", ";
         std::cout << '\n';
     }

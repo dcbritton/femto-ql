@@ -162,7 +162,7 @@ public:
         validateWhereClause(selectionRoot->components[3], *t);
         validateOrderClause(selectionRoot->components[4], *t);
 
-        std::vector<column> workingColumns;
+        std::vector<ColumnInfo> workingColumns;
         // asterisk
         if (columnListRoot->components[0]->type == asterisk)
             workingColumns = t->columns;
@@ -171,7 +171,7 @@ public:
         else {
             for (const auto& selected : columnListRoot->components) {
                 auto columnToAdd = std::find_if(t->columns.begin(), t->columns.end(), [&selected](auto& tc){return tc.name == selected->value;});
-                workingColumns.push_back(column(*columnToAdd));
+                workingColumns.push_back(ColumnInfo(*columnToAdd));
             }
         }
 
@@ -747,7 +747,7 @@ public:
         }
 
         // resultant columns to workingTable
-        std::vector<column> workingColumns;
+        std::vector<ColumnInfo> workingColumns;
 
         // for the joined column, if an alias is used, use it
         std::string joinedColumnName;
@@ -760,12 +760,12 @@ public:
         // if joined column is chars, take the bigger number
         int numChars = (joinedColumn1->charsLength > joinedColumn2->charsLength ? joinedColumn1->charsLength : joinedColumn2->charsLength);
 
-        workingColumns.push_back(column(joinedColumnName, joinedColumn1->type, numChars));
+        workingColumns.push_back(ColumnInfo(joinedColumnName, joinedColumn1->type, numChars));
 
         // @TODO clean this
         // go through columns of each table
         for (const auto& t : {table1, table2}) {
-            for (const column& c : t->columns) {
+            for (const ColumnInfo& c : t->columns) {
                 // skip either joined column
                 if (&c == &*joinedColumn1 || &c == &*joinedColumn2)
                     continue;
@@ -780,10 +780,10 @@ public:
                             }
                             return false;
                     }) == aliasListRoot->components.end())
-                    workingColumns.push_back(column(c));
+                    workingColumns.push_back(ColumnInfo(c));
                 // otherwise, add the alias as the name instead
                 else
-                    workingColumns.push_back(column(aliasName, c.type, c.charsLength));
+                    workingColumns.push_back(ColumnInfo(aliasName, c.type, c.charsLength));
             }
         }
         workingTable.columns = workingColumns;
@@ -833,7 +833,7 @@ public:
         }
 
         // @TODO default to larger chars on resultant table
-        std::vector<column> workingColumns = first->columns;
+        std::vector<ColumnInfo> workingColumns = first->columns;
         // for each chars column, make sure that the larger one is put into workingColumns  
         for (auto& workingColumn : workingColumns) {
             if (workingColumn.type == chars_literal) {

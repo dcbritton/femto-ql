@@ -21,7 +21,7 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
     TableInfo t1(DIRECTORY + table1Name + FILE_EXTENSION);
     TableInfo t2(DIRECTORY + table2Name + FILE_EXTENSION);
 
-    for (column& c : t1.columns)
+    for (ColumnInfo& c : t1.columns)
         std::cout << c.name << ' ';
     std::cout << '\n';
 
@@ -30,7 +30,7 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
         RowIterator t1Iterator(t1);
         RowIterator t2Iterator(t2);
         while (t1Iterator.next()) {
-            for (column& c : t1.columns) {
+            for (ColumnInfo& c : t1.columns) {
                 std::cout << t1Iterator.getValueString(c.name) << ' ';
             }
             std::cout << '\n';
@@ -39,7 +39,7 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
             // t1.columns below is NOT a mistake
             // t2 and t1 are verified to have the same column names
             // this is a trick to get column order correct
-            for (column& c : t1.columns) {
+            for (ColumnInfo& c : t1.columns) {
                 std::cout << t2Iterator.getValueString(c.name) << ' ';
             }
             std::cout << '\n';
@@ -159,7 +159,7 @@ void executeUpdate(std::shared_ptr<node> updateRoot) {
 }
 
 // used in insert to write a value given a string from the AST
-void writeValue(const std::string& value, const column& c, std::ofstream& file) {
+void writeValue(const std::string& value, const ColumnInfo& c, std::ofstream& file) {
     switch (c.type) {
         case int_literal: {
             int inum = stoi(value);
