@@ -91,51 +91,25 @@ void select(std::shared_ptr<node> selectionRoot) {
             }
             std::cout << '\n';
         }
+        return;
     }
     // where clause
-    else {
-        auto boolExprRoot = whereClauseRoot->components[0];
-        std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, rowIt, t);
-        // @TODO evaluationRoot->bind(eIt);
-        while (rowIt.next()) {
-            if (evaluationRoot->evaluate()) {
-                for (std::string& name : mentionedColumns) {
-                        std::cout << rowIt.getValueString(name) << ' ';
-                }
-                std::cout << '\n';
-            }
+    auto boolExprRoot = whereClauseRoot->components[0];
+    std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, rowIt, t);
+    // @TODO evaluationRoot->bind(eIt);
+    while (rowIt.next()) {
+        if (!evaluationRoot->evaluate())
+            continue;
+            
+        for (std::string& name : mentionedColumns) {
+            std::cout << rowIt.getValueString(name) << ' ';
         }
+        std::cout << '\n';
     }
     std::cout << '\n';
 }
 
-// used in insert to write a value given a string from the AST
-void writeValue(const std::string& value, const column& c, std::ofstream& file) {
-    switch (c.type) {
-        case int_literal: {
-            int inum = stoi(value);
-            file.write(reinterpret_cast<const char*>(&inum), sizeof(inum));
-            break;
-        }
-        case float_literal: {
-            float fnum = stof(value);
-            file.write(reinterpret_cast<const char*>(&fnum), sizeof(fnum));
-            break;
-        }
-        case chars_literal: {
-            file.write(value.c_str(), value.length());
-            for (int i = 0; i < c.charsLength-value.length(); ++i) {
-                file << '\0';
-            }
-            break;
-        }
-        case bool_literal: {
-            file << static_cast<unsigned char>(value == "true" ? 0b1 : 0b0 );
-            break;
-        }
-    }
-}
-
+// used in executeUpdate()
 struct WriteData {
     std::string& value;
     element_type type;
@@ -180,6 +154,33 @@ void executeUpdate(std::shared_ptr<node> updateRoot) {
                     std::cout << "Error while executing an update. Column cannot be a type other than a literal.\n";
                     exit(1);
             }
+        }
+    }
+}
+
+// used in insert to write a value given a string from the AST
+void writeValue(const std::string& value, const column& c, std::ofstream& file) {
+    switch (c.type) {
+        case int_literal: {
+            int inum = stoi(value);
+            file.write(reinterpret_cast<const char*>(&inum), sizeof(inum));
+            break;
+        }
+        case float_literal: {
+            float fnum = stof(value);
+            file.write(reinterpret_cast<const char*>(&fnum), sizeof(fnum));
+            break;
+        }
+        case chars_literal: {
+            file.write(value.c_str(), value.length());
+            for (int i = 0; i < c.charsLength-value.length(); ++i) {
+                file << '\0';
+            }
+            break;
+        }
+        case bool_literal: {
+            file << static_cast<unsigned char>(value == "true" ? 0b1 : 0b0 );
+            break;
         }
     }
 }
