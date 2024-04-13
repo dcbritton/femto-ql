@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <string>
+#include <map>
 #include "table.hpp"
 #include "node.hpp"
 #include "RowIterator.hpp"
@@ -20,6 +21,11 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
     table t1(DIRECTORY + table1Name + FILE_EXTENSION);
     table t2(DIRECTORY + table2Name + FILE_EXTENSION);
 
+    for (column& c : t1.columns)
+        std::cout << c.name << ' ';
+    std::cout << '\n';
+
+    // @TODO unions should not repeat rows
     if (selectionRoot->components[0]->type == kw_union) {
         RowIterator t1Iterator(t1);
         RowIterator t2Iterator(t2);
@@ -39,6 +45,15 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
             std::cout << '\n';
         }
     }
+
+    // intersect
+    else if (selectionRoot->components[0]->type == kw_intersect)  {
+        RowIterator t1Iterator(t1);
+        RowIterator t2Iterator(t2);
+
+
+    }
+    std::cout << '\n';
 }
 
 // execute selection
@@ -91,8 +106,10 @@ void select(std::shared_ptr<node> selectionRoot) {
             }
         }
     }
+    std::cout << '\n';
 }
 
+// used in insert and update to write a value given a string from the AST
 void writeValue(const std::string& value, const column& c, std::ofstream& file) {
     switch (c.type) {
         case int_literal: {
@@ -115,6 +132,41 @@ void writeValue(const std::string& value, const column& c, std::ofstream& file) 
         case bool_literal: {
             file << static_cast<unsigned char>(value == "true" ? 0b1 : 0b0 );
             break;
+        }
+    }
+}
+
+struct WriteData {
+    std::string& value;
+    element_type type;
+    int charsLength;
+};
+
+void executeUpdate(std::shared_ptr<node> updateRoot) {
+    std::string tableName = updateRoot->components[0]->value;
+    table t(DIRECTORY + tableName + FILE_EXTENSION);
+
+    // build list of columns and values to write
+    std::map<std::string, WriteData> mentionedNameToWriteData;
+    auto ColumnValueList = updateRoot->components[1];
+
+    for (auto& columnValuePair : ColumnValueList->components ) {
+        auto c = find(columnValuePair->components[0]->value, t.columns);
+        mentionedNameToWriteData.insert({c->name, WriteData{columnValuePair->components[1]->value, c->type, c->charsLength}});   
+    }
+
+    RowIterator rowIt(t);
+    auto boolExprRoot = updateRoot->components[2];
+    std::shared_ptr<EvaluationNode> evaluationRoot =  convert(boolExprRoot->components[0], rowIt, t);
+    while (rowIt.next()) {
+        if(!evaluationRoot->evaluate())
+            continue;
+            
+        for (auto& entry : mentionedNameToWriteData) {
+            switch (entry.second.type) {
+                case int_literal:
+                    rowIt.setInt(entry.first, stoi(entry.second.value));
+            }
         }
     }
 }
@@ -204,6 +256,10 @@ void define(std::shared_ptr<node> definitionRoot) {
 void execute(std::shared_ptr<node> scriptRoot) {
     for (auto& statementRoot: scriptRoot->components) {
         switch (statementRoot->type) {
+
+            case update:
+                executeUpdate(statementRoot);
+                break;
             
             case set_op:
                 executeSetOp(statementRoot);
