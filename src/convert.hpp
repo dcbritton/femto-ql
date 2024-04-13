@@ -40,7 +40,7 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
         return std::make_shared<AndNode>(an);
     }
 
-    // @TODO identifier in identifier
+    // identifier in identifier
     if (boolExprRoot->components[1]->type == kw_in) {
 
         auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
@@ -61,8 +61,24 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
         }
     }
 
-    // @TODO identifier comparison any|all indentifier 
-    else if (boolExprRoot->components[2]->type == kw_any || boolExprRoot->components[2]->type == kw_all) {
+    // @TODO identifier comparison any indentifier 
+    else if (boolExprRoot->components[2]->type == kw_any) {
+        
+        element_type op = boolExprRoot->components[1]->type;
+        auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
+
+        auto rhsIdentifier = split(boolExprRoot->components[3]->value);
+        table rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
+
+        switch (lhsColumn->type) {
+            case int_literal:
+                return std::make_shared<IntAnyColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+        }
+    }
+
+    // @TODO identifier comparison all indentifier 
+    else if (boolExprRoot->components[2]->type == kw_all) {
 
     }
 

@@ -46,25 +46,24 @@ struct OrNode : EvaluationNode {
 
 struct IntInColumnNode : EvaluationNode {
     std::string lhsColumnName;
-    EntryIterator& lhsIt;
+    EntryIterator& lhsRow;
     std::string rhsColumnName;
-    EntryIterator rhsIt;
-    table rhsTableData;
+    EntryIterator rhsRow;
 
-    IntInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
-        : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
+    IntInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsRow, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
-        rhsIt.reset();
+        rhsRow.reset();
 
-        if (lhsIt.isNull(lhsColumnName))
+        if (lhsRow.isNull(lhsColumnName))
             return false;
 
-        while (rhsIt.next()) {
-            if (rhsIt.isNull(rhsColumnName))
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
                 return false;
 
-            if (lhsIt.getInt(lhsColumnName) == rhsIt.getInt(rhsColumnName)) {
+            if (lhsRow.getInt(lhsColumnName) == rhsRow.getInt(rhsColumnName)) {
                 return true;
             }
         }
@@ -74,25 +73,24 @@ struct IntInColumnNode : EvaluationNode {
 
 struct FloatInColumnNode : EvaluationNode {
     std::string lhsColumnName;
-    EntryIterator& lhsIt;
+    EntryIterator& lhsRow;
     std::string rhsColumnName;
-    EntryIterator rhsIt;
-    table rhsTableData;
+    EntryIterator rhsRow;
 
-    FloatInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
-        : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
+    FloatInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsRow, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
-        rhsIt.reset();
+        rhsRow.reset();
 
-        if (lhsIt.isNull(lhsColumnName))
+        if (lhsRow.isNull(lhsColumnName))
             return false;
 
-        while (rhsIt.next()) {
-            if (rhsIt.isNull(rhsColumnName))
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
                 return false;
 
-            if (lhsIt.getFloat(lhsColumnName) == rhsIt.getFloat(rhsColumnName)) {
+            if (lhsRow.getFloat(lhsColumnName) == rhsRow.getFloat(rhsColumnName)) {
                 return true;
             }
         }
@@ -102,25 +100,24 @@ struct FloatInColumnNode : EvaluationNode {
 
 struct CharsInColumnNode : EvaluationNode {
     std::string lhsColumnName;
-    EntryIterator& lhsIt;
+    EntryIterator& lhsRow;
     std::string rhsColumnName;
-    EntryIterator rhsIt;
-    table rhsTableData;
+    EntryIterator rhsRow;
 
-    CharsInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
-        : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
+    CharsInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsRow, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
-        rhsIt.reset();
+        rhsRow.reset();
 
-        if (lhsIt.isNull(lhsColumnName))
+        if (lhsRow.isNull(lhsColumnName))
             return false;
 
-        while (rhsIt.next()) {
-            if (rhsIt.isNull(rhsColumnName))
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
                 return false;
                 
-            if (lhsIt.getChars(lhsColumnName) == rhsIt.getChars(rhsColumnName)) {
+            if (lhsRow.getChars(lhsColumnName) == rhsRow.getChars(rhsColumnName)) {
                 return true;
             }
         }
@@ -130,26 +127,85 @@ struct CharsInColumnNode : EvaluationNode {
 
 struct BoolInColumnNode : EvaluationNode {
     std::string lhsColumnName;
-    EntryIterator& lhsIt;
+    EntryIterator& lhsRow;
     std::string rhsColumnName;
-    EntryIterator rhsIt;
-    table rhsTableData;
+    EntryIterator rhsRow;
 
-    BoolInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsIt, const std::string& rhsColumnName, table rhsTableData)
-        : lhsColumnName(lhsColumnName), lhsIt(lhsIt), rhsColumnName(rhsColumnName), rhsIt(rhsTableData), rhsTableData(rhsTableData) {}
+    BoolInColumnNode(const std::string& lhsColumnName, EntryIterator& lhsRow, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
-        rhsIt.reset();
+        rhsRow.reset();
 
-        if (lhsIt.isNull(lhsColumnName))
+        if (lhsRow.isNull(lhsColumnName))
             return false;
 
-        while (rhsIt.next()) {
-            if (rhsIt.isNull(rhsColumnName))
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
                 return false;
 
-            if (lhsIt.getBool(lhsColumnName) == rhsIt.getBool(rhsColumnName)) {
+            if (lhsRow.getBool(lhsColumnName) == rhsRow.getBool(rhsColumnName)) {
                 return true;
+            }
+        }
+        return false;
+    }
+};
+
+struct IntAnyColumnComparisonNode : EvaluationNode {
+    std::string lhsColumnName;
+    EntryIterator& lhsRow;
+    element_type op;
+    std::string rhsColumnName;
+    EntryIterator rhsRow;
+
+    IntAnyColumnComparisonNode(const std::string& lhsColumnName, EntryIterator& lhsRow, element_type op, const std::string& rhsColumnName, table rhsTableData)
+        : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
+
+    bool evaluate() override {
+        rhsRow.reset();
+
+        if (lhsRow.isNull(lhsColumnName))
+            return false;
+
+        // on evaluation of each lhs entry, scan the whole rhs column
+        // if ever the condition is satisfied, return true
+        // the condition cannot be satisfied on a null in the rhs 
+        while (rhsRow.next()) {
+            if (rhsRow.isNull(rhsColumnName))
+                continue;
+
+            switch (op) {
+                case op_equals:
+                    
+                    if (lhsRow.getInt(lhsColumnName) == rhsRow.getInt(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_not_equals:
+                    if (lhsRow.getInt(lhsColumnName) != rhsRow.getInt(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_less_than:
+                    if (lhsRow.getInt(lhsColumnName) < rhsRow.getInt(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_less_than_equals:
+                    if (lhsRow.getInt(lhsColumnName) <= rhsRow.getInt(rhsColumnName))
+                        return true;
+                    break;
+                
+                case op_greater_than:
+                    if (lhsRow.getInt(lhsColumnName) > rhsRow.getInt(rhsColumnName))
+                        return true;
+                    break;
+
+                case op_greater_than_equals:
+                    if (lhsRow.getInt(lhsColumnName) >= rhsRow.getInt(rhsColumnName))
+                        return true;
+                    break;
             }
         }
         return false;

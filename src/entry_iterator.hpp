@@ -139,7 +139,7 @@ struct EntryIterator {
     }
 
     // return to before first item
-    bool reset() {
+    void reset() {
         file.seekg(dataStartPosition, std::ios_base::beg);
     }
 
