@@ -408,8 +408,7 @@ public:
         discard(kw_from);
         consume(identifier, dc_components);
         discard(colon);
-        if (it->type == kw_where) dc_components.push_back(parse_where_clause());
-        else dc_components.push_back(std::make_shared<node>(nullnode));
+        dc_components.push_back(parse_where_clause());
 
         return std::make_shared<node>(deletion, dc_components);
     }
