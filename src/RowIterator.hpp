@@ -1,7 +1,7 @@
-// entry.hpp
+// RowIterator.hpp
 
-#ifndef ENTRY
-#define ENTRY
+#ifndef ROWITERATOR
+#define ROWITERATOR
 
 #include "table.hpp"
 #include <vector>
@@ -42,21 +42,21 @@ struct ColumnInfo {
         : offset(offset), type(type), bytesToRead(bytesToRead) {}
 };
 
-struct EntryIterator {
+struct RowIterator {
     
     table t;
     std::ifstream file;
-    char* currentEntry;
-    unsigned int entrySize;
+    char* currentEow;
+    unsigned int rowSize;
     unsigned int dataStartPosition;
     std::unordered_map<std::string, ColumnInfo> nameToInfo;
 
     // constructor
-    EntryIterator(table& t) : t(t) {
+    RowIterator(table& t) : t(t) {
 
         file = std::ifstream(DIRECTORY + t.name + FILE_EXTENSION);
 
-        // seek to first entry
+        // seek to first row
         file.seekg(64);
         char numColumnBuffer[4];
         file.read(numColumnBuffer, 4);
@@ -65,48 +65,48 @@ struct EntryIterator {
         file.seekg(dataStartPosition, std::ios_base::beg);
 
         int offset = 1;
-        entrySize = 1;
+        rowSize = 1;
         for (auto& c : t.columns) {
             int bytes = columnBytesNeeded(c);
-            // get entry size
-            entrySize += bytes;
+            // get row size
+            rowSize += bytes;
             // construct name to info map
             nameToInfo[c.name] = ColumnInfo(offset, c.type, bytes);
             offset += bytes;
         }
-        currentEntry = new char[entrySize];
+        currentEow = new char[rowSize];
     }
 
-    ~EntryIterator() {
-        delete [] currentEntry;
+    ~RowIterator() {
+        delete [] currentEow;
     }
 
-    // check if an entry is null (type agnostic)
+    // check if an row is null (type agnostic)
     bool isNull(std::string& columnName) {
-        return *(uint8_t*)(currentEntry + nameToInfo[columnName].offset);
+        return *(uint8_t*)(currentEow + nameToInfo[columnName].offset);
     }
 
     // get int value by column name
     int getInt(std::string& columnName) {
-        return *(int*)(currentEntry + nameToInfo[columnName].offset + 1);
+        return *(int*)(currentEow + nameToInfo[columnName].offset + 1);
     }
 
     // get float value by column name
     float getFloat(std::string& columnName) {
-        return *(float*)(currentEntry + nameToInfo[columnName].offset + 1);      
+        return *(float*)(currentEow + nameToInfo[columnName].offset + 1);      
     }
 
     // get chars value by column name
     std::string getChars(std::string& columnName) {
         ColumnInfo info = nameToInfo[columnName];
-        std::string str(currentEntry + info.offset + 1, info.bytesToRead);
+        std::string str(currentEow + info.offset + 1, info.bytesToRead);
         str.erase(std::find(str.begin(), str.end(), '\0'), str.end()); // Remove all null characters
         return str;  
     }
 
     // get bool value by column name
     bool getBool(std::string& columnName) {
-        return *(uint8_t*)(currentEntry + nameToInfo[columnName].offset + 1);
+        return *(uint8_t*)(currentEow + nameToInfo[columnName].offset + 1);
     }
 
     // get value as a string
@@ -119,22 +119,22 @@ struct EntryIterator {
         switch (info.type) {
 
             case int_literal:
-                return std::to_string(*(int*)(currentEntry + info.offset + 1));
+                return std::to_string(*(int*)(currentEow + info.offset + 1));
 
             case float_literal:
-                return std::to_string(*(float*)(currentEntry + info.offset + 1));
+                return std::to_string(*(float*)(currentEow + info.offset + 1));
 
             case chars_literal:
-                return std::string((currentEntry + info.offset + 1), info.bytesToRead);
+                return std::string((currentEow + info.offset + 1), info.bytesToRead);
 
             case bool_literal:
-                if (*(uint8_t*)(currentEntry + info.offset + 1) == 0)
+                if (*(uint8_t*)(currentEow + info.offset + 1) == 0)
                     return "false";
                 else
                     return "true";
 
             default:
-                return "Bad column type in EntryIterator.";
+                return "Bad column type in EowIterator.";
         }
     }
 
@@ -145,7 +145,7 @@ struct EntryIterator {
 
     // advance to next item
     bool next() {
-        file.read(currentEntry, entrySize);
+        file.read(currentEow, rowSize);
         if (file.eof()) {
             file.clear();  
             return false;  

@@ -5,38 +5,38 @@
 
 #include "node.hpp"
 #include "table.hpp"
-#include "entry_iterator.hpp"
+#include "RowIterator.hpp"
 #include "EvaluationNode.hpp"
 
-std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, EntryIterator& entryIteratorReference, const table& t) {
+std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, RowIterator& rowItReference, const table& t) {
 
     // (bool_expr)
     if (boolExprRoot->components.size() == 1 /*only child: boolExprRoot->components[0]->type == bool_expr*/) {
         ParensNode pn;
-        pn.subExpr = convert(boolExprRoot->components[0], entryIteratorReference, t);
+        pn.subExpr = convert(boolExprRoot->components[0], rowItReference, t);
         return std::make_shared<ParensNode>(pn);
     }
 
     // !(bool_expr)
     else if (boolExprRoot->components[0]->type == op_not) {
         NotNode nn;
-        nn.subExpr = convert(boolExprRoot->components[1], entryIteratorReference, t);
+        nn.subExpr = convert(boolExprRoot->components[1], rowItReference, t);
         return std::make_shared<NotNode>(nn);
     }
 
     // bool_expr op_or bool_expr
     else if (boolExprRoot->components[1]->type == op_or) {
         OrNode on;
-        on.lhs = convert(boolExprRoot->components[0], entryIteratorReference, t);
-        on.rhs = convert(boolExprRoot->components[2], entryIteratorReference, t);
+        on.lhs = convert(boolExprRoot->components[0], rowItReference, t);
+        on.rhs = convert(boolExprRoot->components[2], rowItReference, t);
         return std::make_shared<OrNode>(on);
     }
 
     // bool_expr op_and bool_expr
     else if (boolExprRoot->components[1]->type == op_and) {
         AndNode an;
-        an.lhs = convert(boolExprRoot->components[0], entryIteratorReference, t);
-        an.rhs = convert(boolExprRoot->components[2], entryIteratorReference, t);
+        an.lhs = convert(boolExprRoot->components[0], rowItReference, t);
+        an.rhs = convert(boolExprRoot->components[2], rowItReference, t);
         return std::make_shared<AndNode>(an);
     }
 
@@ -51,13 +51,13 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
 
         switch (lhsColumn->type) {
             case int_literal:
-                return std::make_shared<IntInColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+                return std::make_shared<IntInColumnNode>(lhsColumn->name, rowItReference, rhsColumn->name, rhsTable);
             case float_literal:
-                return std::make_shared<FloatInColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+                return std::make_shared<FloatInColumnNode>(lhsColumn->name, rowItReference, rhsColumn->name, rhsTable);
             case chars_literal:
-                return std::make_shared<CharsInColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+                return std::make_shared<CharsInColumnNode>(lhsColumn->name, rowItReference, rhsColumn->name, rhsTable);
             case bool_literal:
-                return std::make_shared<BoolInColumnNode>(lhsColumn->name, entryIteratorReference, rhsColumn->name, rhsTable);
+                return std::make_shared<BoolInColumnNode>(lhsColumn->name, rowItReference, rhsColumn->name, rhsTable);
         }
     }
 
@@ -73,13 +73,13 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
 
         switch (lhsColumn->type) {
             case int_literal:
-                return std::make_shared<IntAnyColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+                return std::make_shared<IntAnyColumnComparisonNode>(lhsColumn->name, rowItReference, op, rhsColumn->name, rhsTable);
             case float_literal:
-                return std::make_shared<FloatAnyColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+                return std::make_shared<FloatAnyColumnComparisonNode>(lhsColumn->name, rowItReference, op, rhsColumn->name, rhsTable);
             case chars_literal:
-                return std::make_shared<CharsAnyColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+                return std::make_shared<CharsAnyColumnComparisonNode>(lhsColumn->name, rowItReference, op, rhsColumn->name, rhsTable);
             case bool_literal:
-                return std::make_shared<BoolAnyColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+                return std::make_shared<BoolAnyColumnComparisonNode>(lhsColumn->name, rowItReference, op, rhsColumn->name, rhsTable);
         }
     }
 
@@ -95,13 +95,13 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
 
         switch (lhsColumn->type) {
             case int_literal:
-                return std::make_shared<IntAllColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+                return std::make_shared<IntAllColumnComparisonNode>(lhsColumn->name, rowItReference, op, rhsColumn->name, rhsTable);
             case float_literal:
-                return std::make_shared<FloatAllColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+                return std::make_shared<FloatAllColumnComparisonNode>(lhsColumn->name, rowItReference, op, rhsColumn->name, rhsTable);
             case chars_literal:
-                return std::make_shared<CharsAllColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+                return std::make_shared<CharsAllColumnComparisonNode>(lhsColumn->name, rowItReference, op, rhsColumn->name, rhsTable);
             case bool_literal:
-                return std::make_shared<BoolAllColumnComparisonNode>(lhsColumn->name, entryIteratorReference, op, rhsColumn->name, rhsTable);
+                return std::make_shared<BoolAllColumnComparisonNode>(lhsColumn->name, rowItReference, op, rhsColumn->name, rhsTable);
         }
     }
 
@@ -115,40 +115,40 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Entr
 
             switch (lhsColumn->type) {
                 case int_literal:
-                    return std::make_shared<IntColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, entryIteratorReference);
+                    return std::make_shared<IntColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, rowItReference);
                 case float_literal:
-                    return std::make_shared<FloatColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, entryIteratorReference);
+                    return std::make_shared<FloatColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, rowItReference);
                 case chars_literal:
-                    return std::make_shared<CharsColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, entryIteratorReference);
+                    return std::make_shared<CharsColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, rowItReference);
                 case bool_literal:
-                    return std::make_shared<BoolColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, entryIteratorReference);
+                    return std::make_shared<BoolColumnComparisonNode>(lhsColumn->name, boolExprRoot->components[1]->type, rhsColumn->name, rowItReference);
             }
         }
 
         // rhs int literal
         else if (boolExprRoot->components[2]->type == int_literal) {
-            return std::make_shared<IntLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, stoi(boolExprRoot->components[2]->value), entryIteratorReference);
+            return std::make_shared<IntLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, stoi(boolExprRoot->components[2]->value), rowItReference);
         }
 
         // rhs float literal
         else if (boolExprRoot->components[2]->type == float_literal) {
-            return std::make_shared<FloatLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, stof(boolExprRoot->components[2]->value), entryIteratorReference);
+            return std::make_shared<FloatLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, stof(boolExprRoot->components[2]->value), rowItReference);
         }
 
         // rhs chars literal
         else if (boolExprRoot->components[2]->type == chars_literal) {
-            return std::make_shared<CharsLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, boolExprRoot->components[2]->value, entryIteratorReference);
+            return std::make_shared<CharsLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, boolExprRoot->components[2]->value, rowItReference);
         }
 
         // rhs bool literal
         else if (boolExprRoot->components[2]->type == bool_literal) {
             bool value = boolExprRoot->components[2]->value == "true";
-            return std::make_shared<BoolLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, value, entryIteratorReference);
+            return std::make_shared<BoolLiteralComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, value, rowItReference);
         }
 
         // null comparison
         else if (boolExprRoot->components[2]->type == kw_null) {
-            return std::make_shared<TypeAgnosticNullComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, entryIteratorReference);
+            return std::make_shared<TypeAgnosticNullComparisonNode>(boolExprRoot->components[0]->value, boolExprRoot->components[1]->type, rowItReference);
         }
     }
 }

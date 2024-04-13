@@ -10,7 +10,7 @@
 #include <string>
 #include "table.hpp"
 #include "node.hpp"
-#include "entry_iterator.hpp"
+#include "RowIterator.hpp"
 #include "convert.hpp"
 
 // execute selection
@@ -37,14 +37,14 @@ void select(std::shared_ptr<node> selectionRoot) {
         std::cout << name << ' ';
     std::cout << '\n';
 
-    EntryIterator eIt(t);
+    RowIterator rowIt(t);
 
     // no where clause
     auto whereClauseRoot = selectionRoot->components[3];
     if (whereClauseRoot->type == nullnode) {
-        while (eIt.next()) {
+        while (rowIt.next()) {
             for (std::string& name : mentionedColumns) {
-                    std::cout << eIt.getValueString(name) << ' ';
+                    std::cout << rowIt.getValueString(name) << ' ';
             }
             std::cout << '\n';
         }
@@ -52,12 +52,12 @@ void select(std::shared_ptr<node> selectionRoot) {
     // where clause
     else {
         auto boolExprRoot = whereClauseRoot->components[0];
-        std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, eIt, t);
+        std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, rowIt, t);
         // @TODO evaluationRoot->bind(eIt);
-        while (eIt.next()) {
+        while (rowIt.next()) {
             if (evaluationRoot->evaluate()) {
                 for (std::string& name : mentionedColumns) {
-                        std::cout << eIt.getValueString(name) << ' ';
+                        std::cout << rowIt.getValueString(name) << ' ';
                 }
                 std::cout << '\n';
             }
