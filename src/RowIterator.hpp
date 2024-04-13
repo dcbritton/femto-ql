@@ -214,6 +214,18 @@ struct RowIterator {
 
         file.seekg(current);
     }
+    
+    // mark current row for deletion
+    void markForDeletion() {
+        std::streampos current = file.tellg();
+       
+        char deleteByte = 1;
+
+        file.seekp(file.tellg() - std::streamoff(rowSize), std::ios_base::beg); 
+        file.write(&deleteByte, 1);
+
+        file.seekg(current);
+    }
 
     // return to before first item
     void reset() {
@@ -223,10 +235,13 @@ struct RowIterator {
     // advance to next item
     bool next() {
         file.read(currentRow, rowSize);
+
+        // stop at end of file
         if (file.eof()) {
             file.clear();  
             return false;  
         }
+
         return true;
     }
 };
