@@ -13,6 +13,34 @@
 #include "RowIterator.hpp"
 #include "convert.hpp"
 
+// execute union/intersect
+void executeSetOp(std::shared_ptr<node> selectionRoot) {
+    std::string table1Name = selectionRoot->components[1]->value;
+    std::string table2Name = selectionRoot->components[2]->value;
+    table t1(DIRECTORY + table1Name + FILE_EXTENSION);
+    table t2(DIRECTORY + table2Name + FILE_EXTENSION);
+
+    if (selectionRoot->components[0]->type == kw_union) {
+        RowIterator t1Iterator(t1);
+        RowIterator t2Iterator(t2);
+        while (t1Iterator.next()) {
+            for (column& c : t1.columns) {
+                std::cout << t1Iterator.getValueString(c.name) << ' ';
+            }
+            std::cout << '\n';
+        }
+        while (t2Iterator.next()) {
+            // t1.columns below is NOT a mistake
+            // t2 and t1 are verified to have the same column names
+            // this is a trick to get column order correct
+            for (column& c : t1.columns) {
+                std::cout << t2Iterator.getValueString(c.name) << ' ';
+            }
+            std::cout << '\n';
+        }
+    }
+}
+
 // execute selection
 void select(std::shared_ptr<node> selectionRoot) {
     std::string tableName = selectionRoot->components[1]->value;
@@ -176,6 +204,10 @@ void define(std::shared_ptr<node> definitionRoot) {
 void execute(std::shared_ptr<node> scriptRoot) {
     for (auto& statementRoot: scriptRoot->components) {
         switch (statementRoot->type) {
+            
+            case set_op:
+                executeSetOp(statementRoot);
+                break;
 
             case selection:
                 select(statementRoot);
