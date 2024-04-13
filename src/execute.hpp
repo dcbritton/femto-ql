@@ -109,7 +109,7 @@ void select(std::shared_ptr<node> selectionRoot) {
     std::cout << '\n';
 }
 
-// used in insert and update to write a value given a string from the AST
+// used in insert to write a value given a string from the AST
 void writeValue(const std::string& value, const column& c, std::ofstream& file) {
     switch (c.type) {
         case int_literal: {
@@ -139,7 +139,6 @@ void writeValue(const std::string& value, const column& c, std::ofstream& file) 
 struct WriteData {
     std::string& value;
     element_type type;
-    int charsLength;
 };
 
 void executeUpdate(std::shared_ptr<node> updateRoot) {
@@ -152,7 +151,7 @@ void executeUpdate(std::shared_ptr<node> updateRoot) {
 
     for (auto& columnValuePair : ColumnValueList->components ) {
         auto c = find(columnValuePair->components[0]->value, t.columns);
-        mentionedNameToWriteData.insert({c->name, WriteData{columnValuePair->components[1]->value, c->type, c->charsLength}});   
+        mentionedNameToWriteData.insert({c->name, WriteData{columnValuePair->components[1]->value, c->type}});   
     }
 
     RowIterator rowIt(t);
@@ -161,11 +160,24 @@ void executeUpdate(std::shared_ptr<node> updateRoot) {
     while (rowIt.next()) {
         if(!evaluationRoot->evaluate())
             continue;
-            
+       
         for (auto& entry : mentionedNameToWriteData) {
             switch (entry.second.type) {
                 case int_literal:
                     rowIt.setInt(entry.first, stoi(entry.second.value));
+                    break;
+                case float_literal:
+                    rowIt.setFloat(entry.first, stof(entry.second.value));
+                    break;
+                case chars_literal:
+                    rowIt.setChars(entry.first, entry.second.value);
+                    break;
+                case bool_literal:
+                    rowIt.setBool(entry.first, entry.second.value == "true");
+                    break;
+                default:
+                    std::cout << "Error while executing an update. Column cannot be a type other than a literal.\n";
+                    exit(1);
             }
         }
     }

@@ -139,16 +139,61 @@ struct RowIterator {
     }
 
     void setInt(const std::string& columnName, int value) {
-
         std::streampos current = file.tellg();
-        std::streampos rowStartPos = file.tellg() - std::streamoff(rowSize);
-
+       
         ColumnInfo info = nameToInfo[columnName];
         char nullByte = '\0';
 
-        file.seekp(rowStartPos + std::streamoff(info.offset), std::ios_base::beg);
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg);
         file.write(&nullByte, 1);
         file.write((char*)&value, sizeof(int));
+
+        file.seekg(current);
+    }
+
+    void setFloat(const std::string& columnName, float value) {
+        std::streampos current = file.tellg();
+       
+        ColumnInfo info = nameToInfo[columnName];
+        char nullByte = '\0';
+
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg);
+        file.write(&nullByte, 1);
+        file.write((char*)&value, sizeof(float));
+
+        file.seekg(current);
+    }
+
+    void setChars(const std::string& columnName, const std::string& value) {
+        std::streampos current = file.tellg();
+       
+        ColumnInfo info = nameToInfo[columnName];
+        char nullByte = '\0';
+
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg);
+        file.write(&nullByte, 1);
+        file.write(value.c_str(), value.length());
+        // pad rest with nulls
+        for (int i = 0; i < info.bytesToRead-value.length(); ++i) 
+            file.write(&nullByte, 1);
+
+        file.seekg(current);
+    }
+
+    void setBool(const std::string& columnName, bool value) {
+        std::streampos current = file.tellg();
+       
+        ColumnInfo info = nameToInfo[columnName];
+        char nullByte = '\0';
+        char trueByte = 1;
+
+        file.seekp(file.tellg() - std::streamoff(rowSize) + std::streamoff(info.offset), std::ios_base::beg); 
+        file.write(&nullByte, 1);
+        if(value)
+            file.write((char*)&trueByte, 1);
+        // use nullByte for false
+        else
+            file.write((char*)&nullByte, 1);
 
         file.seekg(current);
     }
