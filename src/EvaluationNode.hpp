@@ -3,7 +3,7 @@
 #ifndef EVALUATIONNODE
 #define EVALUATIONNODE
 
-#include "RowIterator.hpp"
+#include "Table.hpp"
 
 struct EvaluationNode {
     virtual ~EvaluationNode() = default;
@@ -46,11 +46,11 @@ struct OrNode : EvaluationNode {
 
 struct IntInColumnNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    IntInColumnNode(const std::string& lhsColumnName, RowIterator& lhsRow, const std::string& rhsColumnName, TableInfo rhsTableData)
+    IntInColumnNode(const std::string& lhsColumnName, Table& lhsRow, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -59,7 +59,7 @@ struct IntInColumnNode : EvaluationNode {
         if (lhsRow.isNull(lhsColumnName))
             return false;
 
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 continue;
 
@@ -73,11 +73,11 @@ struct IntInColumnNode : EvaluationNode {
 
 struct FloatInColumnNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    FloatInColumnNode(const std::string& lhsColumnName, RowIterator& lhsRow, const std::string& rhsColumnName, TableInfo rhsTableData)
+    FloatInColumnNode(const std::string& lhsColumnName, Table& lhsRow, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -86,7 +86,7 @@ struct FloatInColumnNode : EvaluationNode {
         if (lhsRow.isNull(lhsColumnName))
             return false;
 
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 continue;
 
@@ -100,11 +100,11 @@ struct FloatInColumnNode : EvaluationNode {
 
 struct CharsInColumnNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    CharsInColumnNode(const std::string& lhsColumnName, RowIterator& lhsRow, const std::string& rhsColumnName, TableInfo rhsTableData)
+    CharsInColumnNode(const std::string& lhsColumnName, Table& lhsRow, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -113,7 +113,7 @@ struct CharsInColumnNode : EvaluationNode {
         if (lhsRow.isNull(lhsColumnName))
             return false;
 
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 continue;
                 
@@ -127,11 +127,11 @@ struct CharsInColumnNode : EvaluationNode {
 
 struct BoolInColumnNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    BoolInColumnNode(const std::string& lhsColumnName, RowIterator& lhsRow, const std::string& rhsColumnName, TableInfo rhsTableData)
+    BoolInColumnNode(const std::string& lhsColumnName, Table& lhsRow, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -140,7 +140,7 @@ struct BoolInColumnNode : EvaluationNode {
         if (lhsRow.isNull(lhsColumnName))
             return false;
 
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 continue;
 
@@ -154,12 +154,12 @@ struct BoolInColumnNode : EvaluationNode {
 
 struct IntAnyColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     element_type op;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    IntAnyColumnComparisonNode(const std::string& lhsColumnName, RowIterator& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
+    IntAnyColumnComparisonNode(const std::string& lhsColumnName, Table& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -171,7 +171,7 @@ struct IntAnyColumnComparisonNode : EvaluationNode {
         // on evaluation of each lhs row, scan the whole rhs column
         // if ever the condition is satisfied, return true
         // the condition cannot be satisfied on a null in the rhs 
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 continue;
 
@@ -214,12 +214,12 @@ struct IntAnyColumnComparisonNode : EvaluationNode {
 
 struct FloatAnyColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     element_type op;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    FloatAnyColumnComparisonNode(const std::string& lhsColumnName, RowIterator& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
+    FloatAnyColumnComparisonNode(const std::string& lhsColumnName, Table& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -231,7 +231,7 @@ struct FloatAnyColumnComparisonNode : EvaluationNode {
         // on evaluation of each lhs row, scan the whole rhs column
         // if ever the condition is satisfied, return true
         // the condition cannot be satisfied on a null in the rhs 
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 continue;
 
@@ -274,12 +274,12 @@ struct FloatAnyColumnComparisonNode : EvaluationNode {
 
 struct CharsAnyColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     element_type op;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    CharsAnyColumnComparisonNode(const std::string& lhsColumnName, RowIterator& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
+    CharsAnyColumnComparisonNode(const std::string& lhsColumnName, Table& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -291,7 +291,7 @@ struct CharsAnyColumnComparisonNode : EvaluationNode {
         // on evaluation of each lhs row, scan the whole rhs column
         // if ever the condition is satisfied, return true
         // the condition cannot be satisfied on a null in the rhs 
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 continue;
 
@@ -334,12 +334,12 @@ struct CharsAnyColumnComparisonNode : EvaluationNode {
 
 struct BoolAnyColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     element_type op;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    BoolAnyColumnComparisonNode(const std::string& lhsColumnName, RowIterator& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
+    BoolAnyColumnComparisonNode(const std::string& lhsColumnName, Table& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -351,7 +351,7 @@ struct BoolAnyColumnComparisonNode : EvaluationNode {
         // on evaluation of each lhs row, scan the whole rhs column
         // if ever the condition is satisfied, return true
         // the condition cannot be satisfied on a null in the rhs 
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 continue;
 
@@ -374,12 +374,12 @@ struct BoolAnyColumnComparisonNode : EvaluationNode {
 
 struct IntAllColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     element_type op;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    IntAllColumnComparisonNode(const std::string& lhsColumnName, RowIterator& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
+    IntAllColumnComparisonNode(const std::string& lhsColumnName, Table& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -391,7 +391,7 @@ struct IntAllColumnComparisonNode : EvaluationNode {
         // on evaluation of each lhs row, scan the whole rhs column
         // if ever the condition is not true return false
         // on nulls in the rhs, return false. this is mysql behavior, too
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 return false;
 
@@ -433,12 +433,12 @@ struct IntAllColumnComparisonNode : EvaluationNode {
 
 struct FloatAllColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     element_type op;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    FloatAllColumnComparisonNode(const std::string& lhsColumnName, RowIterator& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
+    FloatAllColumnComparisonNode(const std::string& lhsColumnName, Table& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -450,7 +450,7 @@ struct FloatAllColumnComparisonNode : EvaluationNode {
         // on evaluation of each lhs row, scan the whole rhs column
         // if ever the condition is not true return false
         // on nulls in the rhs, return false. this is mysql behavior, too
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 return false;
 
@@ -492,12 +492,12 @@ struct FloatAllColumnComparisonNode : EvaluationNode {
 
 struct CharsAllColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     element_type op;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    CharsAllColumnComparisonNode(const std::string& lhsColumnName, RowIterator& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
+    CharsAllColumnComparisonNode(const std::string& lhsColumnName, Table& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -509,7 +509,7 @@ struct CharsAllColumnComparisonNode : EvaluationNode {
         // on evaluation of each lhs row, scan the whole rhs column
         // if ever the condition is not true return false
         // on nulls in the rhs, return false. this is mysql behavior, too
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 return false;
 
@@ -551,12 +551,12 @@ struct CharsAllColumnComparisonNode : EvaluationNode {
 
 struct BoolAllColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
-    RowIterator& lhsRow;
+    Table& lhsRow;
     element_type op;
     std::string rhsColumnName;
-    RowIterator rhsRow;
+    Table rhsRow;
 
-    BoolAllColumnComparisonNode(const std::string& lhsColumnName, RowIterator& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
+    BoolAllColumnComparisonNode(const std::string& lhsColumnName, Table& lhsRow, element_type op, const std::string& rhsColumnName, TableInfo rhsTableData)
         : lhsColumnName(lhsColumnName), lhsRow(lhsRow), op(op), rhsColumnName(rhsColumnName), rhsRow(rhsTableData) {}
 
     bool evaluate() override {
@@ -568,7 +568,7 @@ struct BoolAllColumnComparisonNode : EvaluationNode {
         // on evaluation of each lhs row, scan the whole rhs column
         // if ever the condition is not true return false
         // on nulls in the rhs, return false. this is mysql behavior, too
-        while (rhsRow.next()) {
+        while (rhsRow.nextRow()) {
             if (rhsRow.isNull(rhsColumnName))
                 return false;
 
@@ -592,9 +592,9 @@ struct IntColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
     std::string rhsColumnName;
-    RowIterator& row;
+    Table& row;
 
-    IntColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, RowIterator& row)
+    IntColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, Table& row)
         : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), row(row) {}
 
     bool evaluate() override {
@@ -628,9 +628,9 @@ struct FloatColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
     std::string rhsColumnName;
-    RowIterator& row;
+    Table& row;
 
-    FloatColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, RowIterator& row)
+    FloatColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, Table& row)
         : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), row(row) {}
 
     bool evaluate() override {
@@ -664,9 +664,9 @@ struct CharsColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
     std::string rhsColumnName;
-    RowIterator& row;
+    Table& row;
 
-    CharsColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, RowIterator& row)
+    CharsColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, Table& row)
         : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), row(row) {}
 
     bool evaluate() override {
@@ -700,9 +700,9 @@ struct BoolColumnComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
     std::string rhsColumnName;
-    RowIterator& row;
+    Table& row;
 
-    BoolColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, RowIterator& row)
+    BoolColumnComparisonNode(const std::string& lhsColumnName, element_type op, const std::string& rhsColumnName, Table& row)
         : lhsColumnName(lhsColumnName), op(op), rhsColumnName(rhsColumnName), row(row) {}
 
     bool evaluate() override {
@@ -724,9 +724,9 @@ struct IntLiteralComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
     int literalValue;
-    RowIterator& row;
+    Table& row;
 
-    IntLiteralComparisonNode(const std::string& lhsColumnName, element_type op, int literalValue, RowIterator& row)
+    IntLiteralComparisonNode(const std::string& lhsColumnName, element_type op, int literalValue, Table& row)
         : lhsColumnName(lhsColumnName), op(op), literalValue(literalValue), row(row) {}
 
     bool evaluate() override {
@@ -760,9 +760,9 @@ struct FloatLiteralComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
     float literalValue;
-    RowIterator& row;
+    Table& row;
 
-    FloatLiteralComparisonNode(const std::string& lhsColumnName, element_type op, float literalValue, RowIterator& row)
+    FloatLiteralComparisonNode(const std::string& lhsColumnName, element_type op, float literalValue, Table& row)
         : lhsColumnName(lhsColumnName), op(op), literalValue(literalValue), row(row) {}
 
     bool evaluate() override {
@@ -796,9 +796,9 @@ struct CharsLiteralComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
     std::string literalValue;
-    RowIterator& row;
+    Table& row;
 
-    CharsLiteralComparisonNode(const std::string& lhsColumnName, element_type op, std::string& literalValue, RowIterator& row)
+    CharsLiteralComparisonNode(const std::string& lhsColumnName, element_type op, std::string& literalValue, Table& row)
         : lhsColumnName(lhsColumnName), op(op), literalValue(literalValue), row(row) {}
 
     bool evaluate() override {
@@ -832,9 +832,9 @@ struct BoolLiteralComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
     bool literalValue;
-    RowIterator& row;
+    Table& row;
 
-    BoolLiteralComparisonNode(const std::string& lhsColumnName, element_type op, bool literalValue, RowIterator& row)
+    BoolLiteralComparisonNode(const std::string& lhsColumnName, element_type op, bool literalValue, Table& row)
         : lhsColumnName(lhsColumnName), op(op), literalValue(literalValue), row(row) {}
 
     bool evaluate() override {
@@ -856,9 +856,9 @@ struct BoolLiteralComparisonNode : EvaluationNode {
 struct TypeAgnosticNullComparisonNode : EvaluationNode {
     std::string lhsColumnName;
     element_type op;
-    RowIterator& row;
+    Table& row;
 
-    TypeAgnosticNullComparisonNode(const std::string& lhsColumnName, element_type op, RowIterator& row)
+    TypeAgnosticNullComparisonNode(const std::string& lhsColumnName, element_type op, Table& row)
         : lhsColumnName(lhsColumnName), op(op), row(row) {}
 
     bool evaluate() override {

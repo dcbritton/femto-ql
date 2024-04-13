@@ -11,7 +11,7 @@
 #include <map>
 #include "TableInfo.hpp"
 #include "node.hpp"
-#include "RowIterator.hpp"
+#include "Table.hpp"
 #include "convert.hpp"
 
 // execute union/intersect
@@ -27,15 +27,15 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
 
     // @TODO unions should not repeat rows
     if (selectionRoot->components[0]->type == kw_union) {
-        RowIterator t1Iterator(t1);
-        RowIterator t2Iterator(t2);
-        while (t1Iterator.next()) {
+        Table t1Iterator(t1);
+        Table t2Iterator(t2);
+        while (t1Iterator.nextRow()) {
             for (ColumnInfo& c : t1.columns) {
                 std::cout << t1Iterator.getValueString(c.name) << ' ';
             }
             std::cout << '\n';
         }
-        while (t2Iterator.next()) {
+        while (t2Iterator.nextRow()) {
             // t1.columns below is NOT a mistake
             // t2 and t1 are verified to have the same column names
             // this is a trick to get column order correct
@@ -48,8 +48,8 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
 
     // intersect
     else if (selectionRoot->components[0]->type == kw_intersect)  {
-        RowIterator t1Iterator(t1);
-        RowIterator t2Iterator(t2);
+        Table t1Iterator(t1);
+        Table t2Iterator(t2);
 
 
     }
@@ -80,12 +80,12 @@ void select(std::shared_ptr<node> selectionRoot) {
         std::cout << name << ' ';
     std::cout << '\n';
 
-    RowIterator rowIt(t);
+    Table rowIt(t);
 
     // no where clause
     auto whereClauseRoot = selectionRoot->components[3];
     if (whereClauseRoot->type == nullnode) {
-        while (rowIt.next()) {
+        while (rowIt.nextRow()) {
             for (std::string& name : mentionedColumns) {
                     std::cout << rowIt.getValueString(name) << ' ';
             }
@@ -97,7 +97,7 @@ void select(std::shared_ptr<node> selectionRoot) {
     auto boolExprRoot = whereClauseRoot->components[0];
     std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, rowIt, t);
     // @TODO evaluationRoot->bind(eIt);
-    while (rowIt.next()) {
+    while (rowIt.nextRow()) {
         if (!evaluationRoot->evaluate())
             continue;
 
@@ -126,10 +126,10 @@ void executeUpdate(std::shared_ptr<node> updateRoot) {
         // insert(name, WriteData{value, type})                                          
         mentionedNameToWriteData.insert({columnValuePair->components[0]->value, WriteData{columnValuePair->components[1]->value, columnValuePair->components[1]->type}});   
 
-    RowIterator rowIt(t);
+    Table rowIt(t);
     auto boolExprRoot = updateRoot->components[2];
     std::shared_ptr<EvaluationNode> evaluationRoot =  convert(boolExprRoot->components[0], rowIt, t);
-    while (rowIt.next()) {
+    while (rowIt.nextRow()) {
         if(!evaluationRoot->evaluate())
             continue;
        

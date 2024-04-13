@@ -1,17 +1,15 @@
-// RowIterator.hpp
+// Table.hpp
 
-#ifndef ROWITERATOR
-#define ROWITERATOR
+#ifndef TABLE
+#define TABLE
 
 #include "TableInfo.hpp"
-#include <vector>
 #include <fstream>
-#include <unordered_map>
 
 std::string DIRECTORY = "../tables/";
 std::string FILE_EXTENSION = ".ftbl";
 
-struct RowIterator {
+struct Table {
     
     TableInfo t;
     std::fstream file;
@@ -20,7 +18,7 @@ struct RowIterator {
     unsigned int dataStartPosition;
 
     // constructor
-    RowIterator(TableInfo& t) : t(t) {
+    Table(TableInfo& t) : t(t) {
 
         file = std::fstream(DIRECTORY + t.name + FILE_EXTENSION);
 
@@ -40,7 +38,7 @@ struct RowIterator {
         currentRow = new char[rowSize];
     }
 
-    ~RowIterator() {
+    ~Table() {
         delete [] currentRow;
     }
 
@@ -188,7 +186,7 @@ struct RowIterator {
     }
 
     // advance to next item
-    bool next() {
+    bool nextRow() {
         file.read(currentRow, rowSize);
 
         // stop at end of file

@@ -5,10 +5,10 @@
 
 #include "node.hpp"
 #include "TableInfo.hpp"
-#include "RowIterator.hpp"
+#include "Table.hpp"
 #include "EvaluationNode.hpp"
 
-std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, RowIterator& rowItReference, const TableInfo& t) {
+std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Table& rowItReference, const TableInfo& t) {
 
     // (bool_expr)
     if (boolExprRoot->components.size() == 1 /*only child: boolExprRoot->components[0]->type == bool_expr*/) {
