@@ -171,7 +171,19 @@ struct Table {
         file.seekg(current);
     }
 
-    // @TODO printRow()
+    // print current row to output stream
+    void printRow(std::ostream& out) {
+        for (ColumnInfo& column : t.columns)
+            out << getValueString(column.name) << ' ';
+        out << '\n';
+    }
+
+    // print selected columns of current row to output stream
+    void printRow(std::ostream& out, const std::vector<std::string>& columnNames) {
+        for (const std::string& name : columnNames)
+            out << getValueString(name) << ' ';
+        out << '\n';
+    }
 
     // return true if the currentRow is the same as the currentRow of another Table
     // THIS FUNCTION IS ONLY USED FOR INTERSECTS, WHEN IT IS KNOWN THAT TWO TABLES HAVE THE SAME COLUMNS

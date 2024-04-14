@@ -36,6 +36,7 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
     TableInfo t1(DIRECTORY + table1Name + FILE_EXTENSION);
     TableInfo t2(DIRECTORY + table2Name + FILE_EXTENSION);
 
+    // output column names
     for (ColumnInfo& c : t1.columns)
         std::cout << c.name << ' ';
     std::cout << '\n';
@@ -44,21 +45,10 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
     if (selectionRoot->components[0]->type == kw_union) {
         Table table1(t1);
         Table table2(t2);
-        while (table1.nextRow()) {
-            for (ColumnInfo& c : t1.columns) {
-                std::cout << table1.getValueString(c.name) << ' ';
-            }
-            std::cout << '\n';
-        }
-        while (table2.nextRow()) {
-            // t1.columns below is NOT a mistake
-            // t2 and t1 are verified to have the same column names
-            // this is a trick to get column order correct
-            for (ColumnInfo& c : t1.columns) {
-                std::cout << table2.getValueString(c.name) << ' ';
-            }
-            std::cout << '\n';
-        }
+        while (table1.nextRow())
+            table1.printRow(std::cout);
+        while (table2.nextRow())
+            table2.printRow(std::cout);
     }
 
     // bag intersect
@@ -67,12 +57,11 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
         Table table2(t2);
 
         while (table1.nextRow()) {
+            // compare each row of table1 to every row of table2 until a match is found
             while (table2.nextRow()) {
                 if (!table1.compareRow(table2))
                     continue;
-                for (auto& c : t1.columns)
-                    std::cout << table1.getValueString(c.name) << ' ';
-                std::cout << '\n';
+                table1.printRow(std::cout);
                 table2.reset();
                 break;
             }
@@ -88,21 +77,21 @@ void select(std::shared_ptr<node> selectionRoot) {
     TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
 
     // get a list of all column names to select
-    std::vector<std::string> mentionedColumns;
+    std::vector<std::string> selectedColumnNames;
     auto columnList = selectionRoot->components[2];
     // * column list
     if (columnList->components[0]->type == asterisk)
-        for (auto& c : t.columns)
-            mentionedColumns.push_back(c.name);
+        for (auto& column : t.columns)
+            selectedColumnNames.push_back(column.name);
     // column list with names
     else
-        for (auto& mentionedColumn : columnList->components)
-            mentionedColumns.push_back(mentionedColumn->value);
+        for (auto& selectedColumnNode : columnList->components)
+            selectedColumnNames.push_back(selectedColumnNode->value);
 
     // @TODO output formatting
 
-    // output
-    for (auto& name : mentionedColumns)
+    // output selected column names
+    for (auto& name : selectedColumnNames)
         std::cout << name << ' ';
     std::cout << '\n';
 
@@ -112,10 +101,7 @@ void select(std::shared_ptr<node> selectionRoot) {
     auto whereClauseRoot = selectionRoot->components[3];
     if (whereClauseRoot->type == nullnode) {
         while (table.nextRow()) {
-            for (std::string& name : mentionedColumns) {
-                    std::cout << table.getValueString(name) << ' ';
-            }
-            std::cout << '\n';
+            table.printRow(std::cout, selectedColumnNames);
         }
         return;
     }
@@ -126,12 +112,9 @@ void select(std::shared_ptr<node> selectionRoot) {
     while (table.nextRow()) {
         if (!evaluationRoot->evaluate())
             continue;
-
-        for (std::string& name : mentionedColumns) {
-            std::cout << table.getValueString(name) << ' ';
-        }
-        std::cout << '\n';
+        table.printRow(std::cout, selectedColumnNames);
     }
+
     std::cout << '\n';
 }
 
