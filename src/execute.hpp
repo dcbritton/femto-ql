@@ -35,6 +35,10 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
     std::string table2Name = selectionRoot->components[2]->value;
     TableInfo t1(DIRECTORY + table1Name + FILE_EXTENSION);
     TableInfo t2(DIRECTORY + table2Name + FILE_EXTENSION);
+    element_type bagOpType = selectionRoot->components[0]->type;
+
+    // statement output
+    std::cout << "$ bag " << (bagOpType == kw_union ? "union " : "intersect ") << table1Name << ", " << table2Name << '\n';
 
     // output column names
     for (ColumnInfo& c : t1.columns)
@@ -42,7 +46,7 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
     std::cout << '\n';
 
     // bag union
-    if (selectionRoot->components[0]->type == kw_union) {
+    if (bagOpType == kw_union) {
         Table table1(t1);
         Table table2(t2);
         while (table1.nextRow())
@@ -52,7 +56,7 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
     }
 
     // bag intersect
-    else if (selectionRoot->components[0]->type == kw_intersect)  {
+    else if (bagOpType == kw_intersect)  {
         Table table1(t1);
         Table table2(t2);
 
@@ -89,6 +93,9 @@ void select(std::shared_ptr<node> selectionRoot) {
             selectedColumnNames.push_back(selectedColumnNode->value);
 
     // @TODO output formatting
+
+    // output statement
+    std::cout << "$ select from " << tableName << "...\n";
 
     // output selected column names
     for (auto& name : selectedColumnNames)
