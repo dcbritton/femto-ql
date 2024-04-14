@@ -33,8 +33,8 @@ public:
                     validateDefinition(nodePtr);
                     break;
 
-                case set_op:
-                    validateSetOp(nodePtr);
+                case bag_op:
+                    validateBagOp(nodePtr);
                     break;
 
                 case join:
@@ -792,12 +792,12 @@ public:
         std::cout << "Join validated.\n\n";
     }
 
-    // validate set operation
-    void validateSetOp(std::shared_ptr<node> setOpRoot) {
+    // validate bag operation
+    void validateBagOp(std::shared_ptr<node> bagOpRoot) {
 
         // only union/intersect tables that exist
-        std::string table1Name = setOpRoot->components[1]->value;
-        std::string table2Name = setOpRoot->components[2]->value;
+        std::string table1Name = bagOpRoot->components[1]->value;
+        std::string table2Name = bagOpRoot->components[2]->value;
         if (!exists(table1Name, tables)) {
             std::cout << "Validator error. Table \"" << table1Name << "\" doesn't exist.\n";
             exit(1);
@@ -844,7 +844,7 @@ public:
 
         workingTable.columns = workingColumns;
 
-        std::cout << "Set operation validated.\n\n";
+        std::cout << "Bag operation validated.\n\n";
     }
 
     // validate definition
@@ -857,7 +857,7 @@ public:
             exit(1);
         }
 
-        // set the working table name to the new table's name
+        // bag the working table name to the new table's name
         workingTable.name = tableName;
 
         // defined selection
@@ -866,9 +866,9 @@ public:
             tables.push_back(workingTable);
         }
 
-        // defined set_op
-        else if (definitionRoot->components[2]->type == set_op) {
-            validateSetOp(definitionRoot->components[2]);
+        // defined bag_op
+        else if (definitionRoot->components[2]->type == bag_op) {
+            validateBagOp(definitionRoot->components[2]);
             tables.push_back(workingTable);
         }
 

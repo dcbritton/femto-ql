@@ -8,7 +8,7 @@ The | symbol indicates that a non-terminal may be composed of either one sequenc
 ** Some keyword have the 'kw_' prefix dropped
 ** identifiers (table names, column , or table.column) are expressed as id
 
-script          ->      [definition|selection|join|set_op|creation|drop|insertion|update|deletion]*
+script          ->      [definition|selection|join|bag_op|creation|drop|insertion|update|deletion]*
 
 drop            ->      drop id
 
@@ -26,7 +26,7 @@ col_val         ->      id(literal)
 
 deletion        ->      delete from id: where_clause|ε
 
-definition      ->      define temporary|ε id: selection|join|set_op|col_type_list
+definition      ->      define temporary|ε id: selection|join|bag_op|col_type_list
 
 join            ->      kw_join id , id on_expr alias_list|ε
 
@@ -36,7 +36,7 @@ alias_list      ->      with alias, ... alias
 
 alias           ->      indentifier as id
 
-set_op          ->      union|intersect id: id
+bag_op          ->      union|intersect id: id
 
 selection       ->      select distinct|ε id: column_list where_clause|ε  order_clause|ε
 

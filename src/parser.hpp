@@ -18,7 +18,7 @@ public:
     Parser(std::vector<token> token_stream) 
         : tokens(token_stream), it(tokens.begin()) {};
 
-    // script -> [definition|selection|join|set_op|drop|insertion|update|deletion]*
+    // script -> [definition|selection|join|bag_op|drop|insertion|update|deletion]*
     std::shared_ptr<node> parse_script() {
         current_non_terminal = script;
 
@@ -31,7 +31,7 @@ public:
             else if (it->type == kw_join)
                 script_components.push_back(parse_join());
             else if (it->type == kw_union || it->type == kw_intersect)
-                script_components.push_back(parse_set_op());
+                script_components.push_back(parse_bag_op());
             else if (it->type == kw_insert)
                 script_components.push_back(parse_insertion());
             else if (it->type == kw_update)
@@ -49,7 +49,7 @@ public:
         return std::make_shared<node>(script, script_components);
     }
 
-    // definition -> kw_define identifier colon selection|join|set_op
+    // definition -> kw_define identifier colon selection|join|bag_op
     std::shared_ptr<node> parse_definition() {
         current_non_terminal = definition;
 
@@ -71,12 +71,12 @@ public:
         // join
         else if (it->type == kw_join)
             dfn_components.push_back(parse_join());
-        // set_op
+        // bag_op
         else if (it->type == kw_union || it->type == kw_intersect)
-            dfn_components.push_back(parse_set_op());
+            dfn_components.push_back(parse_bag_op());
         else {
             std::cout << "Parser error on line " << it->line_number 
-                      << ". Expected a selection, join, or set operation after as in definition.\n";
+                      << ". Expected a selection, join, or bag operation after as in definition.\n";
             exit(1);
         }
 
@@ -375,9 +375,9 @@ public:
         return std::make_shared<node>(alias, alias_components);
     }
 
-    // set_op -> kw_union|kw_intersect identifier comma identifier
-    std::shared_ptr<node> parse_set_op() {
-        current_non_terminal = set_op;
+    // bag_op -> kw_union|kw_intersect identifier comma identifier
+    std::shared_ptr<node> parse_bag_op() {
+        current_non_terminal = bag_op;
 
         std::vector<std::shared_ptr<node>> se_components;
 
@@ -389,14 +389,14 @@ public:
             std::cout << "Parser error on line " << it->line_number 
                       << ". Expected a union or intersect after "
                       << tokenTypeToString((it-1)->type)
-                      << " in set operation.\n";
+                      << " in bag operation.\n";
             exit(1);
         }
         consume(identifier, se_components);
         discard(comma);
         consume(identifier, se_components);
 
-        return std::make_shared<node>(set_op, se_components);
+        return std::make_shared<node>(bag_op, se_components);
     }
 
     // deletion -> kw_delete from_clause where_clause|ε

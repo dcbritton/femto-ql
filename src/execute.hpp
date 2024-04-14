@@ -29,8 +29,8 @@ void executeDeletion(std::shared_ptr<node> deletionRoot) {
     }
 }
 
-// execute union/intersect
-void executeSetOp(std::shared_ptr<node> selectionRoot) {
+// execute bag union/intersect
+void executeBagOp(std::shared_ptr<node> selectionRoot) {
     std::string table1Name = selectionRoot->components[1]->value;
     std::string table2Name = selectionRoot->components[2]->value;
     TableInfo t1(DIRECTORY + table1Name + FILE_EXTENSION);
@@ -40,7 +40,7 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
         std::cout << c.name << ' ';
     std::cout << '\n';
 
-    // union
+    // bag union
     if (selectionRoot->components[0]->type == kw_union) {
         Table table1(t1);
         Table table2(t2);
@@ -61,7 +61,7 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
         }
     }
 
-    // intersect
+    // bag intersect
     else if (selectionRoot->components[0]->type == kw_intersect)  {
         Table table1(t1);
         Table table2(t2);
@@ -305,8 +305,8 @@ void execute(std::shared_ptr<node> scriptRoot) {
                 executeUpdate(statementRoot);
                 break;
             
-            case set_op:
-                executeSetOp(statementRoot);
+            case bag_op:
+                executeBagOp(statementRoot);
                 break;
 
             case selection:

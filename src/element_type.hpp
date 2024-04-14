@@ -22,7 +22,7 @@ enum element_type {
     alias_list = -2,
     alias = -4,
 
-    set_op = 11,
+    bag_op = 11,
 
     deletion = 12,
 
@@ -122,7 +122,7 @@ std::string tokenTypeToString(element_type type) {
         case kw_with: return "with";
         case alias: return "alias";
 
-        case set_op: return "set operation";
+        case bag_op: return "bag operation";
 
         case deletion: return "deletion";
 
