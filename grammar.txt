@@ -24,13 +24,13 @@ col_val_list    ->      col_val, ... col_val
 
 col_val         ->      id(literal)
 
-deletion        ->      delete from id: where_clause|ε
+deletion        ->      delete from id: where_clause
 
 definition      ->      define temporary|ε id: selection|join|bag_op|col_type_list
 
-join            ->      kw_join id , id on_expr alias_list|ε
+join            ->      kw_join id , id: on_expr alias_list|ε
 
-on_expr         ->      id comparison id [as id]|ε
+on_expr         ->      id comparison id
 
 alias_list      ->      with alias, ... alias
 

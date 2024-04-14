@@ -303,6 +303,7 @@ public:
         consume(identifier, je_components);
         discard(comma);
         consume(identifier, je_components);
+        discard(colon);
         je_components.push_back(parse_on_expr());
 
         if (it->type == kw_with)
@@ -334,13 +335,6 @@ public:
         }
 
         consume(identifier, oe_components);
-
-        if (it->type == kw_as) {
-            discard(kw_as);
-            consume(identifier, oe_components);
-        }
-        else
-            oe_components.push_back(std::make_shared<node>(nullnode));
 
         return std::make_shared<node>(on_expr, oe_components);
     }
