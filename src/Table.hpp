@@ -170,6 +170,41 @@ struct Table {
 
         file.seekg(current);
     }
+
+    // @TODO printRow()
+
+    // return true if the currentRow is the same as the currentRow of another Table
+    // THIS FUNCTION IS ONLY USED FOR INTERSECTS, WHEN IT IS KNOWN THAT TWO TABLES HAVE THE SAME COLUMNS
+    bool compareRow(Table& otherTable) {
+        for (auto& column : t.columns) {
+            switch (column.type) {
+                case int_literal:
+                    if (this->getInt(column.name) != otherTable.getInt(column.name))
+                        return false;
+                    break;
+
+                case float_literal:
+                    if (this->getFloat(column.name) != otherTable.getFloat(column.name))
+                        return false;
+                    break;
+
+                case chars_literal:
+                    if (this->getChars(column.name) != otherTable.getChars(column.name))
+                        return false;
+                    break;
+
+                case bool_literal:
+                    if (this->getBool(column.name) != otherTable.getBool(column.name))
+                        return false;
+                    break;
+                
+                default:
+                    std::cout << "Error in Table::compareRow(), likely during an intersect. Column \"" << column.name << "\" in table \"" << t.name << "\" is not one of the literal types.\n";
+                    exit(1);
+            }
+        }
+        return true;
+    }
     
     // mark current row for deletion
     void markForDeletion() {
@@ -183,7 +218,7 @@ struct Table {
         file.seekg(current);
     }
 
-    // 
+    // check if current row is marked for deletion
     bool isMarkedForDeletion() {
         return currentRow[0];
     }
@@ -206,6 +241,8 @@ struct Table {
 
             if (!isMarkedForDeletion())
                 return true;
+            
+            // if it IS marked for deletion, skip
         }
     }
 };

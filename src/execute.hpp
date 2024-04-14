@@ -40,7 +40,7 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
         std::cout << c.name << ' ';
     std::cout << '\n';
 
-    // @TODO unions should not repeat rows
+    // union
     if (selectionRoot->components[0]->type == kw_union) {
         Table table1(t1);
         Table table2(t2);
@@ -66,7 +66,18 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
         Table table1(t1);
         Table table2(t2);
 
-
+        while (table1.nextRow()) {
+            while (table2.nextRow()) {
+                if (!table1.compareRow(table2))
+                    continue;
+                for (auto& c : t1.columns)
+                    std::cout << table1.getValueString(c.name) << ' ';
+                std::cout << '\n';
+                table2.reset();
+                break;
+            }
+            table2.reset();
+        }
     }
     std::cout << '\n';
 }
