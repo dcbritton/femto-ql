@@ -22,6 +22,7 @@ void executeJoin(std::shared_ptr<node> joinRoot) {
     TableInfo t2(TABLE_DIRECTORY + table2Name + FILE_EXTENSION);
 
     auto onRoot = joinRoot->components[2];
+    auto aliasListRoot = joinRoot->components[3];
     auto joinedColumn1Name = split(onRoot->components[0]->value);
     auto joinedColumn2Name = split(onRoot->components[2]->value);
     element_type operation = onRoot->components[1]->type;
@@ -32,7 +33,31 @@ void executeJoin(std::shared_ptr<node> joinRoot) {
     // output statment
     std::cout << "\n\033[0;34m$ join\033[0m " << "\033[0;32m" << table1Name << ", " << table2Name << "\033[0m" << '\n';
 
-    // @TODO output the column names
+    // output column names
+    std::vector<ColumnInfo> columns;
+    // same as validation to find column names
+    // build map from table.column name to alias
+    std::map<std::string, std::string> nameToAlias;
+    for (auto& aliasRoot : aliasListRoot->components)
+        nameToAlias.insert({aliasRoot->components[0]->value, aliasRoot->components[1]->value});
+    // go through columns of each table
+    for (const auto& t : {&t1, &t2}) {
+        for (const ColumnInfo& c : t->columns) {
+            std::string aliasName;                
+            // no alias, add original name
+            if (std::find_if(nameToAlias.begin(), nameToAlias.end(), [&t, &c, &aliasName](std::pair<std::string, std::string> nameToAlias){aliasName = nameToAlias.second; return nameToAlias.first == t->name + '.' + c.name;}) == nameToAlias.end())
+                columns.push_back(ColumnInfo(c));
+            // otherwise, add the alias as the name instead
+            else
+                columns.push_back(ColumnInfo(aliasName, c.type, c.charsLength));
+        }
+    }
+    
+    std::cout << UNDERLINE;
+    for (auto& column : columns) {
+        std::cout << std::right << std::setw(column.outputWidth) << column.name << ' ';
+    }
+    std::cout << '\n' << CLOSEUNDERLINE;
 
     // output the join
     while (table1.nextRow()) {

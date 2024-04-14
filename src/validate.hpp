@@ -722,7 +722,7 @@ public:
         }
         workingTable.columns = workingColumns;
 
-        std::cout << "Join validated.\n\n";
+        // std::cout << "Join validated.\n\n";
     }
 
     // validate bag operation
@@ -849,9 +849,9 @@ public:
             tables.push_back(nodeToTableInfo(definitionRoot));
         }
 
-        std::cout << "Definition validated.\n";
-        printTableList(tables);
-        std::cout << '\n';
+        // std::cout << "Definition validated.\n";
+        // printTableList(tables);
+        // std::cout << '\n';
     }
 
     // validate drop statement
