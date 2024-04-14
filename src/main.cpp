@@ -42,7 +42,7 @@ int main() {
     print_traversals(ast);
 
     // make graphviz output
-    make_dotfile(ast, "../dotfile.txt");
+    make_dotfile(ast, "../AbstractSyntaxTree.dot");
 
     // get and print current state of tables
     std::vector<TableInfo> initialTables = buildTableList("../tables");
