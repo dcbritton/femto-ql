@@ -38,7 +38,7 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
     element_type bagOpType = selectionRoot->components[0]->type;
 
     // statement output
-    std::cout << "$ bag " << (bagOpType == kw_union ? "union " : "intersect ") << table1Name << ", " << table2Name << '\n';
+    std::cout << "\033[0;34m$ bag " << (bagOpType == kw_union ? "union\033[0m " : "intersect\033[0m ") << "\033[0;32m" << table1Name << ", " << table2Name << "\033[0m" << '\n';
 
     Table table1(t1);
     Table table2(t2);
@@ -77,7 +77,7 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
             while (table2.nextRow()) {
                 if (!table1.compareRow(table2))
                     continue;
-                // match found, output, reset table 2
+                // match found. output & reset table2
                 for (const ColumnInfo* column : largerColumns)
                     std::cout << std::right << std::setw(column->outputWidth) << table1.getValueString(column->name) << ' ';
                 std::cout << '\n';
@@ -97,26 +97,25 @@ void select(std::shared_ptr<node> selectionRoot) {
     TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
 
     // get a list of all column names to select
-    std::vector<std::string> selectedColumnNames;
+    std::vector<const ColumnInfo*> selectedColumns;
     auto columnList = selectionRoot->components[2];
     // * column list
     if (columnList->components[0]->type == asterisk)
         for (auto& column : t.columns)
-            selectedColumnNames.push_back(column.name);
+            selectedColumns.push_back(&column);
     // column list with names
     else
         for (auto& selectedColumnNode : columnList->components)
-            selectedColumnNames.push_back(selectedColumnNode->value);
-
-    // @TODO output formatting
+            selectedColumns.push_back(t[selectedColumnNode->value]);
 
     // output statement
-    std::cout << "$ select from " << tableName << "...\n";
+    std::cout << "\033[0;34m$ select from \033[0;32m" << tableName << "\033[0m" << '\n';
 
-    // output selected column names
-    for (auto& name : selectedColumnNames)
-        std::cout << name << ' ';
-    std::cout << '\n';
+    // output column names
+    std::cout << UNDERLINE;
+    for (const ColumnInfo* column : selectedColumns)
+        std::cout << UNDERLINE << std::right << std::setw(column->outputWidth) << column->name << ' ';
+    std::cout << '\n' << CLOSEUNDERLINE;
 
     Table table(t);
 
@@ -124,7 +123,9 @@ void select(std::shared_ptr<node> selectionRoot) {
     auto whereClauseRoot = selectionRoot->components[3];
     if (whereClauseRoot->type == nullnode) {
         while (table.nextRow()) {
-            table.printRow(std::cout, selectedColumnNames);
+            for (const ColumnInfo* column : selectedColumns)
+                std::cout << std::right << std::setw(column->outputWidth) << table.getValueString(column->name) << ' ';
+            std::cout << '\n';
         }
         return;
     }
@@ -135,7 +136,9 @@ void select(std::shared_ptr<node> selectionRoot) {
     while (table.nextRow()) {
         if (!evaluationRoot->evaluate())
             continue;
-        table.printRow(std::cout, selectedColumnNames);
+        for (const ColumnInfo* column : selectedColumns)
+            std::cout << std::right << std::setw(column->outputWidth) << table.getValueString(column->name) << ' ';
+        std::cout << '\n';
     }
 
     std::cout << '\n';
