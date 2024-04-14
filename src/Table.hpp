@@ -176,15 +176,82 @@ struct Table {
         file.seekg(current);
     }
 
-    // print selected columns of current row to output stream
-    void printRow(std::ostream& out, const std::vector<std::string>& columnNames) {
-        for (const std::string& name : columnNames)
-            out << getValueString(name) << ' ';
-        out << '\n';
+    // return true if the named entry in this currentRow is the same as the named entry of the other table
+    // THIS FUNCTION IS PROBABLY ONLY USED FOR JOINS, WHERE IT IS VALIDATED THAT TWO COLUMNS IN DIFFERENT TABLES HAVE THE SAME TYPES
+    bool compareCell(const std::string& columnName, element_type op, Table& otherTable, const std::string& otherColumnName) {
+        
+        // if either is null, return false
+        if (isNull(columnName) || otherTable.isNull(otherColumnName))
+            return false;
+
+        // switch on the compared columns' type
+        // switch again for the comparison
+        // 20 options in all
+        switch (t[columnName]->type) {
+
+            case int_literal: {
+                int value1 = getInt(columnName);
+                int value2 = otherTable.getInt(otherColumnName);
+                switch (op) {
+                    case op_equals: return value1 == value2;
+                    case op_not_equals: return value1 != value2;
+                    case op_less_than: return value1 < value2;
+                    case op_less_than_equals: return value1 <= value2;
+                    case op_greater_than: return value1 > value2;
+                    case op_greater_than_equals: return value1 >= value2;
+                }
+                break;
+            }
+
+            case float_literal: {
+                float value1 = getFloat(columnName);
+                float value2 = otherTable.getFloat(otherColumnName);
+                switch (op) {
+                    case op_equals: return value1 == value2;
+                    case op_not_equals: return value1 != value2;
+                    case op_less_than: return value1 < value2;
+                    case op_less_than_equals: return value1 <= value2;
+                    case op_greater_than: return value1 > value2;
+                    case op_greater_than_equals: return value1 >= value2;
+                }
+                break;
+            }
+
+            case chars_literal: {
+                std::string value1 = getChars(columnName);
+                std::string value2 = otherTable.getChars(otherColumnName);
+                switch (op) {
+                    case op_equals: return value1 == value2;
+                    case op_not_equals: return value1 != value2;
+                    case op_less_than: return value1 < value2;
+                    case op_less_than_equals: return value1 <= value2;
+                    case op_greater_than: return value1 > value2;
+                    case op_greater_than_equals: return value1 >= value2;
+                }
+                break;
+            }
+
+            case bool_literal: {
+                bool value1 = getBool(columnName);
+                bool value2 = otherTable.getBool(otherColumnName);
+                switch (op) {
+                    case op_equals: return value1 == value2;
+                    case op_not_equals: return value1 != value2;
+                }
+                break;
+            }
+
+            default:
+                std::cerr << "Error in Table::compareCell(), likely during a join. Somehow, column \"" << columnName << "\" in table \"" << t.name << "\" is not one of the literal types.\n";
+                exit(1);
+        }
+
+        // default return to silence warnings. this code should never execute
+        return false;
     }
 
     // return true if the currentRow is the same as the currentRow of another Table
-    // THIS FUNCTION IS ONLY USED FOR INTERSECTS, WHEN IT IS KNOWN THAT TWO TABLES HAVE THE SAME COLUMNS
+    // THIS FUNCTION IS ONLY USED FOR INTERSECTS, WHEN IT IS VALIDATED THAT TWO TABLES HAVE THE SAME COLUMNS
     bool compareRow(Table& otherTable) {
         for (auto& column : t.columns) {
             switch (column.type) {
@@ -209,7 +276,7 @@ struct Table {
                     break;
                 
                 default:
-                    std::cout << "Error in Table::compareRow(), likely during an intersect. Column \"" << column.name << "\" in table \"" << t.name << "\" is not one of the literal types.\n";
+                    std::cout << "Error in Table::compareRow(), likely during an intersect. Somehow, column \"" << column.name << "\" in table \"" << t.name << "\" is not one of the literal types.\n";
                     exit(1);
             }
         }

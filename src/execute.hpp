@@ -14,6 +14,49 @@
 #include "Table.hpp"
 #include "convert.hpp"
 
+// join
+void executeJoin(std::shared_ptr<node> joinRoot) {
+    std::string table1Name = joinRoot->components[0]->value;
+    std::string table2Name = joinRoot->components[1]->value;
+    TableInfo t1(TABLE_DIRECTORY + table1Name + FILE_EXTENSION);
+    TableInfo t2(TABLE_DIRECTORY + table2Name + FILE_EXTENSION);
+
+    auto onRoot = joinRoot->components[2];
+    auto joinedColumn1Name = split(onRoot->components[0]->value);
+    auto joinedColumn2Name = split(onRoot->components[2]->value);
+    element_type operation = onRoot->components[1]->type;
+
+    Table table1(t1);
+    Table table2(t2);
+
+    // output statment
+    std::cout << "\n\033[0;34m$ join\033[0m " << "\033[0;32m" << table1Name << ", " << table2Name << "\033[0m" << '\n';
+
+    // @TODO output the column names
+
+    // output the join
+    while (table1.nextRow()) {
+        while (table2.nextRow()) {
+            // match not found, skip
+            if (!table1.compareCell(joinedColumn1Name.second, operation, table2, joinedColumn2Name.second))
+                continue;
+
+            // match found, output row
+            for (const ColumnInfo column : t1.columns)
+                std::cout << std::right << std::setw(column.outputWidth) << table1.getValueString(column.name) << ' ';
+            for (const ColumnInfo column : t2.columns)
+                std::cout << std::right << std::setw(column.outputWidth) << table2.getValueString(column.name) << ' ';
+            
+            // dont break, continue looking for matches
+            std::cout << '\n';
+        }
+        // reached the end of table 2, reset
+        table2.reset();
+    }
+
+    std::cout << '\n';
+}
+
 // mark a row for deletion
 void executeDeletion(std::shared_ptr<node> deletionRoot) {
     std::string tableName = deletionRoot->components[0]->value;
@@ -56,13 +99,13 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
 
     // bag union
     if (bagOpType == kw_union) {
-        // output first table
+        // output first table using larger output width
         while (table1.nextRow()) {
             for (const ColumnInfo* column : largerColumns)
                 std::cout << std::right << std::setw(column->outputWidth) << table1.getValueString(column->name) << ' ';
             std::cout << '\n';
         }
-        // output second table
+        // output second table using larger output width
         while (table2.nextRow()) {
             for (const ColumnInfo* column : largerColumns)
                 std::cout << std::right << std::setw(column->outputWidth) << table2.getValueString(column->name) << ' ';
@@ -75,12 +118,15 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
         while (table1.nextRow()) {
             // compare each row of table1 to every row of table2 until a match is found
             while (table2.nextRow()) {
+                // match not found, skip
                 if (!table1.compareRow(table2))
                     continue;
+
                 // match found. output & reset table2
                 for (const ColumnInfo* column : largerColumns)
                     std::cout << std::right << std::setw(column->outputWidth) << table1.getValueString(column->name) << ' ';
                 std::cout << '\n';
+
                 table2.reset();
                 break;
             }
@@ -109,7 +155,7 @@ void select(std::shared_ptr<node> selectionRoot) {
             selectedColumns.push_back(t[selectedColumnNode->value]);
 
     // output statement
-    std::cout << "\033[0;34m$ select from \033[0;32m" << tableName << "\033[0m" << '\n';
+    std::cout << "\n\033[0;34m$ select from \033[0;32m" << tableName << "\033[0m" << '\n';
 
     // output column names
     std::cout << UNDERLINE;
@@ -150,6 +196,7 @@ struct WriteData {
     element_type type;
 };
 
+// update an entry
 void executeUpdate(std::shared_ptr<node> updateRoot) {
     std::string tableName = updateRoot->components[0]->value;
     TableInfo t(TABLE_DIRECTORY + tableName + FILE_EXTENSION);
@@ -220,6 +267,8 @@ void writeValue(const std::string& value, const ColumnInfo& c, std::ofstream& fi
     }
 }
 
+// append data to the end of the file
+// @TODO, if there are rows marked for deletion, insert there instead
 void insert(std::shared_ptr<node> insertRoot) {
 
     std::string tableName = insertRoot->components[0]->value;
@@ -258,7 +307,7 @@ void insert(std::shared_ptr<node> insertRoot) {
         }
         // otherwise, write null byte as 1, fill rest as 0
         if (!mentioned) {
-            std::cout << "Unmentioned: " << c.name;
+            // std::cout << "Unmentioned: " << c.name;
             file << static_cast<unsigned char>(0b1);
             int numBytesToWrite = 4;
             if (c.type == chars_literal)
@@ -276,6 +325,11 @@ void executeDrop(std::shared_ptr<node> dropRoot)  {
 }
 
 void define(std::shared_ptr<node> definitionRoot) {
+
+    if (definitionRoot->components[2]->type != col_type_list) {
+        std::cout << "Temporary error. Tried to define a table with something other than a column, type list.\n";
+        return;
+    }
     
     TableInfo table = nodeToTableInfo(definitionRoot);
     std::ofstream header(TABLE_DIRECTORY + table.name + FILE_EXTENSION);
@@ -305,6 +359,10 @@ void define(std::shared_ptr<node> definitionRoot) {
 void execute(std::shared_ptr<node> scriptRoot) {
     for (auto& statementRoot: scriptRoot->components) {
         switch (statementRoot->type) {
+
+            case join:
+                executeJoin(statementRoot);
+                break;
 
             case deletion:
                 executeDeletion(statementRoot);
