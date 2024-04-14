@@ -14,6 +14,7 @@ struct Table {
     TableInfo t;
     std::fstream file;
     char* currentRow;
+    char* peekRow;
     unsigned int rowSize;
     unsigned int dataStartPosition;
 
@@ -36,10 +37,12 @@ struct Table {
             rowSize += c.bytesNeeded;
         }
         currentRow = new char[rowSize];
+        peekRow = new char[rowSize];
     }
 
     ~Table() {
         delete [] currentRow;
+        delete [] peekRow;
     }
 
     // check if an row is null (type agnostic)
@@ -180,22 +183,30 @@ struct Table {
         file.seekg(current);
     }
 
+    // 
+    bool isMarkedForDeletion() {
+        return currentRow[0];
+    }
+
     // return to before first item
     void reset() {
         file.seekg(dataStartPosition, std::ios_base::beg);
     }
 
-    // advance to next item
+    // advance to next row
     bool nextRow() {
-        file.read(currentRow, rowSize);
+        while (true) {
+            file.read(currentRow, rowSize);
 
-        // stop at end of file
-        if (file.eof()) {
-            file.clear();  
-            return false;  
+            // stop at end of file
+            if (file.eof()) {
+                file.clear();  
+                return false;  
+            }
+
+            if (!isMarkedForDeletion())
+                return true;
         }
-
-        return true;
     }
 };
 

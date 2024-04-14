@@ -14,6 +14,21 @@
 #include "Table.hpp"
 #include "convert.hpp"
 
+// mark a row for deletion
+void executeDeletion(std::shared_ptr<node> deletionRoot) {
+    std::string tableName = deletionRoot->components[0]->value;
+    TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
+    auto boolExprRoot = deletionRoot->components[1]->components[0];
+
+    Table table(t);
+    std::shared_ptr<EvaluationNode> EvaluationRoot = convert(boolExprRoot, table, t);
+    while (table.nextRow()) {
+        if (!EvaluationRoot->evaluate())
+            continue;
+        table.markForDeletion();
+    }
+}
+
 // execute union/intersect
 void executeSetOp(std::shared_ptr<node> selectionRoot) {
     std::string table1Name = selectionRoot->components[1]->value;
@@ -27,20 +42,20 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
 
     // @TODO unions should not repeat rows
     if (selectionRoot->components[0]->type == kw_union) {
-        Table t1Iterator(t1);
-        Table t2Iterator(t2);
-        while (t1Iterator.nextRow()) {
+        Table table1(t1);
+        Table table2(t2);
+        while (table1.nextRow()) {
             for (ColumnInfo& c : t1.columns) {
-                std::cout << t1Iterator.getValueString(c.name) << ' ';
+                std::cout << table1.getValueString(c.name) << ' ';
             }
             std::cout << '\n';
         }
-        while (t2Iterator.nextRow()) {
+        while (table2.nextRow()) {
             // t1.columns below is NOT a mistake
             // t2 and t1 are verified to have the same column names
             // this is a trick to get column order correct
             for (ColumnInfo& c : t1.columns) {
-                std::cout << t2Iterator.getValueString(c.name) << ' ';
+                std::cout << table2.getValueString(c.name) << ' ';
             }
             std::cout << '\n';
         }
@@ -48,8 +63,8 @@ void executeSetOp(std::shared_ptr<node> selectionRoot) {
 
     // intersect
     else if (selectionRoot->components[0]->type == kw_intersect)  {
-        Table t1Iterator(t1);
-        Table t2Iterator(t2);
+        Table table1(t1);
+        Table table2(t2);
 
 
     }
@@ -80,14 +95,14 @@ void select(std::shared_ptr<node> selectionRoot) {
         std::cout << name << ' ';
     std::cout << '\n';
 
-    Table rowIt(t);
+    Table table(t);
 
     // no where clause
     auto whereClauseRoot = selectionRoot->components[3];
     if (whereClauseRoot->type == nullnode) {
-        while (rowIt.nextRow()) {
+        while (table.nextRow()) {
             for (std::string& name : mentionedColumns) {
-                    std::cout << rowIt.getValueString(name) << ' ';
+                    std::cout << table.getValueString(name) << ' ';
             }
             std::cout << '\n';
         }
@@ -95,14 +110,14 @@ void select(std::shared_ptr<node> selectionRoot) {
     }
     // where clause
     auto boolExprRoot = whereClauseRoot->components[0];
-    std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, rowIt, t);
+    std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, table, t);
     // @TODO evaluationRoot->bind(eIt);
-    while (rowIt.nextRow()) {
+    while (table.nextRow()) {
         if (!evaluationRoot->evaluate())
             continue;
 
         for (std::string& name : mentionedColumns) {
-            std::cout << rowIt.getValueString(name) << ' ';
+            std::cout << table.getValueString(name) << ' ';
         }
         std::cout << '\n';
     }
@@ -126,29 +141,29 @@ void executeUpdate(std::shared_ptr<node> updateRoot) {
         // insert(name, WriteData{value, type})                                          
         mentionedNameToWriteData.insert({columnValuePair->components[0]->value, WriteData{columnValuePair->components[1]->value, columnValuePair->components[1]->type}});   
 
-    Table rowIt(t);
+    Table table(t);
     auto boolExprRoot = updateRoot->components[2];
-    std::shared_ptr<EvaluationNode> evaluationRoot =  convert(boolExprRoot->components[0], rowIt, t);
-    while (rowIt.nextRow()) {
+    std::shared_ptr<EvaluationNode> evaluationRoot =  convert(boolExprRoot->components[0], table, t);
+    while (table.nextRow()) {
         if(!evaluationRoot->evaluate())
             continue;
        
         for (auto& entry : mentionedNameToWriteData) {
             switch (entry.second.type) {
                 case int_literal:
-                    rowIt.setInt(entry.first, stoi(entry.second.value));
+                    table.setInt(entry.first, stoi(entry.second.value));
                     break;
                 case float_literal:
-                    rowIt.setFloat(entry.first, stof(entry.second.value));
+                    table.setFloat(entry.first, stof(entry.second.value));
                     break;
                 case chars_literal:
-                    rowIt.setChars(entry.first, entry.second.value);
+                    table.setChars(entry.first, entry.second.value);
                     break;
                 case bool_literal:
-                    rowIt.setBool(entry.first, entry.second.value == "true");
+                    table.setBool(entry.first, entry.second.value == "true");
                     break;
                 case kw_null:
-                    rowIt.setNull(entry.first);
+                    table.setNull(entry.first);
                     break;
                 default:
                     std::cout << "Error while executing an update. Column cannot be a type other than a literal.\n";
@@ -270,6 +285,10 @@ void define(std::shared_ptr<node> definitionRoot) {
 void execute(std::shared_ptr<node> scriptRoot) {
     for (auto& statementRoot: scriptRoot->components) {
         switch (statementRoot->type) {
+
+            case deletion:
+                executeDeletion(statementRoot);
+                break;
 
             case update:
                 executeUpdate(statementRoot);
