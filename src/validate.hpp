@@ -7,6 +7,7 @@
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
+#include <map>
 #include "TableInfo.hpp"
 #include "node.hpp"
 
@@ -702,23 +703,17 @@ public:
         // resultant columns to workingTable
         std::vector<ColumnInfo> workingColumns;
 
-        // @TODO clean this
-        // note to self: for the love of christ, use a map
+        // build map from table.column name to alias
+        std::map<std::string, std::string> nameToAlias;
+        for (auto& aliasRoot : aliasListRoot->components)
+            nameToAlias.insert({aliasRoot->components[0]->value, aliasRoot->components[1]->value});
 
         // go through columns of each table
         for (const auto& t : {table1, table2}) {
             for (const ColumnInfo& c : t->columns) {
-
-                // if no alias, add original name
-                std::string aliasName;
-                if (std::find_if(aliasListRoot->components.begin(), aliasListRoot->components.end(), 
-                        [&c, &t, &aliasName](std::shared_ptr<node> aliasRoot) {
-                            if (split(aliasRoot->components[0]->value) == std::pair<std::string, std::string>{t->name, c.name}) {
-                                aliasName = aliasRoot->components[1]->value;
-                                return true;
-                            }
-                            return false;
-                    }) == aliasListRoot->components.end())
+                std::string aliasName;                
+                // no alias, add original name
+                if (std::find_if(nameToAlias.begin(), nameToAlias.end(), [&t, &c, &aliasName](std::pair<std::string, std::string> nameToAlias){aliasName = nameToAlias.second; return nameToAlias.first == t->name + '.' + c.name;}) == nameToAlias.end())
                     workingColumns.push_back(ColumnInfo(c));
                 // otherwise, add the alias as the name instead
                 else
