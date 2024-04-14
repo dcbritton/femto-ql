@@ -10,7 +10,7 @@
 #define UNDERLINE "\033[4m"
 #define CLOSEUNDERLINE "\033[0m"
 
-std::string DIRECTORY = "../tables/";
+std::string TABLE_DIRECTORY = "../tables/";
 std::string FILE_EXTENSION = ".ftbl";
 
 struct Table {
@@ -25,7 +25,7 @@ struct Table {
     // constructor
     Table(TableInfo& t) : t(t) {
 
-        file = std::fstream(DIRECTORY + t.name + FILE_EXTENSION);
+        file = std::fstream(TABLE_DIRECTORY + t.name + FILE_EXTENSION);
 
         // seek to first row
         file.seekg(64);

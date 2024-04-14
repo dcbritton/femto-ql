@@ -46,7 +46,7 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Tabl
         auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
 
         auto rhsIdentifier = split(boolExprRoot->components[2]->value);
-        TableInfo rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        TableInfo rhsTable(TABLE_DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
         auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
 
         switch (lhsColumn->type) {
@@ -68,7 +68,7 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Tabl
         auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
 
         auto rhsIdentifier = split(boolExprRoot->components[3]->value);
-        TableInfo rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        TableInfo rhsTable(TABLE_DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
         auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
 
         switch (lhsColumn->type) {
@@ -90,7 +90,7 @@ std::shared_ptr<EvaluationNode> convert(std::shared_ptr<node> boolExprRoot, Tabl
         auto lhsColumn = find(boolExprRoot->components[0]->value, t.columns);
 
         auto rhsIdentifier = split(boolExprRoot->components[3]->value);
-        TableInfo rhsTable(DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
+        TableInfo rhsTable(TABLE_DIRECTORY + rhsIdentifier.first + FILE_EXTENSION);
         auto rhsColumn = find(rhsIdentifier.second, rhsTable.columns);
 
         switch (lhsColumn->type) {

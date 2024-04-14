@@ -19,7 +19,7 @@ public:
         : tokens(token_stream), it(tokens.begin()) {};
 
     // script -> [definition|selection|join|bag_op|drop|insertion|update|deletion]*
-    std::shared_ptr<node> parse_script() {
+    std::shared_ptr<node> parse() {
         current_non_terminal = script;
 
         std::vector<std::shared_ptr<node>> script_components;

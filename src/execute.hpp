@@ -17,7 +17,7 @@
 // mark a row for deletion
 void executeDeletion(std::shared_ptr<node> deletionRoot) {
     std::string tableName = deletionRoot->components[0]->value;
-    TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
+    TableInfo t(TABLE_DIRECTORY + tableName + FILE_EXTENSION);
     auto boolExprRoot = deletionRoot->components[1]->components[0];
 
     Table table(t);
@@ -33,8 +33,8 @@ void executeDeletion(std::shared_ptr<node> deletionRoot) {
 void executeBagOp(std::shared_ptr<node> selectionRoot) {
     std::string table1Name = selectionRoot->components[1]->value;
     std::string table2Name = selectionRoot->components[2]->value;
-    TableInfo t1(DIRECTORY + table1Name + FILE_EXTENSION);
-    TableInfo t2(DIRECTORY + table2Name + FILE_EXTENSION);
+    TableInfo t1(TABLE_DIRECTORY + table1Name + FILE_EXTENSION);
+    TableInfo t2(TABLE_DIRECTORY + table2Name + FILE_EXTENSION);
     element_type bagOpType = selectionRoot->components[0]->type;
 
     // statement output
@@ -94,7 +94,7 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
 // execute selection
 void select(std::shared_ptr<node> selectionRoot) {
     std::string tableName = selectionRoot->components[1]->value;
-    TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
+    TableInfo t(TABLE_DIRECTORY + tableName + FILE_EXTENSION);
 
     // get a list of all column names to select
     std::vector<const ColumnInfo*> selectedColumns;
@@ -152,7 +152,7 @@ struct WriteData {
 
 void executeUpdate(std::shared_ptr<node> updateRoot) {
     std::string tableName = updateRoot->components[0]->value;
-    TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
+    TableInfo t(TABLE_DIRECTORY + tableName + FILE_EXTENSION);
     auto ColumnValueList = updateRoot->components[1];
 
     // build list of columns and values to write
@@ -223,14 +223,14 @@ void writeValue(const std::string& value, const ColumnInfo& c, std::ofstream& fi
 void insert(std::shared_ptr<node> insertRoot) {
 
     std::string tableName = insertRoot->components[0]->value;
-    std::ofstream file(DIRECTORY + tableName + FILE_EXTENSION, std::ios_base::app);
+    std::ofstream file(TABLE_DIRECTORY + tableName + FILE_EXTENSION, std::ios_base::app);
 
     // write the 'delete' byte as 0
     file << static_cast<unsigned char>(0b0);
 
     auto columnValueListRoot = insertRoot->components[1];
 
-    TableInfo t(DIRECTORY + tableName + FILE_EXTENSION);
+    TableInfo t(TABLE_DIRECTORY + tableName + FILE_EXTENSION);
     for (auto& c : t.columns) {
         bool mentioned = false;
         for (auto& columnValuePair : columnValueListRoot->components) {
@@ -278,7 +278,7 @@ void executeDrop(std::shared_ptr<node> dropRoot)  {
 void define(std::shared_ptr<node> definitionRoot) {
     
     TableInfo table = nodeToTableInfo(definitionRoot);
-    std::ofstream header(DIRECTORY + table.name + FILE_EXTENSION);
+    std::ofstream header(TABLE_DIRECTORY + table.name + FILE_EXTENSION);
 
     // bytes 0-63 for tableName
     header.write((table.name + std::string(64-table.name.length(), '\0')).c_str(), 64);

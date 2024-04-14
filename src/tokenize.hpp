@@ -16,18 +16,18 @@ void remove_comments(std::string& script) {
     std::string::iterator it = script.begin();
     std::string::iterator comment_end;
     
-    std::cout << "Extracted comments:\n-------------------\n";
+    // std::cout << "Extracted comments:\n-------------------\n";
     while (it != script.end()) {
         if (it == script.end()) break; // Ensure we don't go past the end
         it = std::find(it, script.end(), '#');
         comment_end = std::find(it, script.end(), '\n');
 
         // outputs list of comments each on a new line
-        std::cout << std::string(it, comment_end) << "\n";
+        // std::cout << std::string(it, comment_end) << "\n";
 
         script.erase(it, comment_end);
     }
-    std::cout << '\n';
+    // std::cout << '\n';
 }
 
 // outputs the whole script with comments removed, newlines as \n, tabs as \t, and four spaces as \4

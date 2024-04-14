@@ -1,3 +1,5 @@
+// main.cpp
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -32,29 +34,24 @@ int main() {
 
     // tokenize and print tokens
     std::vector<token> token_stream = tokenize(script);
-    print_token_stream(token_stream);
+    //print_token_stream(token_stream);
 
     // parse
     Parser p(token_stream);
-    std::shared_ptr<node> ast = p.parse_script();
+    std::shared_ptr<node> ast = p.parse();
 
     // traverse syntax trees
-    print_traversals(ast);
+    //print_traversals(ast);
 
     // make graphviz output
     make_dotfile(ast, "../AbstractSyntaxTree.dot");
-
-    // get and print current state of tables
-    std::vector<TableInfo> initialTables = buildTableList("../tables");
-    std::cout << "\nCurrent tables:\n---------------\n";
-    printTableList(initialTables);
     
     // validate
-    Validator v(initialTables);
+    Validator v(buildTableList(TABLE_DIRECTORY));
     v.validate(ast);
 
     execute(ast);
 
-    std::cout << "\nProgram has ended properly.\n";
+    std::cout << "Program has ended properly.\n";
     return 0;
 }

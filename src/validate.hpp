@@ -21,7 +21,7 @@ public:
     
     // validate the AST
     void validate(std::shared_ptr<node> astRoot) {
-        std::cout << "\nValidation log:\n---------------\n";
+        // std::cout << "\nValidation log:\n---------------\n";
         for (auto nodePtr : astRoot->components) {
             switch (nodePtr->type) {
                 // @TODO Add more validation functions
@@ -77,7 +77,7 @@ public:
 
         validateWhereClause(deletionRoot->components[1], *t);
 
-        std::cout << "Deletion validated.\n\n";
+        // std::cout << "Deletion validated.\n\n";
     }
 
     // validate order clause
@@ -177,7 +177,7 @@ public:
 
         workingTable.columns = workingColumns;
 
-        std::cout << "Selection validated.\n\n";
+        // std::cout << "Selection validated.\n\n";
     }
 
     // validate boolean expression
@@ -441,7 +441,7 @@ public:
         auto whereClauseRoot = updateRoot->components[2];
         validateWhereClause(updateRoot->components[2], *t);
         
-        std::cout << "Update validated.\n\n";
+        // std::cout << "Update validated.\n\n";
     }
 
     // validate insertion
@@ -512,7 +512,7 @@ public:
 
         // @NOTE unmentioned columns assume null insert.
 
-        std::cout << "Insert validated.\n\n";
+        // std::cout << "Insert validated.\n\n";
     }
 
     // validate join statement
@@ -789,7 +789,7 @@ public:
         workingTable.columns = workingColumns;
 
 
-        std::cout << "Join validated.\n\n";
+        // std::cout << "Join validated.\n\n";
     }
 
     // validate bag operation
@@ -844,7 +844,7 @@ public:
 
         workingTable.columns = workingColumns;
 
-        std::cout << "Bag operation validated.\n\n";
+        // std::cout << "Bag operation validated.\n\n";
     }
 
     // validate definition
@@ -916,9 +916,9 @@ public:
             tables.push_back(nodeToTableInfo(definitionRoot));
         }
 
-        std::cout << "Definition validated.\n";
-        printTableList(tables);
-        std::cout << '\n';
+        // std::cout << "Definition validated.\n";
+        // printTableList(tables);
+        // std::cout << '\n';
     }
 
     // validate drop statement
@@ -935,9 +935,9 @@ public:
             exit(1);
         }
 
-        std::cout << "Drop statement validated.\n";
-        printTableList(tables);
-        std::cout << '\n';
+        // std::cout << "Drop statement validated.\n";
+        // printTableList(tables);
+        // std::cout << '\n';
         return;
     }
     
