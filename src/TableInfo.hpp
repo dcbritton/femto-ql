@@ -42,7 +42,7 @@ struct ColumnInfo {
             else if (type == bool_literal)
                 outputWidth = 8;
             else if (type == chars_literal) {
-                outputWidth = 2 + charsLength;
+                outputWidth = std::max(2 + charsLength, 8);
             }
 
             // the name overrides anything else
