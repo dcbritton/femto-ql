@@ -78,8 +78,6 @@ void executeJoin(std::shared_ptr<node> joinRoot) {
         // reached the end of table 2, reset
         table2.reset();
     }
-
-    std::cout << '\n';
 }
 
 // mark a row for deletion
@@ -106,7 +104,7 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
     element_type bagOpType = selectionRoot->components[0]->type;
 
     // statement output
-    std::cout << "\033[0;34m$ bag " << (bagOpType == kw_union ? "union\033[0m " : "intersect\033[0m ") << "\033[0;32m" << table1Name << ", " << table2Name << "\033[0m" << '\n';
+    std::cout << "\n\033[0;34m$ bag " << (bagOpType == kw_union ? "union\033[0m " : "intersect\033[0m ") << "\033[0;32m" << table1Name << ", " << table2Name << "\033[0m" << '\n';
 
     Table table1(t1);
     Table table2(t2);
@@ -159,7 +157,6 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
             table2.reset();
         }
     }
-    std::cout << '\n';
 }
 
 // execute selection
