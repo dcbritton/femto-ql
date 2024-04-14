@@ -40,35 +40,51 @@ void executeBagOp(std::shared_ptr<node> selectionRoot) {
     // statement output
     std::cout << "$ bag " << (bagOpType == kw_union ? "union " : "intersect ") << table1Name << ", " << table2Name << '\n';
 
+    Table table1(t1);
+    Table table2(t2);
+
+    // get a vector of pointers to ColumnInfos with the larger widths
+    std::vector<const ColumnInfo*> largerColumns;
+    for (const ColumnInfo& column : t1.columns)
+        largerColumns.push_back(column.outputWidth > t2[column.name]->outputWidth ? &column : t2[column.name]);
+
     // output column names
-    for (ColumnInfo& c : t1.columns)
-        std::cout << c.name << ' ';
-    std::cout << '\n';
+    std::cout << UNDERLINE;
+    for (const ColumnInfo* column : largerColumns)
+        std::cout << UNDERLINE << std::right << std::setw(column->outputWidth) << column->name << ' ';
+    std::cout << '\n' << CLOSEUNDERLINE;
 
     // bag union
     if (bagOpType == kw_union) {
-        Table table1(t1);
-        Table table2(t2);
-        while (table1.nextRow())
-            table1.printRow(std::cout);
-        while (table2.nextRow())
-            table2.printRow(std::cout);
+        // output first table
+        while (table1.nextRow()) {
+            for (const ColumnInfo* column : largerColumns)
+                std::cout << std::right << std::setw(column->outputWidth) << table1.getValueString(column->name) << ' ';
+            std::cout << '\n';
+        }
+        // output second table
+        while (table2.nextRow()) {
+            for (const ColumnInfo* column : largerColumns)
+                std::cout << std::right << std::setw(column->outputWidth) << table2.getValueString(column->name) << ' ';
+            std::cout << '\n';
+        }
     }
 
     // bag intersect
     else if (bagOpType == kw_intersect)  {
-        Table table1(t1);
-        Table table2(t2);
-
         while (table1.nextRow()) {
             // compare each row of table1 to every row of table2 until a match is found
             while (table2.nextRow()) {
                 if (!table1.compareRow(table2))
                     continue;
-                table1.printRow(std::cout);
+                // match found, output, reset table 2
+                for (const ColumnInfo* column : largerColumns)
+                    std::cout << std::right << std::setw(column->outputWidth) << table1.getValueString(column->name) << ' ';
+                std::cout << '\n';
                 table2.reset();
                 break;
             }
+            // match never found, reset table2
             table2.reset();
         }
     }

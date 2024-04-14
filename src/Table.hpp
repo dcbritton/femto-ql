@@ -5,6 +5,10 @@
 
 #include "TableInfo.hpp"
 #include <fstream>
+#include <iomanip>
+
+#define UNDERLINE "\033[4m"
+#define CLOSEUNDERLINE "\033[0m"
 
 std::string DIRECTORY = "../tables/";
 std::string FILE_EXTENSION = ".ftbl";
@@ -78,27 +82,28 @@ struct Table {
         ColumnInfo* c = t[columnName];
 
         if (isNull(columnName))
-            return "**null**";
+            return "$null";
 
         switch (c->type) {
 
             case int_literal:
-                return std::to_string(*(int*)(currentRow + c->offset + 1));
+                return std::to_string(getInt(columnName));
 
             case float_literal:
-                return std::to_string(*(float*)(currentRow + c->offset + 1));
+                return std::to_string(getFloat(columnName));
 
             case chars_literal:
-                return std::string((currentRow + c->offset + 1), c->bytesNeeded);
+                return getChars(columnName);
 
             case bool_literal:
-                if (*(uint8_t*)(currentRow + c->offset + 1) == 0)
+                if (getBool(columnName) == 0)
                     return "false";
                 else
                     return "true";
 
             default:
-                return "Bad column type in EowIterator.";
+                std::cout << "Bad column type in Table::getValueString().\n";
+                exit(1);
         }
     }
 
@@ -171,13 +176,6 @@ struct Table {
         file.seekg(current);
     }
 
-    // print current row to output stream
-    void printRow(std::ostream& out) {
-        for (ColumnInfo& column : t.columns)
-            out << getValueString(column.name) << ' ';
-        out << '\n';
-    }
-
     // print selected columns of current row to output stream
     void printRow(std::ostream& out, const std::vector<std::string>& columnNames) {
         for (const std::string& name : columnNames)
@@ -240,7 +238,7 @@ struct Table {
         file.seekg(dataStartPosition, std::ios_base::beg);
     }
 
-    // advance to next row
+    // advance to next non-deleted row
     bool nextRow() {
         while (true) {
             file.read(currentRow, rowSize);

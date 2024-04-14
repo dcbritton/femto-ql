@@ -20,6 +20,8 @@ struct ColumnInfo {
     int offset = 0;
     int bytesNeeded = 0; // number of bytes needed for this column, including null byte
 
+    int outputWidth = 0;
+
     // constructor for non-chars columns
     ColumnInfo(std::string columnName, element_type columnType)
         : name(columnName), type(columnType), charsLength(0) {};
@@ -30,7 +32,23 @@ struct ColumnInfo {
 
     // constructor for when offset and size are needed
     ColumnInfo(std::string columnName, element_type columnType, int len, int bytesNeeded, int offset)
-        : name(columnName), type(columnType), charsLength(len), bytesNeeded(bytesNeeded), offset(offset) {};
+        : name(columnName), type(columnType), charsLength(len), bytesNeeded(bytesNeeded), offset(offset) {
+            
+            // determine the width of the column for output, minimum 8
+            if (type == int_literal)
+                outputWidth = 11;
+            else if (type == float_literal)
+                outputWidth = 12;
+            else if (type == bool_literal)
+                outputWidth = 8;
+            else if (type == chars_literal) {
+                outputWidth = 2 + charsLength;
+            }
+
+            // the name overrides anything else
+            if (name.length() > outputWidth)
+                outputWidth = name.length();
+        }
 };
 
 // forward declaration needed for table
