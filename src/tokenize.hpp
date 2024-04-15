@@ -201,6 +201,14 @@ std::vector<token> tokenize(const std::string& statement) {
 
             // integer, no internal .
             std::string number(it, number_end);
+            try {
+                std::stoi(number);
+            }
+            catch (const std::out_of_range& e) {
+                std::cout << "Tokenization error on line " << line_number << ". The integer " << number << " is greater than 32 bit int max or less than 32 bit int min.\n";
+                exit(1);
+            }
+
             tokens.push_back(token(int_literal, number, line_number));
             it = number_end;
         }
