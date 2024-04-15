@@ -377,40 +377,62 @@ void writeHeader(const TableInfo& table) {
 
 // called in define()
 void defineSelection(std::shared_ptr<node> definitionRoot) {
-            std::string definedTableName = definitionRoot->components[1]->value;
-            std::ofstream definedFile(TABLE_DIRECTORY + definedTableName + FILE_EXTENSION);
+    std::string definedTableName = definitionRoot->components[1]->value;
+    std::ofstream definedFile(TABLE_DIRECTORY + definedTableName + FILE_EXTENSION);
 
-            auto selectionRoot = definitionRoot->components[2];
-            auto selectedColumnListRoot = selectionRoot->components[2];
-            std::string selectedTableName = selectionRoot->components[1]->value;
-            TableInfo selectedInfo(TABLE_DIRECTORY + selectedTableName + FILE_EXTENSION);
+    auto selectionRoot = definitionRoot->components[2];
+    auto selectedColumnListRoot = selectionRoot->components[2];
+    std::string selectedTableName = selectionRoot->components[1]->value;
+    TableInfo selectedInfo(TABLE_DIRECTORY + selectedTableName + FILE_EXTENSION);
 
-            // figure out which columns were selected
-            std::vector<ColumnInfo> definedColumns;
-            // *
-            if (selectedColumnListRoot->components[0]->type == asterisk)
-                definedColumns = selectedInfo.columns;
-            // column names
-            else
-                for (auto& columnNode : selectedColumnListRoot->components)
-                    definedColumns.push_back(*selectedInfo[columnNode->value]);
+    // figure out which columns were selected
+    std::vector<ColumnInfo> definedColumns;
+    // *
+    if (selectedColumnListRoot->components[0]->type == asterisk)
+        definedColumns = selectedInfo.columns;
+    // column names
+    else
+        for (auto& columnNode : selectedColumnListRoot->components)
+            definedColumns.push_back(*selectedInfo[columnNode->value]);
 
-            // write header
-            TableInfo definedInfo(definedTableName, definedColumns);
-            // printTableInfo(definedInfo);
-            writeHeader(definedInfo);
+    // write header
+    TableInfo definedInfo(definedTableName, definedColumns);
+    // printTableInfo(definedInfo);
+    writeHeader(definedInfo);
 
-            Table selectedTable(selectedInfo);
-            Table definedTable(definedInfo);
+    Table selectedTable(selectedInfo);
+    Table definedTable(definedInfo);
 
-            while (selectedTable.nextRow()) {
-                char deleteByte = '\0';
-                definedTable.appendBytes(&deleteByte, 1);
-                for (const ColumnInfo& column : definedColumns) {
-                    char* selectedBytes = selectedTable.getBytes(column.name);
-                    definedTable.appendBytes(selectedBytes, column.bytesNeeded);
-                }
+    auto boolExprRoot = selectionRoot->components[3]->components[0];
+    
+    // no where clause
+    if (boolExprRoot->type == nullnode) {
+        while (selectedTable.nextRow()) {
+            char deleteByte = '\0';
+            definedTable.appendBytes(&deleteByte, 1);
+            for (const ColumnInfo& column : definedColumns) {
+                char* selectedBytes = selectedTable.getBytes(column.name);
+                definedTable.appendBytes(selectedBytes, column.bytesNeeded);
             }
+        }
+    }
+    // where clause
+    else if (boolExprRoot->type == bool_expr) {
+
+        std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, selectedTable, selectedInfo);
+        while (selectedTable.nextRow()) {
+            if (!evaluationRoot->evaluate())
+                continue;
+
+            char deleteByte = '\0';
+            definedTable.appendBytes(&deleteByte, 1);
+
+            for (const ColumnInfo& column : definedColumns) {
+                char* selectedBytes = selectedTable.getBytes(column.name);
+                definedTable.appendBytes(selectedBytes, column.bytesNeeded);
+            }
+        }
+    }
 }
 
 // define a table
