@@ -52,6 +52,6 @@ int main() {
 
     execute(ast);
 
-    std::cout << "Program has ended properly.\n";
+    std::cout << "\nProgram has ended properly.\n";
     return 0;
 }

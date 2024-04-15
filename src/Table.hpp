@@ -7,9 +7,6 @@
 #include <fstream>
 #include <iomanip>
 
-#define UNDERLINE "\033[4m"
-#define CLOSEUNDERLINE "\033[0m"
-
 std::string TABLE_DIRECTORY = "../tables/";
 std::string FILE_EXTENSION = ".ftbl";
 
@@ -34,6 +31,7 @@ struct Table {
         int numColumns = *(int*)(numColumnBuffer);
         dataStartPosition = 68 + 68 * numColumns;
         file.seekg(dataStartPosition, std::ios_base::beg);
+        file.seekp(dataStartPosition, std::ios_base::beg);
 
         // get the row size and allocate space
         rowSize = 1;
@@ -281,6 +279,15 @@ struct Table {
             }
         }
         return true;
+    }
+
+    char* getBytes(const std::string& columnName) {
+        return currentRow + t[columnName]->offset;
+    }
+
+    // USED IN DEFINE FUNCTIONS
+    void appendBytes(char* bytesToWrite, int numBytes) {
+        file.write(bytesToWrite, numBytes);
     }
     
     // mark current row for deletion

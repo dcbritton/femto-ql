@@ -276,12 +276,16 @@ unsigned char columnTypeToByte(element_type columnType) {
     return typeMap[columnType];
 }
 
-void printTableList(std::vector<TableInfo> tables) {
-    for (TableInfo t : tables) {
-        std::cout << "\"" << t.name << "\": ";
-        for (ColumnInfo c : t.columns)
-            std::cout << c.name << ' ' << tokenTypeToString(c.type) << (c.type == chars_literal ? std::to_string(c.charsLength) : "") << ", ";
-        std::cout << '\n';
+void printTableInfo(const TableInfo& info) {
+    std::cout << "\"" << info.name << "\": ";
+    for (ColumnInfo c : info.columns)
+        std::cout << c.name << ' ' << tokenTypeToString(c.type) << (c.type == chars_literal ? std::to_string(c.charsLength) : "") << ", ";
+    std::cout << '\n';
+}
+
+void printTableInfoList(const std::vector<TableInfo>& tables) {
+    for (const TableInfo& t : tables) {
+        printTableInfo(t);
     }
 }
 

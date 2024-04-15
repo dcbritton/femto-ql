@@ -14,6 +14,9 @@
 #include "Table.hpp"
 #include "convert.hpp"
 
+#define UNDERLINE "\033[4m"
+#define CLOSEUNDERLINE "\033[0m"
+
 // join
 void executeJoin(std::shared_ptr<node> joinRoot) {
     std::string table1Name = joinRoot->components[0]->value;
@@ -209,7 +212,6 @@ void select(std::shared_ptr<node> selectionRoot) {
         std::cout << '\n';
     }
 
-    std::cout << '\n';
 }
 
 // used in executeUpdate()
@@ -346,14 +348,9 @@ void executeDrop(std::shared_ptr<node> dropRoot)  {
     std::filesystem::remove("../tables/" + dropRoot->components[0]->value + ".ftbl");
 }
 
-void define(std::shared_ptr<node> definitionRoot) {
 
-    if (definitionRoot->components[2]->type != col_type_list) {
-        std::cout << "Temporary error. Tried to define a table with something other than a column, type list.\n";
-        return;
-    }
-    
-    TableInfo table = nodeToTableInfo(definitionRoot);
+// given a TableInfo, write a header for a table that does not exist yet
+void writeHeader(const TableInfo& table) {
     std::ofstream header(TABLE_DIRECTORY + table.name + FILE_EXTENSION);
 
     // bytes 0-63 for tableName
@@ -376,6 +373,66 @@ void define(std::shared_ptr<node> definitionRoot) {
     }
 
     header.close();
+}
+
+// called in define()
+void defineSelection(std::shared_ptr<node> definitionRoot) {
+            std::string definedTableName = definitionRoot->components[1]->value;
+            std::ofstream definedFile(TABLE_DIRECTORY + definedTableName + FILE_EXTENSION);
+
+            auto selectionRoot = definitionRoot->components[2];
+            auto selectedColumnListRoot = selectionRoot->components[2];
+            std::string selectedTableName = selectionRoot->components[1]->value;
+            TableInfo selectedInfo(TABLE_DIRECTORY + selectedTableName + FILE_EXTENSION);
+
+            // figure out which columns were selected
+            std::vector<ColumnInfo> definedColumns;
+            // *
+            if (selectedColumnListRoot->components[0]->type == asterisk)
+                definedColumns = selectedInfo.columns;
+            // column names
+            else
+                for (auto& columnNode : selectedColumnListRoot->components)
+                    definedColumns.push_back(*selectedInfo[columnNode->value]);
+
+            // write header
+            TableInfo definedInfo(definedTableName, definedColumns);
+            // printTableInfo(definedInfo);
+            writeHeader(definedInfo);
+
+            Table selectedTable(selectedInfo);
+            Table definedTable(definedInfo);
+
+            while (selectedTable.nextRow()) {
+                char deleteByte = '\0';
+                definedTable.appendBytes(&deleteByte, 1);
+                for (const ColumnInfo& column : definedColumns) {
+                    char* selectedBytes = selectedTable.getBytes(column.name);
+                    definedTable.appendBytes(selectedBytes, column.bytesNeeded);
+                }
+            }
+}
+
+// define a table
+// contains the logic for defining from column, type list
+void define(std::shared_ptr<node> definitionRoot) {
+
+    switch (definitionRoot->components[2]->type) {
+        case col_type_list: {
+            TableInfo newTable = nodeToTableInfo(definitionRoot);
+            writeHeader(newTable);
+        }
+        break;
+        
+        case selection: {
+            defineSelection(definitionRoot);
+        }
+        break;
+
+        default:
+            std::cout << "Defined a table other than from a column, type list or selection. There is likely an issue in the parser. Ignoring.\n";
+            exit(1);
+    }
 }
 
 void execute(std::shared_ptr<node> scriptRoot) {
