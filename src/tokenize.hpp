@@ -178,8 +178,12 @@ std::vector<token> tokenize(const std::string& statement) {
         }
         
         // float or integer literal
-        else if (isdigit(*it)) {
-            std::string::const_iterator number_end = it;
+        else if (isdigit(*it) || *it == '-') {
+            if (*it == '-' && !isdigit(*(it+1))) {
+                std::cout << "Tokenization error on line " << line_number << ". '-' must be followed by a digit.\n";
+                exit(1);
+            }
+            std::string::const_iterator number_end = it + 1;
             while (isdigit(*number_end))
                 number_end++;
             
@@ -205,7 +209,7 @@ std::vector<token> tokenize(const std::string& statement) {
                 std::stoi(number);
             }
             catch (const std::out_of_range& e) {
-                std::cout << "Tokenization error on line " << line_number << ". The integer " << number << " is greater than 32 bit int max or less than 32 bit int min.\n";
+                std::cout << "Tokenization error on line " << line_number << ". The integer " << number << " out of 32 bit int range.\n";
                 exit(1);
             }
 
