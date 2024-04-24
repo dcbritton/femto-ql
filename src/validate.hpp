@@ -25,7 +25,7 @@ public:
         // std::cout << "\nValidation log:\n---------------\n";
         for (auto nodePtr : astRoot->components) {
             switch (nodePtr->type) {
-                // @TODO Add more validation functions
+
                 case drop:
                     validateDrop(nodePtr);
                     break;
@@ -765,7 +765,6 @@ public:
             }
         }
 
-        // @TODO default to larger chars on resultant table
         std::vector<ColumnInfo> workingColumns = first->columns;
         // for each chars column, make sure that the larger one is put into workingColumns  
         for (auto& workingColumn : workingColumns) {
