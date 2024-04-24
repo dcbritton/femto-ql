@@ -15,7 +15,6 @@ struct Table {
     TableInfo t;
     std::fstream file;
     char* currentRow;
-    char* peekRow;
     unsigned int rowSize;
     unsigned int dataStartPosition;
 
@@ -39,12 +38,10 @@ struct Table {
             rowSize += c.bytesNeeded;
         }
         currentRow = new char[rowSize];
-        peekRow = new char[rowSize];
     }
 
     ~Table() {
         delete [] currentRow;
-        delete [] peekRow;
     }
 
     // check if an row is null (type agnostic)
@@ -65,7 +62,7 @@ struct Table {
     // get chars value by column name
     std::string getChars(const std::string& columnName) {
         ColumnInfo* c = t[columnName];
-        std::string str(currentRow + c->offset + 1, c->bytesNeeded);
+        std::string str(currentRow + c->offset + 1, c->charsLength);
         str.erase(std::find(str.begin(), str.end(), '\0'), str.end()); // Remove all null characters
         return str;  
     }
@@ -281,6 +278,7 @@ struct Table {
         return true;
     }
 
+    // get a pointer to column data by name
     char* getBytes(const std::string& columnName) {
         return currentRow + t[columnName]->offset;
     }
