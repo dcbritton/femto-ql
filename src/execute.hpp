@@ -239,22 +239,22 @@ void executeUpdate(std::shared_ptr<node> updateRoot) {
         if(!evaluationRoot->evaluate())
             continue;
        
-        for (auto& entry : mentionedNameToWriteData) {
-            switch (entry.second.type) {
+        for (const auto& [name, data] : mentionedNameToWriteData) {
+            switch (data.type) {
                 case int_literal:
-                    table.setInt(entry.first, stoi(entry.second.value));
+                    table.setInt(name, stoi(data.value));
                     break;
                 case float_literal:
-                    table.setFloat(entry.first, stof(entry.second.value));
+                    table.setFloat(name, stof(data.value));
                     break;
                 case chars_literal:
-                    table.setChars(entry.first, entry.second.value);
+                    table.setChars(name, data.value);
                     break;
                 case bool_literal:
-                    table.setBool(entry.first, entry.second.value == "true");
+                    table.setBool(name, data.value == "true");
                     break;
                 case kw_null:
-                    table.setNull(entry.first);
+                    table.setNull(name);
                     break;
                 default:
                     std::cout << "Error while executing an update. Column cannot be a type other than a literal.\n";
@@ -344,10 +344,10 @@ void insert(std::shared_ptr<node> insertRoot) {
     }
 }
 
+// drop a table
 void executeDrop(std::shared_ptr<node> dropRoot)  {
     std::filesystem::remove("../tables/" + dropRoot->components[0]->value + ".ftbl");
 }
-
 
 // given a TableInfo, write a header for a table that does not exist yet
 void writeHeader(const TableInfo& table) {
@@ -397,16 +397,15 @@ void defineSelection(std::shared_ptr<node> definitionRoot) {
 
     // write header
     TableInfo definedInfo(definedTableName, definedColumns);
-    // printTableInfo(definedInfo);
     writeHeader(definedInfo);
 
     Table selectedTable(selectedInfo);
     Table definedTable(definedInfo);
 
-    auto boolExprRoot = selectionRoot->components[3]->components[0];
+    auto whereClauseRoot = selectionRoot->components[3];
     
     // no where clause
-    if (boolExprRoot->type == nullnode) {
+    if (whereClauseRoot->type == nullnode) {
         while (selectedTable.nextRow()) {
             char deleteByte = '\0';
             definedTable.appendBytes(&deleteByte, 1);
@@ -417,9 +416,9 @@ void defineSelection(std::shared_ptr<node> definitionRoot) {
         }
     }
     // where clause
-    else if (boolExprRoot->type == bool_expr) {
+    else if (whereClauseRoot->type == where_clause) {
 
-        std::shared_ptr<EvaluationNode> evaluationRoot = convert(boolExprRoot, selectedTable, selectedInfo);
+        std::shared_ptr<EvaluationNode> evaluationRoot = convert(whereClauseRoot->components[0], selectedTable, selectedInfo);
         while (selectedTable.nextRow()) {
             if (!evaluationRoot->evaluate())
                 continue;
@@ -435,6 +434,120 @@ void defineSelection(std::shared_ptr<node> definitionRoot) {
     }
 }
 
+// called in define()
+void defineBagOp(std::shared_ptr<node> definitionRoot) {
+    std::string definedTableName = definitionRoot->components[1]->value;
+    std::ofstream definedFile(TABLE_DIRECTORY + definedTableName + FILE_EXTENSION);
+
+    auto bagOpRoot = definitionRoot->components[2];
+    element_type opType = bagOpRoot->components[0]->type;
+    TableInfo table1Info(TABLE_DIRECTORY + bagOpRoot->components[1]->value + FILE_EXTENSION);
+    TableInfo table2Info(TABLE_DIRECTORY + bagOpRoot->components[2]->value + FILE_EXTENSION);
+
+    std::vector<ColumnInfo> definedColumns = table1Info.columns;
+    // for each chars column, make sure that the larger one is put into workingColumns  
+    for (auto& workingColumn : definedColumns) {
+        if (workingColumn.type == chars_literal) {
+            auto c2 = find(workingColumn.name, table2Info.columns);
+            // set longer chars length
+            workingColumn.charsLength  = ( c2->charsLength > workingColumn.charsLength ? c2->charsLength : workingColumn.charsLength );
+            // set longer bytes needed
+            workingColumn.bytesNeeded  = ( c2->bytesNeeded > workingColumn.bytesNeeded ? c2->bytesNeeded : workingColumn.bytesNeeded );
+        }
+    }
+
+    // write table header
+    TableInfo definedInfo(definedTableName, definedColumns);
+    writeHeader(definedInfo);
+
+    Table table1(table1Info);
+    Table table2(table2Info);
+    Table definedTable(definedInfo);
+
+    // bag union
+    if (opType == kw_union) {
+        // output first table using larger output width
+        while (table1.nextRow()) {
+
+            // set row undeleted
+            char deleteByte = '\0';
+            definedTable.appendBytes(&deleteByte, 1);
+
+            for (const ColumnInfo& column : definedColumns) {
+
+                char* columnBytes = table1.getBytes(column.name);
+                int table1BytesNeeded = table1.t[column.name]->bytesNeeded;
+                definedTable.appendBytes(columnBytes, table1BytesNeeded);
+
+                // pad shorter chars columns
+                if (table1.t[column.name]->type == chars_literal && table1BytesNeeded < column.bytesNeeded) {
+                    int paddingLength = column.bytesNeeded - table1BytesNeeded;
+                    for (int i = 0; i < paddingLength; ++i) {
+                        char nullByte = '\0';
+                        definedTable.appendBytes(&nullByte, 1);
+                    }
+                }
+            }
+        }
+        // output second table using larger output width
+        while (table2.nextRow()) {
+
+            // set row undeleted
+            char deleteByte = '\0';
+            definedTable.appendBytes(&deleteByte, 1);
+
+            for (const ColumnInfo& column : definedColumns) {
+
+                char* columnBytes = table2.getBytes(column.name);
+                int table2BytesNeeded = table2.t[column.name]->bytesNeeded;
+                definedTable.appendBytes(columnBytes, table2BytesNeeded);
+
+                // pad shorter chars columns
+                if (table2.t[column.name]->type == chars_literal && table2BytesNeeded < column.bytesNeeded) {
+                    int paddingLength = column.bytesNeeded - table2BytesNeeded;
+                    for (int i = 0; i < paddingLength; ++i) {
+                        char nullByte = '\0';
+                        definedTable.appendBytes(&nullByte, 1);
+                    }
+                }
+            }
+        }
+    }
+
+    // bag intersect
+    else if (opType == kw_intersect)  {
+        while (table1.nextRow()) {
+            // compare each row of table1 to every row of table2 until a match is found
+            while (table2.nextRow()) {
+                // match not found, skip
+                if (!table1.compareRow(table2))
+                    continue;
+
+                // set row undeleted
+                char deleteByte = '\0';
+                definedTable.appendBytes(&deleteByte, 1);
+
+                // match found. output & reset table2
+                for (const ColumnInfo& column : definedColumns) {
+                    char* columnBytes;
+                    // for chars, just pick the bytes from the longer column. we know they're the same
+                    if (column.type == chars_literal)
+                        columnBytes = ( table1.t[column.name]->bytesNeeded > table2.t[column.name]->bytesNeeded ? table1.getBytes(column.name) : table2.getBytes(column.name) );
+                    else
+                        columnBytes = table1.getBytes(column.name);
+
+                    definedTable.appendBytes(columnBytes, column.bytesNeeded);
+                }
+
+                table2.reset();
+                break;
+            }
+            // match never found, reset table2
+            table2.reset();
+        }
+    }
+}
+
 // define a table
 // contains the logic for defining from column, type list
 void define(std::shared_ptr<node> definitionRoot) {
@@ -446,9 +559,12 @@ void define(std::shared_ptr<node> definitionRoot) {
         }
         break;
         
-        case selection: {
+        case selection:
             defineSelection(definitionRoot);
-        }
+        break;
+
+        case bag_op:
+            defineBagOp(definitionRoot);
         break;
 
         default:
