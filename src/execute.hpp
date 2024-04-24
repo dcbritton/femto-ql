@@ -548,6 +548,79 @@ void defineBagOp(std::shared_ptr<node> definitionRoot) {
     }
 }
 
+// called in define()
+void defineJoin(std::shared_ptr<node> definitionRoot) {
+    std::string definedTableName = definitionRoot->components[1]->value;
+    std::ofstream definedFile(TABLE_DIRECTORY + definedTableName + FILE_EXTENSION);
+
+    auto joinRoot = definitionRoot->components[2];
+    std::string table1Name = joinRoot->components[0]->value;
+    std::string table2Name = joinRoot->components[1]->value;
+    TableInfo table1Info(TABLE_DIRECTORY + table1Name + FILE_EXTENSION);
+    TableInfo table2Info(TABLE_DIRECTORY + table2Name + FILE_EXTENSION);
+
+    auto onRoot = joinRoot->components[2];
+    auto aliasListRoot = joinRoot->components[3];
+    auto joinedColumn1Name = split(onRoot->components[0]->value);
+    auto joinedColumn2Name = split(onRoot->components[2]->value);
+    element_type operation = onRoot->components[1]->type;
+
+    std::vector<ColumnInfo> definedColumns;
+    // same as validation to find column names
+    // build map from table.column name to alias
+    std::map<std::string, std::string> nameToAlias;
+    for (auto& aliasRoot : aliasListRoot->components)
+        nameToAlias.insert({aliasRoot->components[0]->value, aliasRoot->components[1]->value});
+
+    // go through columns of each table
+    for (const auto& t : {&table1Info, &table2Info}) {
+        for (const ColumnInfo& c : t->columns) {
+            std::string aliasName;                
+            // no alias, add original name
+            if (std::find_if(nameToAlias.begin(), nameToAlias.end(), [&t, &c, &aliasName](std::pair<std::string, std::string> nameToAlias){aliasName = nameToAlias.second; return nameToAlias.first == t->name + '.' + c.name;}) == nameToAlias.end())
+                definedColumns.push_back(ColumnInfo(c));
+            // otherwise, add the alias as the name instead
+            else
+                definedColumns.push_back(ColumnInfo(aliasName, c.type, c.charsLength));
+        }
+    }
+
+    // write header of defined table file
+    TableInfo definedInfo(definedTableName, definedColumns);
+    writeHeader(definedInfo);
+    Table definedTable(definedInfo);
+
+    Table table1(table1Info);
+    Table table2(table2Info);
+
+    // output the join
+    while (table1.nextRow()) {
+        while (table2.nextRow()) {
+            // match not found, skip
+            if (!table1.compareCell(joinedColumn1Name.second, operation, table2, joinedColumn2Name.second))
+                continue;
+
+            // set new row as undeleted
+            char deleteByte = '\0';
+            definedTable.appendBytes(&deleteByte, 1);
+
+            // match found, output row
+            for (const ColumnInfo column : table1Info.columns) {
+                char* entryBytes = table1.getBytes(column.name);
+                definedTable.appendBytes(entryBytes, column.bytesNeeded);
+            }
+            for (const ColumnInfo column : table2Info.columns) {
+                char* entryBytes = table2.getBytes(column.name);
+                definedTable.appendBytes(entryBytes, column.bytesNeeded);
+            }
+            
+            // dont break, continue looking for matches
+        }
+        // reached the end of table 2, reset
+        table2.reset();
+    }
+}
+
 // define a table
 // contains the logic for defining from column, type list
 void define(std::shared_ptr<node> definitionRoot) {
@@ -567,8 +640,12 @@ void define(std::shared_ptr<node> definitionRoot) {
             defineBagOp(definitionRoot);
         break;
 
+        case join:
+            defineJoin(definitionRoot);
+        break;
+
         default:
-            std::cout << "Defined a table other than from a column, type list or selection. There is likely an issue in the parser. Ignoring.\n";
+            std::cout << "Defined a table other than from a column-type list, selection, bag operation, or join. There is likely an issue in the parser. Ignoring.\n";
             exit(1);
     }
 }
